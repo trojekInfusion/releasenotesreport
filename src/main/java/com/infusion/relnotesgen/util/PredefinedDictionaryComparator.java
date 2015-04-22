@@ -8,6 +8,10 @@ import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 
 
+/**
+ * @author trojek
+ *
+ */
 public class PredefinedDictionaryComparator implements Comparator<String> {
 
     private List<String> typeOrder = asList("New Feature", "Epic", "Bug");

@@ -17,7 +17,7 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.infusion.relnotesgen.GitMessageReader.Response;
+import com.infusion.relnotesgen.GitFacade.Response;
 import com.infusion.relnotesgen.util.TestGitRepo;
 
 
@@ -25,12 +25,12 @@ import com.infusion.relnotesgen.util.TestGitRepo;
  * @author trojek
  *
  */
-public class GitMessageReaderWithCloneTest {
+public class GitMessageReadingWithCloningOfRepositoryTest {
 
 
     private static TestGitRepo testGitRepo = new TestGitRepo();
 
-    private GitMessageReader gitMessageReader;
+    private GitFacade gitMessageReader;
     private File tempRepo;
 
     @Before
@@ -54,7 +54,7 @@ public class GitMessageReaderWithCloneTest {
         // Given
         String commitId1 = "2ea0809c55657bc528933e6fda3a7772cacf8279";
         String commitId2 = "2ea0809c55657bc528933e6fda3a7772cacf8279";
-        gitMessageReader = new GitMessageReader(testGitRepo.configuration()
+        gitMessageReader = new GitFacade(testGitRepo.configuration()
                 .gitDirectory(tempRepo.getAbsolutePath())
                 .branch("branch1")
                 .build());
@@ -72,7 +72,7 @@ public class GitMessageReaderWithCloneTest {
         // Given
         String commitId1 = "33589445102fd7b49421006e0447836429d84113";
         String commitId2 = "948fa8f6cc8a49f08e3c3a426c9e3d7323ce469a";
-        gitMessageReader = new GitMessageReader(testGitRepo.configuration()
+        gitMessageReader = new GitFacade(testGitRepo.configuration()
                 .gitDirectory(tempRepo.getAbsolutePath())
                 .build());
 
@@ -89,7 +89,7 @@ public class GitMessageReaderWithCloneTest {
         // Given
         String commitId1 = "33589445102fd7b49421006e0447836429d84113";
         String commitId2 = "948fa8f6cc8a49f08e3c3a426c9e3d7323ce469a";
-        gitMessageReader = new GitMessageReader(testGitRepo.configuration()
+        gitMessageReader = new GitFacade(testGitRepo.configuration()
                 .gitDirectory(tempRepo.getAbsolutePath())
                 .build());
 
@@ -106,7 +106,7 @@ public class GitMessageReaderWithCloneTest {
         // Given
         String commitId1 = "1c814546893dc5544f86ca87ca58f0d162c9ccd2";
         String commitId2 = "50dbc466d1fa6ddc714ebabbeae585af7a72524b";
-        gitMessageReader = new GitMessageReader(testGitRepo.configuration()
+        gitMessageReader = new GitFacade(testGitRepo.configuration()
                 .gitDirectory(tempRepo.getAbsolutePath())
                 .build());
 
@@ -122,7 +122,7 @@ public class GitMessageReaderWithCloneTest {
         // Given
         String commitId1 = "1c814546893dc5544f86ca87ca58f0d162c9ccd2";
         String commitId2 = "4f4685dfcff6514558f08d3dd303bda4684f0ffd";
-        gitMessageReader = new GitMessageReader(testGitRepo.configuration()
+        gitMessageReader = new GitFacade(testGitRepo.configuration()
                 .gitDirectory(tempRepo.getAbsolutePath())
                 .build());
 
@@ -136,7 +136,7 @@ public class GitMessageReaderWithCloneTest {
     @Test
     public void readByTagWithTwoNeighbourTags() {
         // Given
-        gitMessageReader = new GitMessageReader(testGitRepo.configuration()
+        gitMessageReader = new GitFacade(testGitRepo.configuration()
                 .gitDirectory(tempRepo.getAbsolutePath())
                 .build());
 
@@ -153,7 +153,7 @@ public class GitMessageReaderWithCloneTest {
     @Test
     public void readByTagWithTwoTagsHavingOtherTagBetweenThem() {
         // Given
-        gitMessageReader = new GitMessageReader(testGitRepo.configuration()
+        gitMessageReader = new GitFacade(testGitRepo.configuration()
                 .gitDirectory(tempRepo.getAbsolutePath())
                 .build());
 
@@ -171,7 +171,7 @@ public class GitMessageReaderWithCloneTest {
     @Test
     public void readByTagWithOneTag() {
         // Given
-        gitMessageReader = new GitMessageReader(testGitRepo.configuration()
+        gitMessageReader = new GitFacade(testGitRepo.configuration()
                 .gitDirectory(tempRepo.getAbsolutePath())
                 .build());
 

@@ -15,7 +15,7 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
-import com.infusion.relnotesgen.GitMessageReader.Response;
+import com.infusion.relnotesgen.GitFacade.Response;
 import com.infusion.relnotesgen.util.TestGitRepo;
 
 /**
@@ -23,17 +23,17 @@ import com.infusion.relnotesgen.util.TestGitRepo;
  *
  */
 @RunWith(Parameterized.class)
-public class GitMessageReaderTest {
+public class GitMessageReadingTest {
 
     private static TestGitRepo testGitRepo = new TestGitRepo();
-    private static GitMessageReader gitMessageReader = new GitMessageReader(testGitRepo.configuration().build());
+    private static GitFacade gitMessageReader = new GitFacade(testGitRepo.configuration().build());
 
     private String commitId1;
     private String commitId2;
     private String[] messages;
     private String version;
 
-    public GitMessageReaderTest(final String commitId1, final String commitId2, final String[] messages, final String version) {
+    public GitMessageReadingTest(final String commitId1, final String commitId2, final String[] messages, final String version) {
         this.commitId1 = commitId1;
         this.commitId2 = commitId2;
         this.messages = messages;

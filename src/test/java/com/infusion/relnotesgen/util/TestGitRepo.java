@@ -14,7 +14,7 @@ import org.eclipse.jgit.api.errors.InvalidRemoteException;
 import org.eclipse.jgit.api.errors.TransportException;
 import org.junit.Assert;
 
-import com.infusion.relnotesgen.GitMessageReaderTest;
+import com.infusion.relnotesgen.GitMessageReadingTest;
 
 public class TestGitRepo {
 
@@ -32,7 +32,7 @@ public class TestGitRepo {
     }
 
     private void createOriginRepository() throws IOException, URISyntaxException {
-        URL testrepo = GitMessageReaderTest.class.getResource("/testrepo");
+        URL testrepo = GitMessageReadingTest.class.getResource("/testrepo");
         originTempRepo = Files.createTempDirectory("TestOriginGitRepo").toFile();
         FileUtils.copyDirectory(new File(testrepo.toURI()), originTempRepo);
 

@@ -14,6 +14,10 @@ import org.junit.Test;
 import com.google.common.io.Files;
 
 
+/**
+ * @author trojek
+ *
+ */
 public class MainIT {
 
     @Before
@@ -53,11 +57,12 @@ public class MainIT {
     }
 
     @Test
-    public void releaseNotesAreGeneratedByTag() throws IOException {
+    public void releaseNotesAreGeneratedByTagWithPushOfReleaseNotes() throws IOException {
         //Given
         final String[] args = new String[]{
                 "-configurationFilePath", MainIT.class.getResource("/configuration.properties").getFile(),
-                "-tag1", "0.19.0.20"};
+                "-tag1", "0.19.0.20",
+                "-pushReleaseNotes"};
 
         //When
         Main.main(args);

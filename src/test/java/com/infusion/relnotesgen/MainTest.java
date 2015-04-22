@@ -9,6 +9,10 @@ import org.junit.Test;
 import com.beust.jcommander.ParameterException;
 
 
+/**
+ * @author trojek
+ *
+ */
 public class MainTest {
 
     @Test(expected = ParameterException.class)

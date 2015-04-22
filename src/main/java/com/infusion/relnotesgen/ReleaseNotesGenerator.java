@@ -15,6 +15,8 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.atlassian.jira.rest.client.domain.Issue;
 import com.infusion.relnotesgen.util.PredefinedDictionaryComparator;
@@ -26,8 +28,13 @@ import freemarker.template.TemplateException;
 import freemarker.template.TemplateExceptionHandler;
 import freemarker.template.Version;
 
+/**
+ * @author trojek
+ *
+ */
 public class ReleaseNotesGenerator {
 
+    private final static Logger logger = LoggerFactory.getLogger(ReleaseNotesGenerator.class);
     private Configuration configuration;
     private freemarker.template.Configuration freemarkerConf;
 
@@ -46,6 +53,7 @@ public class ReleaseNotesGenerator {
     }
 
     public void generate(final Collection<Issue> issues, final File report, final String version) throws IOException {
+        logger.info("Generating report to file {} with {} issues", report.getAbsolutePath(), issues.size());
         if(report.exists()) {
             report.delete();
         }
@@ -64,6 +72,7 @@ public class ReleaseNotesGenerator {
                 throw new RuntimeException(e);
             }
         }
+        logger.info("Generation of report is finished.");
     }
 
     private Map<String, List<Issue>> splitByType(final Collection<Issue> issues) {

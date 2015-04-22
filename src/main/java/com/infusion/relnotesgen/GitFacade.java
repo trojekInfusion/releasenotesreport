@@ -3,6 +3,8 @@ package com.infusion.relnotesgen;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -16,6 +18,7 @@ import javax.xml.xpath.XPathFactory;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.eclipse.jgit.api.AddCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.PullResult;
 import org.eclipse.jgit.api.errors.CanceledException;
@@ -35,6 +38,7 @@ import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
 import org.eclipse.jgit.transport.CredentialsProvider;
+import org.eclipse.jgit.transport.PushResult;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,16 +49,21 @@ import org.xml.sax.SAXException;
  * @author trojek
  *
  */
-public class GitMessageReader {
+public class GitFacade {
 
-    private final static Logger logger = LoggerFactory.getLogger(GitMessageReader.class);
+    /**
+     *
+     */
+    private static final String RELEASES_DIR = "releases";
+
+    private final static Logger logger = LoggerFactory.getLogger(GitFacade.class);
 
     private static final String DEFAULT_VERSION = "1.0";
 
     private Git git;
     private Configuration configuration;
 
-    public GitMessageReader(final Configuration configuration) {
+    public GitFacade(final Configuration configuration) {
         logger.info("Reading git repository under {}", configuration.getGitDirectory());
         this.configuration = configuration;
         try {
@@ -242,6 +251,56 @@ public class GitMessageReader {
             return readByCommit(commitId1, commitId2);
         } catch (GitAPIException e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    public boolean pushReleaseNotes(final File releaseNotes, final String version) throws IOException {
+        File notesDirectory = new File(git.getRepository().getDirectory().getParentFile(), RELEASES_DIR);
+        boolean directoryCreated = false;
+        if(!notesDirectory.exists()) {
+            logger.info("Directory with release notes doesn't exist creating it in {}", notesDirectory.getAbsolutePath());
+            directoryCreated = notesDirectory.mkdir();
+        }
+        logger.info("Copying release notes to {} (will overwrite if aleady exists)", notesDirectory.getAbsolutePath());
+        File releaseNotesInGit = new File(notesDirectory, version.replace('.', '_') + ".html");
+        Files.copy(releaseNotes.toPath(), releaseNotesInGit.toPath(), StandardCopyOption.REPLACE_EXISTING);
+
+        logger.info("Pushing release notes for version {} in {}", version, releaseNotesInGit.getAbsolutePath());
+        try {
+            AddCommand addCommand = git.add();
+            if(directoryCreated) {
+                addCommand.addFilepattern(RELEASES_DIR);
+            } else {
+                addCommand.addFilepattern(RELEASES_DIR + "/" + version);
+            }
+            addCommand.call();
+
+            Set<String> added = git.status().call().getAdded();
+            if(added.size() != 1) {
+                logger.error("There are more than one change ({}) to be commited, cancelling pushing release notes.", added.size());
+                return false;
+            }
+
+            String commitMessage = "[Release Notes Generator] Release notes for version " + version + ". " + configuration.getGitCommitMessageValidationOmmitter();
+            logger.info("Committing file '{}' with message '{}', committer name {}, committer mail {}",
+                    added.iterator().next(), commitMessage, configuration.getGitCommitterName(), configuration.getGitCommitterMail());
+            git.commit()
+                .setCommitter(configuration.getGitCommitterName(), configuration.getGitCommitterMail())
+                .setMessage(commitMessage)
+                .call();
+
+            logger.info("Pushing changes to remote...");
+            Iterable<PushResult> pushResults = git.push()
+                    .setCredentialsProvider(credentials())
+                    .call();
+            logger.info("Push call has ended.");
+            for(PushResult pushResult : pushResults) {
+                logger.info("Push message: {}", pushResult.getMessages());
+            }
+            return true;
+        } catch (GitAPIException e) {
+            logger.error("Error during pushing release notes", e);
+            return false;
         }
     }
 

@@ -3,6 +3,10 @@ package com.infusion.relnotesgen;
 import java.util.Properties;
 
 
+/**
+ * @author trojek
+ *
+ */
 public class Configuration {
 
     private Properties properties;
@@ -29,6 +33,18 @@ public class Configuration {
 
     public String getGitPassword() {
         return properties.getProperty("git.password");
+    }
+
+    public String getGitCommitterName() {
+        return properties.getProperty("git.committer.name");
+    }
+
+    public String getGitCommitterMail() {
+        return properties.getProperty("git.committer.mail");
+    }
+
+    public String getGitCommitMessageValidationOmmitter() {
+        return properties.getProperty("git.commitmessage.validationommiter");
     }
 
     public String getJiraUrl() {

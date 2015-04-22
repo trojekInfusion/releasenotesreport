@@ -18,8 +18,12 @@ import org.slf4j.LoggerFactory;
 import com.atlassian.jira.rest.client.domain.Issue;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
-import com.infusion.relnotesgen.GitMessageReader.Response;
+import com.infusion.relnotesgen.GitFacade.Response;
 
+/**
+ * @author trojek
+ *
+ */
 public class Main {
 
     private final static Logger logger = LoggerFactory.getLogger(Main.class);
@@ -37,16 +41,15 @@ public class Main {
         logger.info("Read configuration: {}", ReflectionToStringBuilder.toString(configuration));
 
         //1. Getting git log messages
-        GitMessageReader gitMessageReader = new GitMessageReader(configuration);
+        GitFacade gitFacade = new GitFacade(configuration);
         Response gitInfo = null;
         if(isNotEmpty(programParameters.tag1) || isNotEmpty(programParameters.tag2)) {
-            gitInfo = gitMessageReader.readByTag(programParameters.tag1, programParameters.tag2);
+            gitInfo = gitFacade.readByTag(programParameters.tag1, programParameters.tag2);
         } else if(isNotEmpty(programParameters.tag1) || isNotEmpty(programParameters.tag2)) {
-            gitInfo = gitMessageReader.readByCommit(programParameters.commitId1, programParameters.commitId2);
+            gitInfo = gitFacade.readByCommit(programParameters.commitId1, programParameters.commitId2);
         } else {
             throw new IllegalArgumentException("Not commitId or tag parameter provided");
         }
-        gitMessageReader.close();
 
         //2. Matching issue ids from git log
         Set<String> jiraIssueIds = new JiraIssueIdMatcher(configuration.getJiraIssuePattern()).findJiraIds(gitInfo.messages);
@@ -58,6 +61,13 @@ public class Main {
         //4. Creating report
         File report = new File(RELEASE_NOTES_FILE);
         new ReleaseNotesGenerator(configuration).generate(issues, report, gitInfo.version);
+
+        //5. Pushing release notes to repo
+        if(programParameters.pushReleaseNotes) {
+            logger.info("Pushing release notes to remote repository");
+            gitFacade.pushReleaseNotes(report, gitInfo.version);
+        }
+        gitFacade.close();
 
         logger.info("Release notes generated under {}", report.getAbsolutePath());
     }
@@ -96,5 +106,8 @@ public class Main {
 
         @Parameter(names = { "-tag2"}, description = "Tag 2 delimeter")
         private String tag2;
+
+        @Parameter(names = { "-pushReleaseNotes"}, description = "Perform push of release notes to remote repo")
+        private boolean pushReleaseNotes = false;
     }
 }
