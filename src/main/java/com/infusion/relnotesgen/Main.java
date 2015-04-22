@@ -1,5 +1,7 @@
 package com.infusion.relnotesgen;
 
+import static org.apache.commons.lang3.StringUtils.isNotEmpty;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -16,6 +18,7 @@ import org.slf4j.LoggerFactory;
 import com.atlassian.jira.rest.client.domain.Issue;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
+import com.infusion.relnotesgen.GitMessageReader.Response;
 
 public class Main {
 
@@ -35,12 +38,18 @@ public class Main {
 
         //1. Getting git log messages
         GitMessageReader gitMessageReader = new GitMessageReader(configuration);
-        Set<String> gitComments = gitMessageReader.read(programParameters.commitId1, programParameters.commitId2);
-        String version = gitMessageReader.getLatestVersion(programParameters.commitId1, programParameters.commitId2);
+        Response gitInfo = null;
+        if(isNotEmpty(programParameters.tag1) || isNotEmpty(programParameters.tag2)) {
+            gitInfo = gitMessageReader.readByTag(programParameters.tag1, programParameters.tag2);
+        } else if(isNotEmpty(programParameters.tag1) || isNotEmpty(programParameters.tag2)) {
+            gitInfo = gitMessageReader.readByCommit(programParameters.commitId1, programParameters.commitId2);
+        } else {
+            throw new IllegalArgumentException("Not commitId or tag parameter provided");
+        }
         gitMessageReader.close();
 
         //2. Matching issue ids from git log
-        Set<String> jiraIssueIds = new JiraIssueIdMatcher(configuration.getJiraIssuePattern()).findJiraIds(gitComments);
+        Set<String> jiraIssueIds = new JiraIssueIdMatcher(configuration.getJiraIssuePattern()).findJiraIds(gitInfo.messages);
 
         //3. Quering jira for issues
         JiraIssueDao jiraIssueDao = new JiraIssueDao(configuration);
@@ -48,7 +57,7 @@ public class Main {
 
         //4. Creating report
         File report = new File(RELEASE_NOTES_FILE);
-        new ReleaseNotesGenerator(configuration).generate(issues, report, version);
+        new ReleaseNotesGenerator(configuration).generate(issues, report, gitInfo.version);
 
         logger.info("Release notes generated under {}", report.getAbsolutePath());
     }
@@ -76,10 +85,16 @@ public class Main {
         @Parameter(required = true, names = { "-configurationFilePath", "-conf" }, description = "Path to configuration file")
         private String configurationFilePath;
 
-        @Parameter(required = true, names = { "-commitId1"}, description = "Commit 1 hash delimeter")
+        @Parameter(names = { "-commitId1"}, description = "Commit 1 hash delimeter")
         private String commitId1;
 
-        @Parameter(required = true, names = { "-commitId2"}, description = "Commit 2 hash delimeter")
+        @Parameter(names = { "-commitId2"}, description = "Commit 2 hash delimeter")
         private String commitId2;
+
+        @Parameter(names = { "-tag1"}, description = "Tag 1 delimeter")
+        private String tag1;
+
+        @Parameter(names = { "-tag2"}, description = "Tag 2 delimeter")
+        private String tag2;
     }
 }

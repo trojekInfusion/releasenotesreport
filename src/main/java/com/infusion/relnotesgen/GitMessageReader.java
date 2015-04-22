@@ -3,7 +3,6 @@ package com.infusion.relnotesgen;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -31,7 +30,7 @@ import org.eclipse.jgit.api.errors.RefAlreadyExistsException;
 import org.eclipse.jgit.api.errors.RefNotFoundException;
 import org.eclipse.jgit.api.errors.TransportException;
 import org.eclipse.jgit.api.errors.WrongRepositoryStateException;
-import org.eclipse.jgit.lib.PersonIdent;
+import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
@@ -139,20 +138,28 @@ public class GitMessageReader {
         }
     }
 
-    public Set<String> read(final String commitId1, final String commitId2) {
+    public Response readByCommit(final String commitId1, final String commitId2) {
         try {
             Iterable<RevCommit> log = git.log().call();
 
             Set<String> messages = new HashSet<String>();
+            RevCommit latestCommit = null;
             for (RevCommit commit : log) {
-                if (!messages.isEmpty()) {
+                if (!messages.isEmpty() || (commitId1 == null || commitId2 == null)) {
+                    if(latestCommit == null) {
+                        latestCommit = commit;
+                    }
                     messages.add(commit.getFullMessage());
                 }
 
                 String commitId = commit.getId().getName();
                 if (commitId.equals(commitId1) || commitId.equals(commitId2)) {
-                    if (!messages.isEmpty()) {
+                    if (!messages.isEmpty() || (commitId1 == null || commitId2 == null)) {
                         break;
+                    }
+
+                    if(latestCommit == null) {
+                        latestCommit = commit;
                     }
                     messages.add(commit.getFullMessage());
 
@@ -162,43 +169,37 @@ public class GitMessageReader {
                 }
             }
 
-            return messages;
+            return new Response(messages, getVersion(latestCommit));
         } catch (GitAPIException e) {
             throw new RuntimeException(e);
         }
     }
 
-    public String getLatestVersion(final String commitId1, final String commitId2) {
-        logger.info("Searching for version...");
+    private String getVersion(final RevCommit commit) {
+        logger.info("Searching for version in commit '{}'", commit.getFullMessage());
         try {
-            RevCommit commit = findLatestCommit(commitId1, commitId2);
+            logger.info("Checkout to commit '{}'", commit.getId().getName());
+            git.checkout().setName(commit.getId().getName()).call();
 
-            if (commit != null) {
-                logger.info("Checkout to latest commit {}", commit.getId().getName());
-                git.checkout().setName(commit.getId().getName()).call();
+            File pomXmlParent = git.getRepository().getDirectory().getParentFile();
+            logger.info("Searching for pom.xml in directory '{}'", pomXmlParent.getAbsolutePath());
 
-                File pomXmlParent = git.getRepository().getDirectory().getParentFile();
-                logger.info("Searching for pom.xml in directory {}", pomXmlParent.getAbsolutePath());
+            File[] pomXmls = pomXmlParent.listFiles(new FilenameFilter() {
 
-                File[] pomXmls = pomXmlParent.listFiles(new FilenameFilter() {
-
-                    @Override
-                    public boolean accept(final File dir, final String name) {
-                        return "pom.xml".equals(name);
-                    }
-                });
-
-                if (pomXmls.length == 0) {
-                    logger.warn("Coulnd't find pom.xml file using default version {}", DEFAULT_VERSION);
-                    return DEFAULT_VERSION;
+                @Override
+                public boolean accept(final File dir, final String name) {
+                    return "pom.xml".equals(name);
                 }
+            });
 
-                String version = getVersion(pomXmls[0]);
-                logger.info("Found version {} in pom.xml {}", version, pomXmls[0].getAbsolutePath());
-                return version;
+            if (pomXmls.length == 0) {
+                logger.warn("Coulnd't find pom.xml file using default version {}", DEFAULT_VERSION);
+                return DEFAULT_VERSION;
             }
-            logger.warn("Coulnd't find version using default version {}", DEFAULT_VERSION);
-            return DEFAULT_VERSION;
+
+            String version = getVersion(pomXmls[0]);
+            logger.info("Found version {} in pom.xml {}", version, pomXmls[0].getAbsolutePath());
+            return version;
         } catch (Exception e) {
             throw new RuntimeException(e);
         } finally {
@@ -207,30 +208,6 @@ public class GitMessageReader {
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
-        }
-    }
-
-    private RevCommit findLatestCommit(final String commitId1, final String commitId2) {
-        try {
-            Iterable<RevCommit> log = git.log().call();
-
-            RevCommit latestCommit = null;
-            Date latestCommitDate = new Date(0L);
-            for (RevCommit commit : log) {
-                String commitId = commit.getId().getName();
-                if (commitId.equals(commitId1) || commitId.equals(commitId2)) {
-                    PersonIdent authorIdent = commit.getAuthorIdent();
-                    Date authorDate = authorIdent.getWhen();
-
-                    if(latestCommitDate.before(authorDate)) {
-                        latestCommitDate = authorDate;
-                        latestCommit = commit;
-                    }
-                }
-            }
-            return latestCommit;
-        } catch (Exception e) {
-            throw new RuntimeException(e);
         }
     }
 
@@ -245,7 +222,40 @@ public class GitMessageReader {
         return expr.evaluate(doc);
     }
 
+    public Response readByTag(final String tag1, final String tag2) {
+        try {
+            Iterable<Ref> tags = git.tagList().call();
+
+            String commitId1 = null;
+            String commitId2 = null;
+            for (Ref tag : tags) {
+                if(tag1 != null && tag.getName().endsWith(tag1)) {
+                    Ref peeledTag = git.getRepository().peel(tag);
+                    commitId1 = peeledTag.getPeeledObjectId().getName();
+                }
+                if(tag2 != null && tag.getName().endsWith(tag2)) {
+                    Ref peeledTag = git.getRepository().peel(tag);
+                    commitId2 = peeledTag.getPeeledObjectId().getName();
+                }
+            }
+
+            return readByCommit(commitId1, commitId2);
+        } catch (GitAPIException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public void close() {
         git.close();
+    }
+
+    public static class Response {
+        public final Set<String> messages;
+        public final String version;
+
+        public Response(final Set<String> messages, final String version) {
+            this.messages = messages;
+            this.version = version;
+        }
     }
 }

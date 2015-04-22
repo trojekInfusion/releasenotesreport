@@ -65,9 +65,9 @@ public class ReleaseNotesGeneratorTest {
 
 		assertXpath(report, "count(/html/body/p)", "4");
 
-		assertXpath(report, "/html/body/p[1]/text()", "Feature");
+		assertXpath(report, "/html/body/p[1]/text()", "Feature (2)");
 		assertXpath(report, "count(/html/body/ul[1]/li)", "2");
-        assertXpath(report, "/html/body/ul[1]/li[1]/a/text()", "Big SYM-736: Summary summary");
+        assertXpath(report, "/html/body/ul[1]/li[1]/a/text()", "SYM-736: Summary summary");
         assertXpath(report, "/html/body/ul[1]/li[1]/a/@href", JIRA_URL + "/browse/SYM-736");
         assertXpath(report, "/html/body/ul[1]/li[2]/a/text()", "SYM-737");
 

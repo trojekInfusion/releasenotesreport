@@ -19,11 +19,13 @@ public class MainIT {
     @Before
     @After
     public void cleanRepoDirectory() throws IOException {
+        File reportFile = new File(Main.RELEASE_NOTES_FILE);
+        //if(reportFile.exists()) reportFile.delete();
         //FileUtils.deleteDirectory(new File("C:/temp/testsymphony"));
     }
 
     @Test
-    public void releaseNotesAreGenerated() throws IOException {
+    public void releaseNotesAreGeneratedByCommit() throws IOException {
         //Given
         final String[] args = new String[]{
                 "-configurationFilePath", MainIT.class.getResource("/configuration.properties").getFile(),
@@ -37,7 +39,7 @@ public class MainIT {
         assertTestReport();
 
         //Second run with pull
-        Main.main(args);
+        //Main.main(args);
         assertTestReport();
     }
 
@@ -48,6 +50,21 @@ public class MainIT {
         Assert.assertThat(report, containsString("SYM-754"));
 
         return reportFile;
+    }
+
+    @Test
+    public void releaseNotesAreGeneratedByTag() throws IOException {
+        //Given
+        final String[] args = new String[]{
+                "-configurationFilePath", MainIT.class.getResource("/configuration.properties").getFile(),
+                "-tag1", "0.19.0.20"};
+
+        //When
+        Main.main(args);
+
+        //Then
+        File reportFile = new File(Main.RELEASE_NOTES_FILE);
+        Assert.assertTrue(reportFile.exists());
     }
 
 }

@@ -4,7 +4,7 @@
 
 	<groupId>com.infusion</groupId>
 	<artifactId>release-notes-generator</artifactId>
-	<version>1.1</version>
+	<version>1.4</version>
 	<packaging>jar</packaging>
 
 	<name>release-notes-generator</name>
