@@ -1,0 +1,934 @@
+{
+   "expand": "renderedFields,names,schema,transitions,operations,editmeta,changelog,versionedRepresentations",
+   "id": "12306",
+   "self": "https://ensemble.atlassian.net/rest/api/latest/issue/12306",
+   "key": "BUG-666",
+   "fields":    {
+      "issuetype":       {
+         "self": "https://ensemble.atlassian.net/rest/api/2/issuetype/1",
+         "id": "1",
+         "description": "A problem which impairs or prevents the functions of the product.",
+         "iconUrl": "https://ensemble.atlassian.net/images/icons/issuetypes/bug.png",
+         "name": "Bug",
+         "subtask": false
+      },
+      "timespent": 14400,
+      "customfield_10030": null,
+      "customfield_10031": null,
+      "project":       {
+         "self": "https://ensemble.atlassian.net/rest/api/2/project/10101",
+         "id": "10101",
+         "key": "SYM",
+         "name": "Symphony",
+         "avatarUrls":          {
+            "48x48": "https://ensemble.atlassian.net/secure/projectavatar?pid=10101&avatarId=10700",
+            "24x24": "https://ensemble.atlassian.net/secure/projectavatar?size=small&pid=10101&avatarId=10700",
+            "16x16": "https://ensemble.atlassian.net/secure/projectavatar?size=xsmall&pid=10101&avatarId=10700",
+            "32x32": "https://ensemble.atlassian.net/secure/projectavatar?size=medium&pid=10101&avatarId=10700"
+         }
+      },
+      "customfield_10032": null,
+      "fixVersions": [      {
+         "self": "https://ensemble.atlassian.net/rest/api/2/version/10403",
+         "id": "10403",
+         "description": "Symphony 1.1",
+         "name": "Symphony 1.1",
+         "archived": false,
+         "released": false
+      }],
+      "customfield_10033": null,
+      "customfield_10034": null,
+      "aggregatetimespent": 14400,
+      "resolution": null,
+      "customfield_10035": null,
+      "customfield_10036": null,
+      "customfield_10037": null,
+      "customfield_10027": null,
+      "customfield_10028": null,
+      "customfield_10029": null,
+      "resolutiondate": null,
+      "workratio": 400,
+      "lastViewed": "2015-04-16T10:22:04.876-0400",
+      "watches":       {
+         "self": "https://ensemble.atlassian.net/rest/api/2/issue/SYM-754/watchers",
+         "watchCount": 1,
+         "isWatching": false
+      },
+      "created": "2015-04-10T07:01:41.919-0400",
+      "customfield_10020": null,
+      "customfield_10021": null,
+      "customfield_10022": null,
+      "customfield_10023": "Not Started",
+      "priority":       {
+         "self": "https://ensemble.atlassian.net/rest/api/2/priority/2",
+         "iconUrl": "https://ensemble.atlassian.net/images/icons/priorities/high.png",
+         "name": "High",
+         "id": "2"
+      },
+      "customfield_10100": "1.0",
+      "customfield_10024": null,
+      "customfield_10300": null,
+      "labels": ["PolishBoard", "BUKA"],
+      "customfield_10016": null,
+      "customfield_10017": null,
+      "customfield_10018": null,
+      "customfield_10019": null,
+      "timeestimate": 0,
+      "aggregatetimeoriginalestimate": 3600,
+      "versions": [      {
+         "self": "https://ensemble.atlassian.net/rest/api/2/version/10400",
+         "id": "10400",
+         "description": "Symphony 1.0",
+         "name": "Symphony 1.0",
+         "archived": false,
+         "released": true,
+         "releaseDate": "2015-04-02"
+      }],
+      "issuelinks": [],
+      "assignee":       {
+         "self": "https://ensemble.atlassian.net/rest/api/2/user?username=tkisiel",
+         "name": "tkisiel",
+         "key": "tkisiel",
+         "emailAddress": "tkisiel@infusion.com",
+         "avatarUrls":          {
+            "48x48": "https://ensemble.atlassian.net/secure/useravatar?ownerId=tkisiel&avatarId=10503",
+            "24x24": "https://ensemble.atlassian.net/secure/useravatar?size=small&ownerId=tkisiel&avatarId=10503",
+            "16x16": "https://ensemble.atlassian.net/secure/useravatar?size=xsmall&ownerId=tkisiel&avatarId=10503",
+            "32x32": "https://ensemble.atlassian.net/secure/useravatar?size=medium&ownerId=tkisiel&avatarId=10503"
+         },
+         "displayName": "Tomasz Kisiel",
+         "active": true,
+         "timeZone": "Europe/Warsaw"
+      },
+      "updated": "2015-04-10T17:18:38.104-0400",
+      "status":       {
+         "self": "https://ensemble.atlassian.net/rest/api/2/status/10004",
+         "description": "Stories in this status have been deployed to QA",
+         "iconUrl": "https://ensemble.atlassian.net/images/icons/statuses/generic.png",
+         "name": "Ready for QA",
+         "id": "10004",
+         "statusCategory":          {
+            "self": "https://ensemble.atlassian.net/rest/api/2/statuscategory/4",
+            "id": 4,
+            "key": "indeterminate",
+            "colorName": "yellow",
+            "name": "In Progress"
+         }
+      },
+      "components": [
+      	{
+            "self": "https://ensemble.atlassian.net/rest/api/2/component/10203",
+            "id": "10203",
+            "name": "Symphony Manager",
+            "description": "Symphony Manager Web Site"
+         },
+                  {
+            "self": "https://ensemble.atlassian.net/rest/api/2/component/10202",
+            "id": "10202",
+            "name": "Symphony Node",
+            "description": "Symphony Server Node"
+         }
+      ],
+      "customfield_10050": null,
+      "customfield_10051": null,
+      "timeoriginalestimate": 3600,
+      "description": null,
+      "customfield_10012": "0|hzzzxm:zzzx",
+      "customfield_10013": null,
+      "customfield_10014": null,
+      "customfield_10015": null,
+      "timetracking":       {
+         "originalEstimate": "1h",
+         "remainingEstimate": "0m",
+         "timeSpent": "4h",
+         "originalEstimateSeconds": 3600,
+         "remainingEstimateSeconds": 0,
+         "timeSpentSeconds": 14400
+      },
+      "customfield_10049": null,
+      "customfield_10007": ["com.atlassian.greenhopper.service.sprint.Sprint@184e76e[rapidViewId=18,state=CLOSED,name=Poland - Iteration VI,startDate=2015-04-07T06:10:05.704-04:00,endDate=2015-04-10T12:01:00.000-04:00,completeDate=2015-04-10T09:53:51.149-04:00,sequence=30,id=30]"],
+      "customfield_10008": null,
+      "attachment": [],
+      "aggregatetimeestimate": 0,
+      "summary": "Symphony 'pizza' smoke tests fail with ClassDefNotFoundException on Jenkins",
+      "creator":       {
+         "self": "https://ensemble.atlassian.net/rest/api/2/user?username=tkisiel",
+         "name": "tkisiel",
+         "key": "tkisiel",
+         "emailAddress": "tkisiel@infusion.com",
+         "avatarUrls":          {
+            "48x48": "https://ensemble.atlassian.net/secure/useravatar?ownerId=tkisiel&avatarId=10503",
+            "24x24": "https://ensemble.atlassian.net/secure/useravatar?size=small&ownerId=tkisiel&avatarId=10503",
+            "16x16": "https://ensemble.atlassian.net/secure/useravatar?size=xsmall&ownerId=tkisiel&avatarId=10503",
+            "32x32": "https://ensemble.atlassian.net/secure/useravatar?size=medium&ownerId=tkisiel&avatarId=10503"
+         },
+         "displayName": "Tomasz Kisiel",
+         "active": true,
+         "timeZone": "Europe/Warsaw"
+      },
+      "subtasks": [],
+      "customfield_10040": null,
+      "customfield_10041": null,
+      "customfield_10042": null,
+      "customfield_10043": null,
+      "reporter":       {
+         "self": "https://ensemble.atlassian.net/rest/api/2/user?username=tkisiel",
+         "name": "tkisiel",
+         "key": "tkisiel",
+         "emailAddress": "tkisiel@infusion.com",
+         "avatarUrls":          {
+            "48x48": "https://ensemble.atlassian.net/secure/useravatar?ownerId=tkisiel&avatarId=10503",
+            "24x24": "https://ensemble.atlassian.net/secure/useravatar?size=small&ownerId=tkisiel&avatarId=10503",
+            "16x16": "https://ensemble.atlassian.net/secure/useravatar?size=xsmall&ownerId=tkisiel&avatarId=10503",
+            "32x32": "https://ensemble.atlassian.net/secure/useravatar?size=medium&ownerId=tkisiel&avatarId=10503"
+         },
+         "displayName": "Tomasz Kisiel",
+         "active": true,
+         "timeZone": "Europe/Warsaw"
+      },
+      "customfield_10044": null,
+      "customfield_10000": null,
+      "aggregateprogress":       {
+         "progress": 14400,
+         "total": 14400,
+         "percent": 100
+      },
+      "customfield_10045": null,
+      "customfield_10001": null,
+      "customfield_10002": null,
+      "customfield_10046": null,
+      "customfield_10200": null,
+      "customfield_10047": null,
+      "customfield_10003": null,
+      "customfield_10048": null,
+      "customfield_10004": null,
+      "customfield_10038": null,
+      "customfield_10039": null,
+      "environment": null,
+      "duedate": null,
+      "progress":       {
+         "progress": 14400,
+         "total": 14400,
+         "percent": 100
+      },
+      "comment":       {
+         "startAt": 0,
+         "maxResults": 0,
+         "total": 0,
+         "comments": []
+      },
+      "votes":       {
+         "self": "https://ensemble.atlassian.net/rest/api/2/issue/SYM-754/votes",
+         "votes": 0,
+         "hasVoted": false
+      },
+      "worklog":       {
+         "startAt": 0,
+         "maxResults": 20,
+         "total": 1,
+         "worklogs": [         {
+            "self": "https://ensemble.atlassian.net/rest/api/2/issue/12306/worklog/11248",
+            "author":             {
+               "self": "https://ensemble.atlassian.net/rest/api/2/user?username=tkisiel",
+               "name": "tkisiel",
+               "key": "tkisiel",
+               "emailAddress": "tkisiel@infusion.com",
+               "avatarUrls":                {
+                  "48x48": "https://ensemble.atlassian.net/secure/useravatar?ownerId=tkisiel&avatarId=10503",
+                  "24x24": "https://ensemble.atlassian.net/secure/useravatar?size=small&ownerId=tkisiel&avatarId=10503",
+                  "16x16": "https://ensemble.atlassian.net/secure/useravatar?size=xsmall&ownerId=tkisiel&avatarId=10503",
+                  "32x32": "https://ensemble.atlassian.net/secure/useravatar?size=medium&ownerId=tkisiel&avatarId=10503"
+               },
+               "displayName": "Tomasz Kisiel",
+               "active": true,
+               "timeZone": "Europe/Warsaw"
+            },
+            "updateAuthor":             {
+               "self": "https://ensemble.atlassian.net/rest/api/2/user?username=tkisiel",
+               "name": "tkisiel",
+               "key": "tkisiel",
+               "emailAddress": "tkisiel@infusion.com",
+               "avatarUrls":                {
+                  "48x48": "https://ensemble.atlassian.net/secure/useravatar?ownerId=tkisiel&avatarId=10503",
+                  "24x24": "https://ensemble.atlassian.net/secure/useravatar?size=small&ownerId=tkisiel&avatarId=10503",
+                  "16x16": "https://ensemble.atlassian.net/secure/useravatar?size=xsmall&ownerId=tkisiel&avatarId=10503",
+                  "32x32": "https://ensemble.atlassian.net/secure/useravatar?size=medium&ownerId=tkisiel&avatarId=10503"
+               },
+               "displayName": "Tomasz Kisiel",
+               "active": true,
+               "timeZone": "Europe/Warsaw"
+            },
+            "comment": "Issue with classloader fixed.",
+            "created": "2015-04-10T12:31:48.654-0400",
+            "updated": "2015-04-10T12:31:48.654-0400",
+            "started": "2015-04-10T00:00:00.000-0400",
+            "timeSpent": "4h",
+            "timeSpentSeconds": 14400,
+            "id": "11248"
+         }]
+      }
+   },
+   "names":    {
+      "issuetype": "Issue Type",
+      "timespent": "Time Spent",
+      "customfield_10030": "Founder Sign-off",
+      "customfield_10031": "Morale",
+      "project": "Project",
+      "customfield_10032": "QA Completed On",
+      "fixVersions": "Fix Version/s",
+      "customfield_10033": "Total Days Spent",
+      "customfield_10034": "End Date",
+      "aggregatetimespent": "Σ Time Spent",
+      "resolution": "Resolution",
+      "customfield_10035": "Testing Notes status",
+      "customfield_10036": "Link to play",
+      "customfield_10037": "Frustration",
+      "customfield_10027": "Release Version History",
+      "customfield_10028": "Effort",
+      "customfield_10029": "Incorporated Version",
+      "resolutiondate": "Resolved",
+      "workratio": "Work Ratio",
+      "lastViewed": "Last Viewed",
+      "watches": "Watchers",
+      "created": "Created",
+      "customfield_10020": "JIRA Capture Screen Resolution",
+      "customfield_10021": "JIRA Capture jQuery Version",
+      "customfield_10022": "JIRA Capture Document Mode",
+      "customfield_10023": "Testing Status",
+      "priority": "Priority",
+      "customfield_10100": "Original Estimate",
+      "customfield_10024": "Team",
+      "customfield_10300": "DevelopVersion",
+      "labels": "Labels",
+      "customfield_10016": "JIRA Capture User Agent",
+      "customfield_10017": "JIRA Capture Browser",
+      "customfield_10018": "JIRA Capture Operating System",
+      "customfield_10019": "JIRA Capture URL",
+      "timeestimate": "Remaining Estimate",
+      "aggregatetimeoriginalestimate": "Σ Original Estimate",
+      "versions": "Affects Version/s",
+      "issuelinks": "Linked Issues",
+      "assignee": "Assignee",
+      "updated": "Updated",
+      "status": "Status",
+      "components": "Component/s",
+      "customfield_10050": "Peer Sign-off",
+      "customfield_10051": "Cascading Select",
+      "timeoriginalestimate": "Original Estimate",
+      "description": "Description",
+      "customfield_10012": "Rank",
+      "customfield_10013": "Iteration",
+      "customfield_10014": "Test Sessions",
+      "customfield_10015": "Raised During",
+      "timetracking": "Time Tracking",
+      "customfield_10049": "Frustration",
+      "customfield_10007": "Sprint",
+      "customfield_10008": "Epic Link",
+      "attachment": "Attachment",
+      "aggregatetimeestimate": "Σ Remaining Estimate",
+      "summary": "Summary",
+      "creator": "Creator",
+      "subtasks": "Sub-Tasks",
+      "customfield_10040": "Effort",
+      "customfield_10041": "Incorporated Version",
+      "customfield_10042": "Founder Sign-off",
+      "customfield_10043": "Morale",
+      "reporter": "Reporter",
+      "customfield_10044": "QA Completed On",
+      "customfield_10000": "[CHART] Date of First Response",
+      "aggregateprogress": "Σ Progress",
+      "customfield_10045": "Total Days Spent",
+      "customfield_10001": "[CHART] Time in Status",
+      "customfield_10002": "Account",
+      "customfield_10046": "End Date",
+      "customfield_10200": "Develop Version",
+      "customfield_10047": "Testing Notes status",
+      "customfield_10003": "Flagged",
+      "customfield_10048": "Link to play",
+      "customfield_10004": "Epic/Theme",
+      "customfield_10038": "Peer Sign-off",
+      "customfield_10039": "Cascading Select",
+      "environment": "Environment",
+      "duedate": "Due Date",
+      "progress": "Progress",
+      "comment": "Comment",
+      "votes": "Votes",
+      "worklog": "Log Work"
+   },
+   "schema":    {
+      "issuetype":       {
+         "type": "issuetype",
+         "system": "issuetype"
+      },
+      "timespent":       {
+         "type": "number",
+         "system": "timespent"
+      },
+      "customfield_10030":       {
+         "type": "date",
+         "custom": "com.atlassian.jira.plugin.system.customfieldtypes:datepicker",
+         "customId": 10030
+      },
+      "customfield_10031":       {
+         "type": "string",
+         "custom": "com.atlassian.jira.plugin.system.customfieldtypes:radiobuttons",
+         "customId": 10031
+      },
+      "project":       {
+         "type": "project",
+         "system": "project"
+      },
+      "customfield_10032":       {
+         "type": "datetime",
+         "custom": "com.atlassian.jira.plugin.system.customfieldtypes:datetime",
+         "customId": 10032
+      },
+      "fixVersions":       {
+         "type": "array",
+         "items": "version",
+         "system": "fixVersions"
+      },
+      "customfield_10033":       {
+         "type": "number",
+         "custom": "com.atlassian.jira.plugin.system.customfieldtypes:float",
+         "customId": 10033
+      },
+      "customfield_10034":       {
+         "type": "date",
+         "custom": "com.atlassian.jira.plugin.system.customfieldtypes:datepicker",
+         "customId": 10034
+      },
+      "aggregatetimespent":       {
+         "type": "number",
+         "system": "aggregatetimespent"
+      },
+      "resolution":       {
+         "type": "resolution",
+         "system": "resolution"
+      },
+      "customfield_10035":       {
+         "type": "string",
+         "custom": "com.atlassian.jira.plugin.system.customfieldtypes:select",
+         "customId": 10035
+      },
+      "customfield_10036":       {
+         "type": "string",
+         "custom": "com.atlassian.jira.plugin.system.customfieldtypes:textfield",
+         "customId": 10036
+      },
+      "customfield_10037":       {
+         "type": "string",
+         "custom": "com.atlassian.jira.plugin.system.customfieldtypes:select",
+         "customId": 10037
+      },
+      "customfield_10027":       {
+         "type": "version",
+         "custom": "com.pyxis.greenhopper.jira:greenhopper-releasedmultiversionhistory",
+         "customId": 10027
+      },
+      "customfield_10028":       {
+         "type": "string",
+         "custom": "com.atlassian.jira.plugin.system.customfieldtypes:select",
+         "customId": 10028
+      },
+      "customfield_10029":       {
+         "type": "string",
+         "custom": "com.atlassian.jira.plugin.system.customfieldtypes:textfield",
+         "customId": 10029
+      },
+      "resolutiondate":       {
+         "type": "datetime",
+         "system": "resolutiondate"
+      },
+      "workratio":       {
+         "type": "number",
+         "system": "workratio"
+      },
+      "lastViewed":       {
+         "type": "datetime",
+         "system": "lastViewed"
+      },
+      "watches":       {
+         "type": "array",
+         "items": "watches",
+         "system": "watches"
+      },
+      "created":       {
+         "type": "datetime",
+         "system": "created"
+      },
+      "customfield_10020":       {
+         "type": "string",
+         "custom": "com.atlassian.bonfire.plugin:bonfire-text",
+         "customId": 10020
+      },
+      "customfield_10021":       {
+         "type": "string",
+         "custom": "com.atlassian.bonfire.plugin:bonfire-text",
+         "customId": 10021
+      },
+      "customfield_10022":       {
+         "type": "string",
+         "custom": "com.atlassian.bonfire.plugin:bonfire-text",
+         "customId": 10022
+      },
+      "customfield_10023":       {
+         "type": "array",
+         "items": "string",
+         "custom": "com.atlassian.bonfire.plugin:bonfire-testing-status-cft",
+         "customId": 10023
+      },
+      "priority":       {
+         "type": "priority",
+         "system": "priority"
+      },
+      "customfield_10100":       {
+         "type": "array",
+         "items": "string",
+         "custom": "com.atlassian.jira.toolkit:originalestimate",
+         "customId": 10100
+      },
+      "customfield_10024":       {
+         "type": "string",
+         "custom": "com.tempoplugin.tempo-teams:team.customfield",
+         "customId": 10024
+      },
+      "customfield_10300":       {
+         "type": "string",
+         "custom": "com.atlassian.jira.plugin.system.customfieldtypes:textfield",
+         "customId": 10300
+      },
+      "labels":       {
+         "type": "array",
+         "items": "string",
+         "system": "labels"
+      },
+      "customfield_10016":       {
+         "type": "string",
+         "custom": "com.atlassian.bonfire.plugin:bonfire-text",
+         "customId": 10016
+      },
+      "customfield_10017":       {
+         "type": "string",
+         "custom": "com.atlassian.bonfire.plugin:bonfire-text",
+         "customId": 10017
+      },
+      "customfield_10018":       {
+         "type": "string",
+         "custom": "com.atlassian.bonfire.plugin:bonfire-text",
+         "customId": 10018
+      },
+      "customfield_10019":       {
+         "type": "string",
+         "custom": "com.atlassian.bonfire.plugin:bonfire-text",
+         "customId": 10019
+      },
+      "timeestimate":       {
+         "type": "number",
+         "system": "timeestimate"
+      },
+      "aggregatetimeoriginalestimate":       {
+         "type": "number",
+         "system": "aggregatetimeoriginalestimate"
+      },
+      "versions":       {
+         "type": "array",
+         "items": "version",
+         "system": "versions"
+      },
+      "issuelinks":       {
+         "type": "array",
+         "items": "issuelinks",
+         "system": "issuelinks"
+      },
+      "assignee":       {
+         "type": "user",
+         "system": "assignee"
+      },
+      "updated":       {
+         "type": "datetime",
+         "system": "updated"
+      },
+      "status":       {
+         "type": "status",
+         "system": "status"
+      },
+      "components":       {
+         "type": "array",
+         "items": "component",
+         "system": "components"
+      },
+      "customfield_10050":       {
+         "type": "date",
+         "custom": "com.atlassian.jira.plugin.system.customfieldtypes:datepicker",
+         "customId": 10050
+      },
+      "customfield_10051":       {
+         "type": "array",
+         "items": "string",
+         "custom": "com.atlassian.jira.plugin.system.customfieldtypes:cascadingselect",
+         "customId": 10051
+      },
+      "timeoriginalestimate":       {
+         "type": "number",
+         "system": "timeoriginalestimate"
+      },
+      "description":       {
+         "type": "string",
+         "system": "description"
+      },
+      "customfield_10012":       {
+         "type": "array",
+         "items": "string",
+         "custom": "com.pyxis.greenhopper.jira:gh-lexo-rank",
+         "customId": 10012
+      },
+      "customfield_10013":       {
+         "type": "string",
+         "custom": "com.tempoplugin.tempo-plan-core:tp.iteration.customfield",
+         "customId": 10013
+      },
+      "customfield_10014":       {
+         "type": "string",
+         "custom": "com.atlassian.bonfire.plugin:bonfire-multi-session-cft",
+         "customId": 10014
+      },
+      "customfield_10015":       {
+         "type": "string",
+         "custom": "com.atlassian.bonfire.plugin:bonfire-session-cft",
+         "customId": 10015
+      },
+      "timetracking":       {
+         "type": "timetracking",
+         "system": "timetracking"
+      },
+      "customfield_10049":       {
+         "type": "string",
+         "custom": "com.atlassian.jira.plugin.system.customfieldtypes:select",
+         "customId": 10049
+      },
+      "customfield_10007":       {
+         "type": "array",
+         "items": "string",
+         "custom": "com.pyxis.greenhopper.jira:gh-sprint",
+         "customId": 10007
+      },
+      "customfield_10008":       {
+         "type": "array",
+         "items": "string",
+         "custom": "com.pyxis.greenhopper.jira:gh-epic-link",
+         "customId": 10008
+      },
+      "attachment":       {
+         "type": "array",
+         "items": "attachment",
+         "system": "attachment"
+      },
+      "aggregatetimeestimate":       {
+         "type": "number",
+         "system": "aggregatetimeestimate"
+      },
+      "summary":       {
+         "type": "string",
+         "system": "summary"
+      },
+      "creator":       {
+         "type": "user",
+         "system": "creator"
+      },
+      "subtasks":       {
+         "type": "array",
+         "items": "issuelinks",
+         "system": "subtasks"
+      },
+      "customfield_10040":       {
+         "type": "string",
+         "custom": "com.atlassian.jira.plugin.system.customfieldtypes:select",
+         "customId": 10040
+      },
+      "customfield_10041":       {
+         "type": "string",
+         "custom": "com.atlassian.jira.plugin.system.customfieldtypes:textfield",
+         "customId": 10041
+      },
+      "customfield_10042":       {
+         "type": "date",
+         "custom": "com.atlassian.jira.plugin.system.customfieldtypes:datepicker",
+         "customId": 10042
+      },
+      "customfield_10043":       {
+         "type": "string",
+         "custom": "com.atlassian.jira.plugin.system.customfieldtypes:radiobuttons",
+         "customId": 10043
+      },
+      "reporter":       {
+         "type": "user",
+         "system": "reporter"
+      },
+      "customfield_10044":       {
+         "type": "datetime",
+         "custom": "com.atlassian.jira.plugin.system.customfieldtypes:datetime",
+         "customId": 10044
+      },
+      "customfield_10000":       {
+         "type": "array",
+         "items": "string",
+         "custom": "com.atlassian.jira.ext.charting:firstresponsedate",
+         "customId": 10000
+      },
+      "aggregateprogress":       {
+         "type": "progress",
+         "system": "aggregateprogress"
+      },
+      "customfield_10045":       {
+         "type": "number",
+         "custom": "com.atlassian.jira.plugin.system.customfieldtypes:float",
+         "customId": 10045
+      },
+      "customfield_10001":       {
+         "type": "array",
+         "items": "string",
+         "custom": "com.atlassian.jira.ext.charting:timeinstatus",
+         "customId": 10001
+      },
+      "customfield_10002":       {
+         "type": "account",
+         "custom": "com.tempoplugin.tempo-accounts:accounts.customfield",
+         "customId": 10002
+      },
+      "customfield_10046":       {
+         "type": "date",
+         "custom": "com.atlassian.jira.plugin.system.customfieldtypes:datepicker",
+         "customId": 10046
+      },
+      "customfield_10200":       {
+         "type": "string",
+         "custom": "com.atlassian.jira.plugin.system.customfieldtypes:textfield",
+         "customId": 10200
+      },
+      "customfield_10047":       {
+         "type": "string",
+         "custom": "com.atlassian.jira.plugin.system.customfieldtypes:select",
+         "customId": 10047
+      },
+      "customfield_10003":       {
+         "type": "array",
+         "items": "string",
+         "custom": "com.atlassian.jira.plugin.system.customfieldtypes:multicheckboxes",
+         "customId": 10003
+      },
+      "customfield_10048":       {
+         "type": "string",
+         "custom": "com.atlassian.jira.plugin.system.customfieldtypes:textfield",
+         "customId": 10048
+      },
+      "customfield_10004":       {
+         "type": "array",
+         "items": "string",
+         "custom": "com.atlassian.jira.plugin.system.customfieldtypes:labels",
+         "customId": 10004
+      },
+      "customfield_10038":       {
+         "type": "date",
+         "custom": "com.atlassian.jira.plugin.system.customfieldtypes:datepicker",
+         "customId": 10038
+      },
+      "customfield_10039":       {
+         "type": "array",
+         "items": "string",
+         "custom": "com.atlassian.jira.plugin.system.customfieldtypes:cascadingselect",
+         "customId": 10039
+      },
+      "environment":       {
+         "type": "string",
+         "system": "environment"
+      },
+      "duedate":       {
+         "type": "date",
+         "system": "duedate"
+      },
+      "progress":       {
+         "type": "progress",
+         "system": "progress"
+      },
+      "comment":       {
+         "type": "array",
+         "items": "comment",
+         "system": "comment"
+      },
+      "votes":       {
+         "type": "array",
+         "items": "votes",
+         "system": "votes"
+      },
+      "worklog":       {
+         "type": "array",
+         "items": "worklog",
+         "system": "worklog"
+      }
+   },
+   "transitions":    [
+            {
+         "id": "11",
+         "name": "Open",
+         "to":          {
+            "self": "https://ensemble.atlassian.net/rest/api/2/status/1",
+            "description": "",
+            "iconUrl": "https://ensemble.atlassian.net/images/icons/statuses/open.png",
+            "name": "Ready for Assignment",
+            "id": "1",
+            "statusCategory":             {
+               "self": "https://ensemble.atlassian.net/rest/api/2/statuscategory/2",
+               "id": 2,
+               "key": "new",
+               "colorName": "blue-gray",
+               "name": "To Do"
+            }
+         }
+      },
+            {
+         "id": "21",
+         "name": "In Progress",
+         "to":          {
+            "self": "https://ensemble.atlassian.net/rest/api/2/status/3",
+            "description": "This issue is being actively worked on at the moment by the assignee.",
+            "iconUrl": "https://ensemble.atlassian.net/images/icons/statuses/inprogress.png",
+            "name": "In Progress",
+            "id": "3",
+            "statusCategory":             {
+               "self": "https://ensemble.atlassian.net/rest/api/2/statuscategory/4",
+               "id": 4,
+               "key": "indeterminate",
+               "colorName": "yellow",
+               "name": "In Progress"
+            }
+         }
+      },
+            {
+         "id": "51",
+         "name": "Closed",
+         "to":          {
+            "self": "https://ensemble.atlassian.net/rest/api/2/status/6",
+            "description": "The issue is considered finished, the resolution is correct. Issues which are closed can be reopened.",
+            "iconUrl": "https://ensemble.atlassian.net/images/icons/statuses/closed.png",
+            "name": "Removed",
+            "id": "6",
+            "statusCategory":             {
+               "self": "https://ensemble.atlassian.net/rest/api/2/statuscategory/3",
+               "id": 3,
+               "key": "done",
+               "colorName": "green",
+               "name": "Done"
+            }
+         }
+      },
+            {
+         "id": "61",
+         "name": "Draft",
+         "to":          {
+            "self": "https://ensemble.atlassian.net/rest/api/2/status/10000",
+            "description": "",
+            "iconUrl": "https://ensemble.atlassian.net/images/icons/subtask.gif",
+            "name": "Draft",
+            "id": "10000",
+            "statusCategory":             {
+               "self": "https://ensemble.atlassian.net/rest/api/2/statuscategory/2",
+               "id": 2,
+               "key": "new",
+               "colorName": "blue-gray",
+               "name": "To Do"
+            }
+         }
+      },
+            {
+         "id": "71",
+         "name": "Code Review",
+         "to":          {
+            "self": "https://ensemble.atlassian.net/rest/api/2/status/10100",
+            "description": "Developer is requesting Code Review by a Team Lead",
+            "iconUrl": "https://ensemble.atlassian.net/images/icons/statuses/generic.png",
+            "name": "Code Review",
+            "id": "10100",
+            "statusCategory":             {
+               "self": "https://ensemble.atlassian.net/rest/api/2/statuscategory/2",
+               "id": 2,
+               "key": "new",
+               "colorName": "blue-gray",
+               "name": "To Do"
+            }
+         }
+      },
+            {
+         "id": "81",
+         "name": "Accepted",
+         "to":          {
+            "self": "https://ensemble.atlassian.net/rest/api/2/status/10001",
+            "description": "",
+            "iconUrl": "https://ensemble.atlassian.net/images/icons/subtask.gif",
+            "name": "Completed",
+            "id": "10001",
+            "statusCategory":             {
+               "self": "https://ensemble.atlassian.net/rest/api/2/statuscategory/3",
+               "id": 3,
+               "key": "done",
+               "colorName": "green",
+               "name": "Done"
+            }
+         }
+      },
+            {
+         "id": "101",
+         "name": "Rdy for Deployment",
+         "to":          {
+            "self": "https://ensemble.atlassian.net/rest/api/2/status/10003",
+            "description": "Items in this state have been through the CI and are deployed on INT but awaiting deployment to QA",
+            "iconUrl": "https://ensemble.atlassian.net/images/icons/statuses/generic.png",
+            "name": "Rdy for Deployment",
+            "id": "10003",
+            "statusCategory":             {
+               "self": "https://ensemble.atlassian.net/rest/api/2/statuscategory/4",
+               "id": 4,
+               "key": "indeterminate",
+               "colorName": "yellow",
+               "name": "In Progress"
+            }
+         }
+      },
+            {
+         "id": "111",
+         "name": "QA in Progress",
+         "to":          {
+            "self": "https://ensemble.atlassian.net/rest/api/2/status/10005",
+            "description": "",
+            "iconUrl": "https://ensemble.atlassian.net/images/icons/statuses/generic.png",
+            "name": "QA in Progress",
+            "id": "10005",
+            "statusCategory":             {
+               "self": "https://ensemble.atlassian.net/rest/api/2/statuscategory/4",
+               "id": 4,
+               "key": "indeterminate",
+               "colorName": "yellow",
+               "name": "In Progress"
+            }
+         }
+      },
+            {
+         "id": "121",
+         "name": "On Hold",
+         "to":          {
+            "self": "https://ensemble.atlassian.net/rest/api/2/status/10010",
+            "description": "",
+            "iconUrl": "https://ensemble.atlassian.net/images/icons/statuses/generic.png",
+            "name": "On Hold",
+            "id": "10010",
+            "statusCategory":             {
+               "self": "https://ensemble.atlassian.net/rest/api/2/statuscategory/2",
+               "id": 2,
+               "key": "new",
+               "colorName": "blue-gray",
+               "name": "To Do"
+            }
+         }
+      }
+   ]
+}

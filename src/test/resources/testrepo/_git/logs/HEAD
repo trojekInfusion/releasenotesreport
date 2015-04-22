@@ -1,0 +1,11 @@
+0000000000000000000000000000000000000000 1c814546893dc5544f86ca87ca58f0d162c9ccd2 Tomasz Rojek <trojek@infusion.com> 1429105064 +0200	commit (initial): SYM-1 created initial dummy file
+1c814546893dc5544f86ca87ca58f0d162c9ccd2 33589445102fd7b49421006e0447836429d84113 Tomasz Rojek <trojek@infusion.com> 1429105158 +0200	commit: SYM-2 changed dummy file for first time
+33589445102fd7b49421006e0447836429d84113 948fa8f6cc8a49f08e3c3a426c9e3d7323ce469a Tomasz Rojek <trojek@infusion.com> 1429105199 +0200	commit: SYM-2 changed dummy file for second time
+948fa8f6cc8a49f08e3c3a426c9e3d7323ce469a 430c3f94a1f2dd4940c547ae8a5ede83910597b9 Tomasz Rojek <trojek@infusion.com> 1429105225 +0200	commit: SYM-3 changed dummy file for third time
+430c3f94a1f2dd4940c547ae8a5ede83910597b9 430c3f94a1f2dd4940c547ae8a5ede83910597b9 Tomasz Rojek <trojek@infusion.com> 1429261351 +0200	checkout: moving from master to branch1
+430c3f94a1f2dd4940c547ae8a5ede83910597b9 2ea0809c55657bc528933e6fda3a7772cacf8279 Tomasz Rojek <trojek@infusion.com> 1429261430 +0200	commit: SYM-4 changed dummy file on branch1 branch
+2ea0809c55657bc528933e6fda3a7772cacf8279 430c3f94a1f2dd4940c547ae8a5ede83910597b9 Tomasz Rojek <trojek@infusion.com> 1429261451 +0200	checkout: moving from branch1 to master
+430c3f94a1f2dd4940c547ae8a5ede83910597b9 94679b1e5d2664530e880e22fe5ef60b8d699ef5 Tomasz Rojek <trojek@infusion.com> 1429614147 +0200	commit: SYM-10 added pom.xml
+94679b1e5d2664530e880e22fe5ef60b8d699ef5 5967dfe081ada684f45b530fe68fcb8635e2e6de Tomasz Rojek <trojek@infusion.com> 1429614177 +0200	commit: SYM-11 release of version 1.0
+5967dfe081ada684f45b530fe68fcb8635e2e6de 4f4685dfcff6514558f08d3dd303bda4684f0ffd Tomasz Rojek <trojek@infusion.com> 1429614287 +0200	commit: SYM-12 version 1.1-SNAPSHOT
+4f4685dfcff6514558f08d3dd303bda4684f0ffd 50dbc466d1fa6ddc714ebabbeae585af7a72524b Tomasz Rojek <trojek@infusion.com> 1429614317 +0200	commit: SYM-13 release of version 1.1
