@@ -33,6 +33,7 @@ public class Configuration {
     static final String ISSUE_FILTERBY_COMPONENT = "issue.filterby.component";
     static final String ISSUE_FILTERBY_TYPE = "issue.filterby.type";
     static final String ISSUE_FILTERBY_LABEL = "issue.filterby.label";
+    static final String ISSUE_FILTERBY_STATUS = "issue.filterby.status";
     static final String ISSUE_SORT_TYPE = "issue.sort.type";
     static final String ISSUE_SORT_PRIORITY = "issue.sort.priority";
     static final String REPORT_DIRECTORY = "report.directory";
@@ -120,6 +121,10 @@ public class Configuration {
 
     public String getIssueFilterByLabel() {
         return properties.getProperty(ISSUE_FILTERBY_LABEL);
+    }
+
+    public String getIssueFilterByStatus() {
+        return properties.getProperty(ISSUE_FILTERBY_STATUS);
     }
 
     public String getIssueSortType() {

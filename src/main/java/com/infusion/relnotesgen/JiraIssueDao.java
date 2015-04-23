@@ -1,7 +1,6 @@
 package com.infusion.relnotesgen;
 
 import static org.apache.commons.lang3.StringUtils.containsIgnoreCase;
-import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 
 import java.net.URI;
 import java.util.ArrayList;
@@ -31,6 +30,7 @@ public class JiraIssueDao {
 
     private IssueRestClient issueRestClient;
     private Configuration configuration;
+    private Collection<Filter> filters = new ArrayList<>();
 
     public JiraIssueDao(final Configuration configuration) {
         logger.info("Creating jira rest client with url {} and user {}", configuration.getJiraUrl(),
@@ -46,6 +46,7 @@ public class JiraIssueDao {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+        prepareFilters();
     }
 
     public Collection<Issue> findIssues(final Set<String> issueIds) {
@@ -80,52 +81,97 @@ public class JiraIssueDao {
 
     private Issue getAndFilter(final NullProgressMonitor pm, final String issueId) {
         Issue issue = issueRestClient.getIssue(issueId, pm);
-        if (isNotEmpty(configuration.getIssueFilterByType())) {
-            String[] acceptableTypes = configuration.getIssueFilterByType().split(",");
-            boolean found = false;
-            for (String acceptableType : acceptableTypes) {
-                if (acceptableType.equalsIgnoreCase(issue.getIssueType().getName())) {
-                    found = true;
-                    break;
-                }
-            }
-            if (!found) {
-                logger.info("Filtered by type issue {} {}", issueId, issue.getSummary());
+
+        for(Filter filter : filters) {
+            if(filter.filter(issue)) {
+                logger.info("Filtered issue {} {}", issue.getKey(), issue.getSummary());
                 return null;
             }
         }
-        if (isNotEmpty(configuration.getIssueFilterByComponent())) {
-            boolean found = false;
-            String[] acceptableComponents = configuration.getIssueFilterByComponent().split(",");
-            for (String acceptableComponent : acceptableComponents) {
-                for (BasicComponent component : issue.getComponents()) {
-                    if (containsIgnoreCase(component.getName(), acceptableComponent)) {
-                        found = true;
-                        break;
-                    }
-                }
-            }
-            if (!found) {
-                logger.info("Filtered by component issue {} {}", issueId, issue.getSummary());
-                return null;
-            }
-        }
-        if (isNotEmpty(configuration.getIssueFilterByLabel())) {
-            boolean found = false;
-            String[] acceptableLabels = configuration.getIssueFilterByLabel().split(",");
-            for (String acceptableLabel : acceptableLabels) {
-                for (String label : issue.getLabels()) {
-                    if (containsIgnoreCase(label, acceptableLabel)) {
-                        found = true;
-                        break;
-                    }
-                }
-            }
-            if (!found) {
-                logger.info("Filtered by label issue {} {}", issueId, issue.getSummary());
-                return null;
-            }
-        }
+
         return issue;
+    }
+
+    private void prepareFilters() {
+        prepareFilterByType();
+        prepareFilterByComponent();
+        prepareFilterByLabel();
+        prepareFilterByStatus();
+    }
+
+    private void prepareFilterByType() {
+        filters.add(new Filter(configuration.getIssueFilterByType(), new FilterPredicate() {
+
+            @Override
+            public boolean match(final Issue issue, final String type) {
+                return type.equalsIgnoreCase(issue.getIssueType().getName());
+            }
+        }));
+    }
+
+    private void prepareFilterByComponent() {
+        filters.add(new Filter(configuration.getIssueFilterByComponent(), new FilterPredicate() {
+
+            @Override
+            public boolean match(final Issue issue, final String componentName) {
+                for (BasicComponent component : issue.getComponents()) {
+                    if (containsIgnoreCase(component.getName(), componentName)) {
+                        return true;
+                    }
+                }
+                return false;
+            }
+        }));
+    }
+
+    private void prepareFilterByLabel() {
+        filters.add(new Filter(configuration.getIssueFilterByLabel(), new FilterPredicate() {
+
+            @Override
+            public boolean match(final Issue issue, final String labelValue) {
+                for (String label : issue.getLabels()) {
+                    if (containsIgnoreCase(label, labelValue)) {
+                        return true;
+                    }
+                }
+                return false;
+            }
+        }));
+    }
+
+    private void prepareFilterByStatus() {
+        filters.add(new Filter(configuration.getIssueFilterByStatus(), new FilterPredicate() {
+
+            @Override
+            public boolean match(final Issue issue, final String status) {
+                return status.equalsIgnoreCase(issue.getStatus().getName());
+            }
+        }));
+    }
+
+    private class Filter {
+        final String[] filters;
+        final FilterPredicate predicate;
+
+        public Filter(final String filters, final FilterPredicate predicate) {
+            this.filters = filters == null ? null : filters.split(",");
+            this.predicate = predicate;
+        }
+
+        public boolean filter(final Issue issue) {
+            if (filters != null) {
+                for (String filter : filters) {
+                    if (predicate.match(issue, filter)) {
+                        return false;
+                    }
+                }
+                return true;
+            }
+            return false;
+        }
+    }
+
+    private interface FilterPredicate {
+        boolean match(final Issue issue, final String value);
     }
 }

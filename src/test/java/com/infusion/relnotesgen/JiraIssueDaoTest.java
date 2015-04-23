@@ -41,8 +41,6 @@ import com.xebialabs.restito.server.StubServer;
 public class JiraIssueDaoTest {
 
     private StubServer jira;
-
-    private JiraIssueDao jiraIssueDao;
     private Configuration configuration;
 
     @Test
@@ -52,7 +50,7 @@ public class JiraIssueDaoTest {
         stubExistingIssue(issueIds);
 
         //When
-        Collection<Issue> issues = jiraIssueDao.findIssues(new HashSet<String>(Arrays.asList(issueIds)));
+        Collection<Issue> issues = jiraIssueDao().findIssues(new HashSet<String>(Arrays.asList(issueIds)));
 
         //Then
         verifyIssueWasRequested(issueIds);
@@ -75,7 +73,7 @@ public class JiraIssueDaoTest {
         stubNotExistingIssue(issueIds[1]);
 
         //When
-        Collection<Issue> issues = jiraIssueDao.findIssues(new HashSet<String>(Arrays.asList(issueIds)));
+        Collection<Issue> issues = jiraIssueDao().findIssues(new HashSet<String>(Arrays.asList(issueIds)));
 
         //Then
         verifyIssueWasRequested(issueIds);
@@ -95,7 +93,7 @@ public class JiraIssueDaoTest {
         when(configuration.getIssueFilterByType()).thenReturn("Feature");
 
         //When
-        Collection<Issue> issues = jiraIssueDao.findIssues(new HashSet<String>(Arrays.asList(issueIds)));
+        Collection<Issue> issues = jiraIssueDao().findIssues(new HashSet<String>(Arrays.asList(issueIds)));
 
         //Then
         verifyIssueWasRequested(issueIds);
@@ -111,7 +109,7 @@ public class JiraIssueDaoTest {
         when(configuration.getIssueFilterByType()).thenReturn("Feature,Task");
 
         //When
-        Collection<Issue> issues = jiraIssueDao.findIssues(new HashSet<String>(Arrays.asList(issueIds)));
+        Collection<Issue> issues = jiraIssueDao().findIssues(new HashSet<String>(Arrays.asList(issueIds)));
 
         //Then
         verifyIssueWasRequested(issueIds);
@@ -127,7 +125,7 @@ public class JiraIssueDaoTest {
         when(configuration.getIssueFilterByComponent()).thenReturn("Symphony Node");
 
         //When
-        Collection<Issue> issues = jiraIssueDao.findIssues(new HashSet<String>(Arrays.asList(issueIds)));
+        Collection<Issue> issues = jiraIssueDao().findIssues(new HashSet<String>(Arrays.asList(issueIds)));
 
         //Then
         verifyIssueWasRequested(issueIds);
@@ -143,7 +141,7 @@ public class JiraIssueDaoTest {
         when(configuration.getIssueFilterByComponent()).thenReturn("Symphony Node,Data");
 
         //When
-        Collection<Issue> issues = jiraIssueDao.findIssues(new HashSet<String>(Arrays.asList(issueIds)));
+        Collection<Issue> issues = jiraIssueDao().findIssues(new HashSet<String>(Arrays.asList(issueIds)));
 
         //Then
         verifyIssueWasRequested(issueIds);
@@ -159,7 +157,7 @@ public class JiraIssueDaoTest {
         when(configuration.getIssueFilterByComponent()).thenReturn("node");
 
         //When
-        Collection<Issue> issues = jiraIssueDao.findIssues(new HashSet<String>(Arrays.asList(issueIds)));
+        Collection<Issue> issues = jiraIssueDao().findIssues(new HashSet<String>(Arrays.asList(issueIds)));
 
         //Then
         verifyIssueWasRequested(issueIds);
@@ -175,7 +173,7 @@ public class JiraIssueDaoTest {
         when(configuration.getIssueFilterByLabel()).thenReturn("BUKA");
 
         //When
-        Collection<Issue> issues = jiraIssueDao.findIssues(new HashSet<String>(Arrays.asList(issueIds)));
+        Collection<Issue> issues = jiraIssueDao().findIssues(new HashSet<String>(Arrays.asList(issueIds)));
 
         //Then
         verifyIssueWasRequested(issueIds);
@@ -191,11 +189,43 @@ public class JiraIssueDaoTest {
         when(configuration.getIssueFilterByLabel()).thenReturn("BUKA,gagatek");
 
         //When
-        final Collection<Issue> issues = jiraIssueDao.findIssues(new HashSet<String>(Arrays.asList(issueIds)));
+        final Collection<Issue> issues = jiraIssueDao().findIssues(new HashSet<String>(Arrays.asList(issueIds)));
 
         //Then
         verifyIssueWasRequested(issueIds);
         assertIssueContainsExactly(issues, "SYM-43", "SYM-32");
+    }
+
+    @Test
+    public void filterByStatus() throws IOException, URISyntaxException {
+        //Given
+        String[] issueIds = {"SYM-43", "SYM-42", "SYM-41", "SYM-32"};
+        stubExistingIssue(issueIds);
+
+        when(configuration.getIssueFilterByStatus()).thenReturn("Ready for QA");
+
+        //When
+        Collection<Issue> issues = jiraIssueDao().findIssues(new HashSet<String>(Arrays.asList(issueIds)));
+
+        //Then
+        verifyIssueWasRequested(issueIds);
+        assertIssueContainsExactly(issues, "SYM-43", "SYM-42");
+    }
+
+    @Test
+    public void filterByStatusMultipleValues() throws IOException, URISyntaxException {
+        //Given
+        String[] issueIds = {"SYM-43", "SYM-42", "SYM-41", "SYM-32"};
+        stubExistingIssue(issueIds);
+
+        when(configuration.getIssueFilterByStatus()).thenReturn("Ready for QA,In Progress");
+
+        //When
+        final Collection<Issue> issues = jiraIssueDao().findIssues(new HashSet<String>(Arrays.asList(issueIds)));
+
+        //Then
+        verifyIssueWasRequested(issueIds);
+        assertIssueContainsExactly(issues, "SYM-43", "SYM-42", "SYM-41");
     }
 
     private void assertIssueContainsExactly(final Collection<Issue> issues, final String... shouldContain) {
@@ -214,6 +244,10 @@ public class JiraIssueDaoTest {
         StubedJiraIssue.stubExistingIssue(jira, issueIds);
     }
 
+    private JiraIssueDao jiraIssueDao() {
+        return new JiraIssueDao(configuration);
+    }
+
     @Before
     public void prepareConfiguration() {
         jira = new StubServer().run();
@@ -225,8 +259,6 @@ public class JiraIssueDaoTest {
         when(configuration.getIssueFilterByComponent()).thenReturn(null);
         when(configuration.getIssueFilterByLabel()).thenReturn(null);
         when(configuration.getIssueFilterByType()).thenReturn(null);
-
-        jiraIssueDao = new JiraIssueDao(configuration);
     }
 
     @After

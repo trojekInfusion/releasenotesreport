@@ -170,6 +170,10 @@ public class Main {
         @Parameter(names = { "-issueFilterByLabel"})
         private String issueFilterByLabel;
 
+        @Element(Configuration.ISSUE_FILTERBY_STATUS)
+        @Parameter(names = { "-issueFilterByStatus"})
+        private String issueFilterByStatus;
+
         @Element(Configuration.ISSUE_SORT_TYPE)
         @Parameter(names = { "-issueSortType"})
         private String issueSortType;

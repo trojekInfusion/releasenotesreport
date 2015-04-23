@@ -106,7 +106,7 @@
          "self": "https://ensemble.atlassian.net/rest/api/2/status/10004",
          "description": "Stories in this status have been deployed to QA",
          "iconUrl": "https://ensemble.atlassian.net/images/icons/statuses/generic.png",
-         "name": "Ready for QA",
+         "name": "New",
          "id": "10004",
          "statusCategory":          {
             "self": "https://ensemble.atlassian.net/rest/api/2/statuscategory/4",
