@@ -2,14 +2,14 @@
    "expand": "renderedFields,names,schema,transitions,operations,editmeta,changelog,versionedRepresentations",
    "id": "12306",
    "self": "https://ensemble.atlassian.net/rest/api/latest/issue/12306",
-   "key": "BUG-667",
+   "key": "SYM-32",
    "fields":    {
       "issuetype":       {
          "self": "https://ensemble.atlassian.net/rest/api/2/issuetype/1",
          "id": "1",
          "description": "A problem which impairs or prevents the functions of the product.",
          "iconUrl": "https://ensemble.atlassian.net/images/icons/issuetypes/bug.png",
-         "name": "Bug",
+         "name": "Task",
          "subtask": false
       },
       "timespent": 14400,
@@ -68,7 +68,8 @@
       "customfield_10100": "1.0",
       "customfield_10024": null,
       "customfield_10300": null,
-      "labels": ["PolishBoard"],
+      "labels": [
+      	 "Gagatek"],
       "customfield_10016": null,
       "customfield_10017": null,
       "customfield_10018": null,
@@ -115,7 +116,14 @@
             "name": "In Progress"
          }
       },
-      "components": [],
+      "components": [   
+		{
+            "self": "https://ensemble.atlassian.net/rest/api/2/component/10203",
+            "id": "10203",
+            "name": "Data Service",
+            "description": "Symphony Manager Web Site"
+         }
+],
       "customfield_10050": null,
       "customfield_10051": null,
       "timeoriginalestimate": 3600,

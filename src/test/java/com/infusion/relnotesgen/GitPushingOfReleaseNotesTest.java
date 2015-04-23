@@ -72,7 +72,7 @@ public class GitPushingOfReleaseNotesTest {
                     .gitDirectory(repoWithNotes.getAbsolutePath())
                     .build());
             newGitRepo.close();
-            File releaseNotes = new File(repoWithNotes, "releases/" + version.replace('.', '_') + ".html");
+            File releaseNotes = new File(repoWithNotes, "releases/" + tempReleaseNotes.getName());
             assertThat(releaseNotes.exists(), equalTo(true));
         } finally {
             FileUtils.deleteDirectory(repoWithNotes);

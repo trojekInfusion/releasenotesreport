@@ -52,11 +52,10 @@ public class ReleaseNotesGenerator {
         freemarkerConf.setObjectWrapper(beansWrapper);
     }
 
-    public void generate(final Collection<Issue> issues, final File report, final String version) throws IOException {
+    public File generate(final Collection<Issue> issues, final File reportDirectory, final String version) throws IOException {
+        File report = new File(reportDirectory, version.replace(".", "_") + ".html");
+
         logger.info("Generating report to file {} with {} issues", report.getAbsolutePath(), issues.size());
-        if(report.exists()) {
-            report.delete();
-        }
 
         Map<String, Object> input = new HashMap<String, Object>();
         input.put("issues", splitByType(issues));
@@ -73,6 +72,8 @@ public class ReleaseNotesGenerator {
             }
         }
         logger.info("Generation of report is finished.");
+
+        return report;
     }
 
     private Map<String, List<Issue>> splitByType(final Collection<Issue> issues) {

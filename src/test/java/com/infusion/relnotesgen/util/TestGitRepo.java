@@ -49,7 +49,7 @@ public class TestGitRepo {
 
     private void cloneOriginRepository() throws IOException, InvalidRemoteException, TransportException, GitAPIException {
         gitRepo = Git.cloneRepository()
-            .setURI("file:///" + originTempRepo.getAbsolutePath())
+            .setURI(getOriginUrl())
             .setDirectory(Files.createTempDirectory("TestGitRepo").toFile())
             .call();
         testTempRepo = gitRepo.getRepository().getDirectory();
@@ -73,6 +73,14 @@ public class TestGitRepo {
     public TestConfigurationBuilder configuration() {
         return new TestConfigurationBuilder()
             .gitDirectory(testTempRepo.getAbsolutePath())
-            .url("file:///" + originTempRepo.getAbsolutePath());
+            .url(getOriginUrl());
+    }
+
+    public String getOriginUrl() {
+        return "file:///" + originTempRepo.getAbsolutePath();
+    }
+
+    public String getOriginGitDirectory() {
+        return originTempRepo.getParentFile().getAbsolutePath();
     }
 }

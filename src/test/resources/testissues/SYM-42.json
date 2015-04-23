@@ -2,14 +2,14 @@
    "expand": "renderedFields,names,schema,transitions,operations,editmeta,changelog,versionedRepresentations",
    "id": "12306",
    "self": "https://ensemble.atlassian.net/rest/api/latest/issue/12306",
-   "key": "FEATURE-666",
+   "key": "SYM-42",
    "fields":    {
       "issuetype":       {
          "self": "https://ensemble.atlassian.net/rest/api/2/issuetype/1",
          "id": "1",
          "description": "A problem which impairs or prevents the functions of the product.",
          "iconUrl": "https://ensemble.atlassian.net/images/icons/issuetypes/bug.png",
-         "name": "Feature",
+         "name": "Bug",
          "subtask": false
       },
       "timespent": 14400,
@@ -68,10 +68,7 @@
       "customfield_10100": "1.0",
       "customfield_10024": null,
       "customfield_10300": null,
-      "labels": [
-      	 "MigratedFromTFS",
-         "SymphonyQA",
-         "TFSReviewed"],
+      "labels": ["PolishBoard"],
       "customfield_10016": null,
       "customfield_10017": null,
       "customfield_10018": null,

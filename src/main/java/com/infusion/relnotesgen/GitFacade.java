@@ -262,16 +262,16 @@ public class GitFacade {
             directoryCreated = notesDirectory.mkdir();
         }
         logger.info("Copying release notes to {} (will overwrite if aleady exists)", notesDirectory.getAbsolutePath());
-        File releaseNotesInGit = new File(notesDirectory, version.replace('.', '_') + ".html");
+        File releaseNotesInGit = new File(notesDirectory, releaseNotes.getName());
         Files.copy(releaseNotes.toPath(), releaseNotesInGit.toPath(), StandardCopyOption.REPLACE_EXISTING);
 
-        logger.info("Pushing release notes for version {} in {}", version, releaseNotesInGit.getAbsolutePath());
+        logger.info("Pushing release notes {}", releaseNotesInGit.getAbsolutePath());
         try {
             AddCommand addCommand = git.add();
             if(directoryCreated) {
                 addCommand.addFilepattern(RELEASES_DIR);
             } else {
-                addCommand.addFilepattern(RELEASES_DIR + "/" + version);
+                addCommand.addFilepattern(RELEASES_DIR + "/" + releaseNotes.getName());
             }
             addCommand.call();
 

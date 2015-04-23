@@ -2,7 +2,7 @@
    "expand": "renderedFields,names,schema,transitions,operations,editmeta,changelog,versionedRepresentations",
    "id": "12306",
    "self": "https://ensemble.atlassian.net/rest/api/latest/issue/12306",
-   "key": "BUG-666",
+   "key": "SYM-43",
    "fields":    {
       "issuetype":       {
          "self": "https://ensemble.atlassian.net/rest/api/2/issuetype/1",

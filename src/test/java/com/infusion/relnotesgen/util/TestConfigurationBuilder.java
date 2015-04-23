@@ -33,6 +33,8 @@ public class TestConfigurationBuilder {
         properties.put("git.url", url);
         properties.put("git.username", "username");
         properties.put("git.password", "password");
+        properties.put("git.committer.name", "username");
+        properties.put("git.committer.mail", "mail@mail.com");
         return new Configuration(properties);
     }
 }

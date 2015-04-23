@@ -54,10 +54,9 @@ public class ReleaseNotesGeneratorTest {
         issues.add(addIssue("SYM-736", "Feature", "Big"));
         issues.add(addIssue("SYM-666", "Task", "Big"));
         String version = "1.0.0";
-		File report = new File("target/report.html");
 
 		//When
-		releaseNotesGenerator.generate(issues, report, version);
+		File report = releaseNotesGenerator.generate(issues, new File("target"), version);
 
 		//Then
         assertXpath(report, "/html/head/title", "Release notes for version " + version);
