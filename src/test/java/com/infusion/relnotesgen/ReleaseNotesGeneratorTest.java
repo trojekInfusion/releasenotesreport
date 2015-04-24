@@ -1,10 +1,12 @@
 package com.infusion.relnotesgen;
 
+import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collection;
 
@@ -16,8 +18,8 @@ import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
+import org.hamcrest.Matchers;
 import org.hamcrest.core.StringContains;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -27,16 +29,17 @@ import org.xml.sax.SAXException;
 import com.atlassian.jira.rest.client.domain.BasicIssueType;
 import com.atlassian.jira.rest.client.domain.BasicPriority;
 import com.atlassian.jira.rest.client.domain.Issue;
+import com.google.common.io.Files;
 
 public class ReleaseNotesGeneratorTest {
 
     private static final String JIRA_URL = "http://localhost/jira";
 	private ReleaseNotesGenerator releaseNotesGenerator;
+	private Configuration configuration;
 
 	@Before
 	public void prepareConfiguration() {
-	    Configuration configuration = mock(Configuration.class, Mockito.RETURNS_SMART_NULLS);
-	    releaseNotesGenerator = new ReleaseNotesGenerator(configuration);
+	    configuration = mock(Configuration.class, Mockito.RETURNS_SMART_NULLS);
 	    when(configuration.getIssueSortType()).thenReturn("Feature,Bug");
         when(configuration.getIssueSortPriority()).thenReturn("Big,Medium,Small");
         when(configuration.getIssueSortPriority()).thenReturn("Big,Medium,Small");
@@ -46,6 +49,7 @@ public class ReleaseNotesGeneratorTest {
 	@Test
 	public void reportHasIssueIds() throws IOException, XPathExpressionException, ParserConfigurationException, SAXException {
 		//Given
+        releaseNotesGenerator = new ReleaseNotesGenerator(configuration);
 		Collection<Issue> issues = new ArrayList<Issue>();
 		issues.add(addIssue("SYM-731", "Bug", "Small"));
 		issues.add(addIssue("SYM-732", "Bug", "Big"));
@@ -93,7 +97,7 @@ public class ReleaseNotesGeneratorTest {
 		XPath xpath = xPathfactory.newXPath();
 		XPathExpression expr = xpath.compile(xPath);
 		String actualValue = expr.evaluate(doc);
-		Assert.assertThat(actualValue, StringContains.containsString(expectedValue));
+		assertThat(actualValue, StringContains.containsString(expectedValue));
     }
 
 	private Issue addIssue(final String key, final String type, final String priority) {
@@ -112,4 +116,19 @@ public class ReleaseNotesGeneratorTest {
 		return issue;
 	}
 
+	@Test
+    public void reportTemplateParametrizedFrom() throws IOException, XPathExpressionException, ParserConfigurationException, SAXException {
+        //Given
+        Collection<Issue> issues = new ArrayList<Issue>();
+        when(configuration.getReportTemplate()).thenReturn(getClass().getResource("/testreport.ftl").getFile());
+        releaseNotesGenerator = new ReleaseNotesGenerator(configuration);
+        String version = "1.1.0";
+
+        //When
+        File report = releaseNotesGenerator.generate(issues, new File("target"), version);
+
+        //Then
+        String reportContent = Files.toString(report, Charset.forName("UTF-8"));
+        assertThat(reportContent, Matchers.equalTo("Test report " + version));
+    }
 }

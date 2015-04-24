@@ -186,5 +186,8 @@ public class Main {
         @Parameter(names = { "-reportDirectory"})
         private String reportDirectory;
 
+        @Element(Configuration.REPORT_TEMPLATE)
+        @Parameter(names = { "-reportTemplate"})
+        private String reportTemplate;
     }
 }

@@ -1,5 +1,7 @@
 package com.infusion.relnotesgen;
 
+import static org.apache.commons.lang3.StringUtils.isNotEmpty;
+
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -37,12 +39,25 @@ public class ReleaseNotesGenerator {
     private final static Logger logger = LoggerFactory.getLogger(ReleaseNotesGenerator.class);
     private Configuration configuration;
     private freemarker.template.Configuration freemarkerConf;
+    private String templateName = "report.ftl";
 
     public ReleaseNotesGenerator(final Configuration configuration) {
         this.configuration = configuration;
         freemarkerConf = new freemarker.template.Configuration();
 
-        freemarkerConf.setClassForTemplateLoading(ReleaseNotesGenerator.class, "/");
+        if(isNotEmpty(configuration.getReportTemplate())) {
+            logger.info("Using template {}", configuration.getReportTemplate());
+            File template = new File(configuration.getReportTemplate());
+            templateName = template.getName();
+            try {
+                freemarkerConf.setDirectoryForTemplateLoading(template.getParentFile());
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        } else {
+            logger.info("Using default template.");
+            freemarkerConf.setClassForTemplateLoading(ReleaseNotesGenerator.class, "/");
+        }
         freemarkerConf.setIncompatibleImprovements(new Version(2, 3, 20));
         freemarkerConf.setDefaultEncoding("UTF-8");
         freemarkerConf.setLocale(Locale.getDefault());
@@ -62,7 +77,7 @@ public class ReleaseNotesGenerator {
         input.put("jiraUrl", configuration.getJiraUrl());
         input.put("version", version);
 
-        Template template = freemarkerConf.getTemplate("report.ftl");
+        Template template = freemarkerConf.getTemplate(templateName);
 
         try (Writer fileWriter = new FileWriter(report)) {
             try {

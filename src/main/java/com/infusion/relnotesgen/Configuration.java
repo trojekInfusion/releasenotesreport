@@ -36,6 +36,7 @@ public class Configuration {
     static final String ISSUE_SORT_TYPE = "issue.sort.type";
     static final String ISSUE_SORT_PRIORITY = "issue.sort.priority";
     static final String REPORT_DIRECTORY = "report.directory";
+    static final String REPORT_TEMPLATE = "report.template";
 
     private Properties properties;
 
@@ -136,6 +137,10 @@ public class Configuration {
 
     public String getReportDirectory() {
         return properties.getProperty(REPORT_DIRECTORY);
+    }
+
+    public String getReportTemplate() {
+        return properties.getProperty(REPORT_TEMPLATE);
     }
 
     @Override
