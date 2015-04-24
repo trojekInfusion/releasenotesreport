@@ -5,6 +5,7 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -36,6 +37,7 @@ import org.eclipse.jgit.api.errors.WrongRepositoryStateException;
 import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
+import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
 import org.eclipse.jgit.transport.CredentialsProvider;
 import org.eclipse.jgit.transport.PushResult;
@@ -49,15 +51,10 @@ import org.xml.sax.SAXException;
  * @author trojek
  *
  */
-public class GitFacade {
+public class GitFacade implements SCMFacade {
 
-    /**
-     *
-     */
+    private static final Logger logger = LoggerFactory.getLogger(GitFacade.class);
     private static final String RELEASES_DIR = "releases";
-
-    private final static Logger logger = LoggerFactory.getLogger(GitFacade.class);
-
     private static final String DEFAULT_VERSION = "1.0";
 
     private Git git;
@@ -147,6 +144,7 @@ public class GitFacade {
         }
     }
 
+    @Override
     public Response readByCommit(final String commitId1, final String commitId2) {
         try {
             Iterable<RevCommit> log = git.log().call();
@@ -231,6 +229,7 @@ public class GitFacade {
         return expr.evaluate(doc);
     }
 
+    @Override
     public Response readByTag(final String tag1, final String tag2) {
         try {
             Iterable<Ref> tags = git.tagList().call();
@@ -254,7 +253,32 @@ public class GitFacade {
         }
     }
 
-    public boolean pushReleaseNotes(final File releaseNotes, final String version) throws IOException {
+    @Override
+    public Response readLatestReleasedVersion() {
+        try {
+            Iterable<Ref> tags = git.tagList().call();
+            final RevWalk walk = new RevWalk(git.getRepository());
+
+            String tag1 = null;
+            String tag2 = null;
+            Date latestDate = new Date(0);
+            for(Ref tag : tags) {
+                Date tagDate = walk.parseTag(tag.getObjectId()).getTaggerIdent().getWhen();
+                if(latestDate.before(tagDate)) {
+                    tag2 = tag1;
+                    tag1 = tag.getName();
+                    latestDate = tagDate;
+                }
+            }
+
+            return readByTag(tag1, tag2);
+        } catch (GitAPIException | IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public boolean pushReleaseNotes(final File releaseNotes, final String version) {
         File notesDirectory = new File(git.getRepository().getDirectory().getParentFile(), RELEASES_DIR);
         boolean directoryCreated = false;
         if(!notesDirectory.exists()) {
@@ -263,7 +287,11 @@ public class GitFacade {
         }
         logger.info("Copying release notes to {} (will overwrite if aleady exists)", notesDirectory.getAbsolutePath());
         File releaseNotesInGit = new File(notesDirectory, releaseNotes.getName());
-        Files.copy(releaseNotes.toPath(), releaseNotesInGit.toPath(), StandardCopyOption.REPLACE_EXISTING);
+        try {
+            Files.copy(releaseNotes.toPath(), releaseNotesInGit.toPath(), StandardCopyOption.REPLACE_EXISTING);
+        } catch (IOException e1) {
+            throw new RuntimeException(e1);
+        }
 
         logger.info("Pushing release notes {}", releaseNotesInGit.getAbsolutePath());
         try {
@@ -276,18 +304,22 @@ public class GitFacade {
             addCommand.call();
 
             Set<String> added = git.status().call().getAdded();
-            if(added.size() != 1) {
+            if(added.size() > 1) {
                 logger.error("There are more than one change ({}) to be commited, cancelling pushing release notes.", added.size());
                 return false;
             }
+            if(added.size() == 0) {
+                logger.error("There are no changes to be commited, probably identical release notes has been already generated and pushed to repository.");
+                return false;
+            }
 
-            String commitMessage = "[Release Notes Generator] Release notes for version " + version + ". " + configuration.getGitCommitMessageValidationOmmitter();
+            String commitMessage = buildCommitMessage(version);
             logger.info("Committing file '{}' with message '{}', committer name {}, committer mail {}",
                     added.iterator().next(), commitMessage, configuration.getGitCommitterName(), configuration.getGitCommitterMail());
             git.commit()
-                .setCommitter(configuration.getGitCommitterName(), configuration.getGitCommitterMail())
-                .setMessage(commitMessage)
-                .call();
+                    .setCommitter(configuration.getGitCommitterName(), configuration.getGitCommitterMail())
+                    .setMessage(commitMessage)
+                    .call();
 
             logger.info("Pushing changes to remote...");
             Iterable<PushResult> pushResults = git.push()
@@ -304,17 +336,18 @@ public class GitFacade {
         }
     }
 
-    public void close() {
-        git.close();
+    private String buildCommitMessage(final String version) {
+        StringBuilder messageBuilder = new StringBuilder("[release-notes-generator] Release notes for version ")
+                .append(version)
+                .append(".");
+        if(StringUtils.isNotEmpty(configuration.getGitCommitMessageValidationOmmitter())) {
+            messageBuilder.append(" ").append(configuration.getGitCommitMessageValidationOmmitter());
+        }
+        return messageBuilder.toString();
     }
 
-    public static class Response {
-        public final Set<String> messages;
-        public final String version;
-
-        public Response(final Set<String> messages, final String version) {
-            this.messages = messages;
-            this.version = version;
-        }
+    @Override
+    public void close() {
+        git.close();
     }
 }

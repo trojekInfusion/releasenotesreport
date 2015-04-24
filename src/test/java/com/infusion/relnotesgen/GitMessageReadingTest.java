@@ -15,7 +15,6 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
-import com.infusion.relnotesgen.GitFacade.Response;
 import com.infusion.relnotesgen.util.TestGitRepo;
 
 /**
@@ -96,7 +95,7 @@ public class GitMessageReadingTest {
         // Given commitId1 and commitId2
 
         // When
-        Response gitInfo = gitMessageReader.readByCommit(commitId1, commitId2);
+        SCMFacade.Response gitInfo = gitMessageReader.readByCommit(commitId1, commitId2);
         Set<String> messages = gitInfo.messages;
 
         // Then

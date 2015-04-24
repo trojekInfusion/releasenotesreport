@@ -17,7 +17,6 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.infusion.relnotesgen.GitFacade.Response;
 import com.infusion.relnotesgen.util.TestGitRepo;
 
 
@@ -141,7 +140,7 @@ public class GitMessageReadingWithCloningOfRepositoryTest {
                 .build());
 
         // When
-        Response gitInfo = gitMessageReader.readByTag("1.2", "1.3");
+        SCMFacade.Response gitInfo = gitMessageReader.readByTag("1.2", "1.3");
         Set<String> messages = gitInfo.messages;
 
         // Then
@@ -158,7 +157,7 @@ public class GitMessageReadingWithCloningOfRepositoryTest {
                 .build());
 
         // When
-        Response gitInfo = gitMessageReader.readByTag("1.1", "1.4");
+        SCMFacade.Response gitInfo = gitMessageReader.readByTag("1.1", "1.4");
         Set<String> messages = gitInfo.messages;
 
         // Then
@@ -176,7 +175,24 @@ public class GitMessageReadingWithCloningOfRepositoryTest {
                 .build());
 
         // When
-        Response gitInfo = gitMessageReader.readByTag("1.3", null);
+        SCMFacade.Response gitInfo = gitMessageReader.readByTag("1.3", null);
+        Set<String> messages = gitInfo.messages;
+
+        // Then
+        assertThat(messages, hasSize(4));
+        assertThat(messages, hasItems("SYM-33 release of version 1.3\n", "SYM-41 prepare for version 1.4\n", "SYM-42 prepare for version 1.4 part 2\n", "SYM-43 releas of version 1.4\n"));
+        assertThat(gitInfo.version, equalTo("1.4"));
+    }
+
+    @Test
+    public void readLatestReleasedVersionWhichMeansReadByTwoLatestTags() {
+        // Given
+        gitMessageReader = new GitFacade(testGitRepo.configuration()
+                .gitDirectory(tempRepo.getAbsolutePath())
+                .build());
+
+        // When
+        SCMFacade.Response gitInfo = gitMessageReader.readLatestReleasedVersion();
         Set<String> messages = gitInfo.messages;
 
         // Then

@@ -19,7 +19,6 @@ import com.atlassian.jira.rest.client.domain.Issue;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.infusion.relnotesgen.Configuration.Element;
-import com.infusion.relnotesgen.GitFacade.Response;
 
 /**
  * @author trojek
@@ -40,14 +39,15 @@ public class Main {
         logger.info("Build configuration: {}", configuration);
 
         //1. Getting git log messages
-        GitFacade gitFacade = new GitFacade(configuration);
-        Response gitInfo = null;
+        SCMFacade gitFacade = new GitFacade(configuration);
+        SCMFacade.Response gitInfo = null;
         if(isNotEmpty(programParameters.tag1) || isNotEmpty(programParameters.tag2)) {
             gitInfo = gitFacade.readByTag(programParameters.tag1, programParameters.tag2);
         } else if(isNotEmpty(programParameters.tag1) || isNotEmpty(programParameters.tag2)) {
             gitInfo = gitFacade.readByCommit(programParameters.commitId1, programParameters.commitId2);
         } else {
-            throw new IllegalArgumentException("No commitId or tag parameter provided");
+            logger.info("Not commitid or tag parameter provided, reading git history by two latests tags.");
+            gitInfo = gitFacade.readLatestReleasedVersion();
         }
 
         //2. Matching issue ids from git log

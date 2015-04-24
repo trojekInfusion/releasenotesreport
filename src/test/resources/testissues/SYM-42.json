@@ -115,7 +115,14 @@
             "name": "In Progress"
          }
       },
-      "components": [],
+      "components": [
+      	{
+            "self": "https://ensemble.atlassian.net/rest/api/2/component/10202",
+            "id": "10202",
+            "name": "Symphony Node",
+            "description": "Symphony Server Node"
+         }
+      ],
       "customfield_10050": null,
       "customfield_10051": null,
       "timeoriginalestimate": 3600,

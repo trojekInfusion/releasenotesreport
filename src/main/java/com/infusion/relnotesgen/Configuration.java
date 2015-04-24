@@ -1,7 +1,6 @@
 package com.infusion.relnotesgen;
 
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
-import static org.apache.commons.lang3.StringUtils.trimToEmpty;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -92,7 +91,7 @@ public class Configuration {
     }
 
     public String getGitCommitMessageValidationOmmitter() {
-        return trimToEmpty(properties.getProperty(GIT_COMMITMESSAGE_VALIDATIONOMMITER));
+        return properties.getProperty(GIT_COMMITMESSAGE_VALIDATIONOMMITER);
     }
 
     public String getJiraUrl() {

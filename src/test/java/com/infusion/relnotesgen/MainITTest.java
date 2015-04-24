@@ -80,6 +80,7 @@ public class MainITTest {
                 "-issueFilterByComponent", "",
                 "-issueFilterByType", "",
                 "-issueFilterByLabel", "",
+                "-issueFilterByStatus", "",
                 "-issueSortType", "",
                 "-issueSortPriority", "",
                 "-reportDirectory", ""};
@@ -90,5 +91,34 @@ public class MainITTest {
         //Then
         File reportFile = new File(localGit.getAbsoluteFile(), "/releases/1_4.html");
         MainIT.assertTestReport(reportFile, "SYM-43", "SYM-42", "SYM-41");
+    }
+
+    @Test
+    public void reportIsCreatedForLatestVersionFilteredByTypeAndComponentAndStatus() throws IOException {
+        //Given
+        String[] args = {
+                "-pushReleaseNotes",
+                "-gitDirectory", localGit.getAbsolutePath(),
+                "-gitBranch", "master",
+                "-gitUrl", originGit.getOriginUrl(),
+                "-gitUsername", "username",
+                "-gitPassword", "password",
+                "-gitCommitterName", "username",
+                "-gitCommitterMail", "username@mail.com",
+                "-gitCommitMessageValidationOmmiter", "",
+                "-jiraUrl", "http://localhost:" + jira.getPort(),
+                "-jiraUsername", "username",
+                "-jiraPassword", "password",
+                "-jiraIssuePattern", "SYM-\\d+",
+                "-issueFilterByComponent", "node",
+                "-issueFilterByType", "Bug",
+                "-issueFilterByStatus", "Ready for QA",};
+
+        //When
+        Main.main(args);
+
+        //Then
+        File reportFile = new File(localGit.getAbsoluteFile(), "/releases/1_4.html");
+        MainIT.assertTestReport(reportFile, "SYM-43", "SYM-42");
     }
 }

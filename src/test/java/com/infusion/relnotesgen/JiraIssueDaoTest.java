@@ -129,7 +129,7 @@ public class JiraIssueDaoTest {
 
         //Then
         verifyIssueWasRequested(issueIds);
-        assertIssueContainsExactly(issues, "SYM-43");
+        assertIssueContainsExactly(issues, "SYM-42", "SYM-43");
     }
 
     @Test
@@ -145,7 +145,7 @@ public class JiraIssueDaoTest {
 
         //Then
         verifyIssueWasRequested(issueIds);
-        assertIssueContainsExactly(issues, "SYM-43", "SYM-32");
+        assertIssueContainsExactly(issues, "SYM-42", "SYM-43", "SYM-32");
     }
 
     @Test
@@ -161,7 +161,7 @@ public class JiraIssueDaoTest {
 
         //Then
         verifyIssueWasRequested(issueIds);
-        assertIssueContainsExactly(issues, "SYM-43");
+        assertIssueContainsExactly(issues, "SYM-42", "SYM-43");
     }
 
     @Test
