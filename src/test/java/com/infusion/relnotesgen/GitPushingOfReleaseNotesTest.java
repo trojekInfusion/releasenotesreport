@@ -10,6 +10,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.nio.file.Files;
 
 import org.apache.commons.io.FileUtils;
@@ -48,22 +49,38 @@ public class GitPushingOfReleaseNotesTest {
     }
 
     @Test
-    public void cloneNewRepositoryWithBranchNameGiven() throws IOException {
+    public void checkPushOfNewFileWasPerformed() throws IOException {
         // Given
         gitMessageReader = new GitFacade(
                 testGitRepo.configuration()
                 .gitDirectory(tempRepo.getAbsolutePath())
                 .build());
         String version = "1.2";
+        String content = "Test release notes for version " + version;
         File tempReleaseNotes = File.createTempFile("ReleaseNotes", null);
         BufferedWriter bw = new BufferedWriter(new FileWriter(tempReleaseNotes));
-        bw.write("Test release notes for version " + version);
+        bw.write(content);
         bw.close();
 
         // When
         boolean successfull = gitMessageReader.pushReleaseNotes(tempReleaseNotes, version);
 
         // Then
+        assertInNewRepo(content, tempReleaseNotes, successfull);
+
+        //modification test
+        version = "1.3";
+        content = "New test release notes for version " + version;
+        bw = new BufferedWriter(new FileWriter(tempReleaseNotes));
+        bw.write(content);
+        bw.close();
+
+        successfull = gitMessageReader.pushReleaseNotes(tempReleaseNotes, version);
+
+        assertInNewRepo(content, tempReleaseNotes, successfull);
+    }
+
+    private void assertInNewRepo(final String content, final File tempReleaseNotes, final boolean successfull) throws IOException {
         assertThat(successfull, equalTo(true));
 
         File repoWithNotes = Files.createTempDirectory("TestCloneGitRepoWithReleaseNotes").toFile();
@@ -74,6 +91,8 @@ public class GitPushingOfReleaseNotesTest {
             newGitRepo.close();
             File releaseNotes = new File(repoWithNotes, "releases/" + tempReleaseNotes.getName());
             assertThat(releaseNotes.exists(), equalTo(true));
+            String report = Files.readAllLines(releaseNotes.toPath(), Charset.forName("UTF-8")).get(0);
+            assertThat(report, equalTo(content));
         } finally {
             FileUtils.deleteDirectory(repoWithNotes);
         }

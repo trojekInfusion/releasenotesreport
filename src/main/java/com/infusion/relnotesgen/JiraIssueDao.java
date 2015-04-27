@@ -1,9 +1,11 @@
 package com.infusion.relnotesgen;
 
 import static org.apache.commons.lang3.StringUtils.containsIgnoreCase;
+import static org.apache.commons.lang3.StringUtils.isBlank;
 
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Set;
 
@@ -84,7 +86,7 @@ public class JiraIssueDao {
 
         for(Filter filter : filters) {
             if(filter.filter(issue)) {
-                logger.info("Filtered issue {} {}", issue.getKey(), issue.getSummary());
+                logger.info("Filtered issue '{} {}' with filter '{}'", issue.getKey(), issue.getSummary(), filter);
                 return null;
             }
         }
@@ -106,6 +108,11 @@ public class JiraIssueDao {
             public boolean match(final Issue issue, final String type) {
                 return type.equalsIgnoreCase(issue.getIssueType().getName());
             }
+
+            @Override
+            public String toString() {
+                return "filter predicate by type";
+            }
         }));
     }
 
@@ -120,6 +127,11 @@ public class JiraIssueDao {
                     }
                 }
                 return false;
+            }
+
+            @Override
+            public String toString() {
+                return "filter predicate by component";
             }
         }));
     }
@@ -136,6 +148,11 @@ public class JiraIssueDao {
                 }
                 return false;
             }
+
+            @Override
+            public String toString() {
+                return "filter predicate by label";
+            }
         }));
     }
 
@@ -146,6 +163,11 @@ public class JiraIssueDao {
             public boolean match(final Issue issue, final String status) {
                 return status.equalsIgnoreCase(issue.getStatus().getName());
             }
+
+            @Override
+            public String toString() {
+                return "filter predicate by status";
+            }
         }));
     }
 
@@ -154,7 +176,7 @@ public class JiraIssueDao {
         final FilterPredicate predicate;
 
         public Filter(final String filters, final FilterPredicate predicate) {
-            this.filters = filters == null ? null : filters.split(",");
+            this.filters = isBlank(filters) ? null : filters.split(",");
             this.predicate = predicate;
         }
 
@@ -168,6 +190,11 @@ public class JiraIssueDao {
                 return true;
             }
             return false;
+        }
+
+        @Override
+        public String toString() {
+            return predicate.toString() + " with values " + Arrays.toString(filters);
         }
     }
 

@@ -148,6 +148,9 @@ public class Configuration {
         StringBuilder builder = new StringBuilder("Configuration[");
         for(Entry<Object, Object> entry : properties.entrySet()) {
             if(!entry.getKey().toString().contains("password")) {
+                if(builder.length() > 14) {
+                    builder.append("|");
+                }
                 builder.append(entry.getKey()).append("=").append(entry.getValue());
             }
         }

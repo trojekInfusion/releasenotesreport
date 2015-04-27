@@ -1,5 +1,7 @@
 package com.infusion.relnotesgen;
 
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
+
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
@@ -22,6 +24,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jgit.api.AddCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.PullResult;
+import org.eclipse.jgit.api.Status;
 import org.eclipse.jgit.api.errors.CanceledException;
 import org.eclipse.jgit.api.errors.CheckoutConflictException;
 import org.eclipse.jgit.api.errors.DetachedHeadException;
@@ -34,6 +37,7 @@ import org.eclipse.jgit.api.errors.RefAlreadyExistsException;
 import org.eclipse.jgit.api.errors.RefNotFoundException;
 import org.eclipse.jgit.api.errors.TransportException;
 import org.eclipse.jgit.api.errors.WrongRepositoryStateException;
+import org.eclipse.jgit.errors.NoWorkTreeException;
 import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
@@ -175,6 +179,7 @@ public class GitFacade implements SCMFacade {
                     }
                 }
             }
+            logger.info("Found {} commit messages.", messages.size());
 
             return new Response(messages, getVersion(latestCommit));
         } catch (GitAPIException e) {
@@ -236,20 +241,32 @@ public class GitFacade implements SCMFacade {
 
             String commitId1 = null;
             String commitId2 = null;
+
             for (Ref tag : tags) {
-                if(tag1 != null && tag.getName().endsWith(tag1)) {
-                    Ref peeledTag = git.getRepository().peel(tag);
-                    commitId1 = peeledTag.getPeeledObjectId().getName();
+                if(isNotBlank(tag1) && tag.getName().endsWith(tag1)) {
+                    commitId1 = retrieveCommitIdFromTag(tag);
+                    logger.info("Found tag '{}' using commit id '{}'.", tag.getName(), commitId1);
                 }
-                if(tag2 != null && tag.getName().endsWith(tag2)) {
-                    Ref peeledTag = git.getRepository().peel(tag);
-                    commitId2 = peeledTag.getPeeledObjectId().getName();
+                if(isNotBlank(tag2) && tag.getName().endsWith(tag2)) {
+                    commitId2 = retrieveCommitIdFromTag(tag);
+                    logger.info("Found tag '{}' using commit id '{}'.", tag.getName(), commitId2);
                 }
             }
 
             return readByCommit(commitId1, commitId2);
         } catch (GitAPIException e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    private String retrieveCommitIdFromTag(final Ref tag) {
+        Ref peeledTag = git.getRepository().peel(tag);
+        if(peeledTag.getPeeledObjectId() == null) {
+            //http://dev.eclipse.org/mhonarc/lists/jgit-dev/msg01706.html
+            //when peeled tag is null it means this is 'lighweight' tag and object id points to commit straight forward
+            return peeledTag.getObjectId().getName();
+        } else {
+            return peeledTag.getPeeledObjectId().getName();
         }
     }
 
@@ -303,19 +320,14 @@ public class GitFacade implements SCMFacade {
             }
             addCommand.call();
 
-            Set<String> added = git.status().call().getAdded();
-            if(added.size() > 1) {
-                logger.error("There are more than one change ({}) to be commited, cancelling pushing release notes.", added.size());
-                return false;
-            }
-            if(added.size() == 0) {
-                logger.error("There are no changes to be commited, probably identical release notes has been already generated and pushed to repository.");
+            Set<String> changes = validateChangesStatusOfReleaseNotes();
+            if(changes == null) {
                 return false;
             }
 
             String commitMessage = buildCommitMessage(version);
             logger.info("Committing file '{}' with message '{}', committer name {}, committer mail {}",
-                    added.iterator().next(), commitMessage, configuration.getGitCommitterName(), configuration.getGitCommitterMail());
+                    changes.iterator().next(), commitMessage, configuration.getGitCommitterName(), configuration.getGitCommitterMail());
             git.commit()
                     .setCommitter(configuration.getGitCommitterName(), configuration.getGitCommitterMail())
                     .setMessage(commitMessage)
@@ -334,6 +346,31 @@ public class GitFacade implements SCMFacade {
             logger.error("Error during pushing release notes", e);
             return false;
         }
+    }
+
+    private Set<String> validateChangesStatusOfReleaseNotes() throws NoWorkTreeException, GitAPIException {
+        Status status = git.status().call();
+        Set<String> added = status.getAdded();
+        Set<String> modified = status.getModified();
+        Set<String> changed = status.getChanged();
+        if(added.size() > 1 || modified.size() > 1 || changed.size() > 1) {
+            logger.error("There are more than one change [added({}), modified({}), changed({})] to be commited, cancelling pushing release notes.", added.size(), modified.size(), changed.size());
+            return null;
+        }
+        if(added.isEmpty() && modified.isEmpty() && changed.isEmpty()) {
+            logger.error("There are no changes to be commited, probably identical release notes has been already generated and pushed to repository.");
+            return null;
+        }
+        if(!added.isEmpty()) {
+            return added;
+        }
+        if(!modified.isEmpty()) {
+            return modified;
+        }
+        if(!changed.isEmpty()) {
+            return changed;
+        }
+        return null;
     }
 
     private String buildCommitMessage(final String version) {

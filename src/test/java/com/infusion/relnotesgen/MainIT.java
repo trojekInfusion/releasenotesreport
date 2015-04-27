@@ -90,7 +90,7 @@ public class MainIT {
         final String[] args = new String[]{
                 "-configurationFilePath", MainIT.class.getResource("/configuration.properties").getFile(),
                 "-tag1", "0.19.0.19",
-                "-tag2", "0.19.0.10",
+                //"-tag2", "0.19.0.10",
                 "-pushReleaseNotes",
                 "-reportDirectory", reportDirectory.getAbsolutePath()};
 

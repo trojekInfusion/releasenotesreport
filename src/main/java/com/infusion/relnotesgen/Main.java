@@ -42,11 +42,13 @@ public class Main {
         SCMFacade gitFacade = new GitFacade(configuration);
         SCMFacade.Response gitInfo = null;
         if(isNotEmpty(programParameters.tag1) || isNotEmpty(programParameters.tag2)) {
+            logger.info("Reading scm history by tags '{}' and '{}'", programParameters.tag1, programParameters.tag2);
             gitInfo = gitFacade.readByTag(programParameters.tag1, programParameters.tag2);
         } else if(isNotEmpty(programParameters.tag1) || isNotEmpty(programParameters.tag2)) {
+            logger.info("Reading scm history by commit ids '{}' and '{}'", programParameters.commitId1, programParameters.commitId2);
             gitInfo = gitFacade.readByCommit(programParameters.commitId1, programParameters.commitId2);
         } else {
-            logger.info("Not commitid or tag parameter provided, reading git history by two latests tags.");
+            logger.info("Not commitid or tag parameter provided, reading scm history by two latests tags.");
             gitInfo = gitFacade.readLatestReleasedVersion();
         }
 
