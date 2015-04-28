@@ -37,6 +37,8 @@ import org.eclipse.jgit.api.errors.RefAlreadyExistsException;
 import org.eclipse.jgit.api.errors.RefNotFoundException;
 import org.eclipse.jgit.api.errors.TransportException;
 import org.eclipse.jgit.api.errors.WrongRepositoryStateException;
+import org.eclipse.jgit.errors.IncorrectObjectTypeException;
+import org.eclipse.jgit.errors.MissingObjectException;
 import org.eclipse.jgit.errors.NoWorkTreeException;
 import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
@@ -280,7 +282,8 @@ public class GitFacade implements SCMFacade {
             String tag2 = null;
             Date latestDate = new Date(0);
             for(Ref tag : tags) {
-                Date tagDate = walk.parseTag(tag.getObjectId()).getTaggerIdent().getWhen();
+                Date tagDate = getDateFromTag(walk, tag);
+
                 if(latestDate.before(tagDate)) {
                     tag2 = tag1;
                     tag1 = tag.getName();
@@ -291,6 +294,16 @@ public class GitFacade implements SCMFacade {
             return readByTag(tag1, tag2);
         } catch (GitAPIException | IOException e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    private Date getDateFromTag(final RevWalk walk, final Ref tag) throws MissingObjectException, IncorrectObjectTypeException, IOException {
+        try {
+            return walk.parseTag(tag.getObjectId()).getTaggerIdent().getWhen();
+        } catch (IOException e) {
+            //http://dev.eclipse.org/mhonarc/lists/jgit-dev/msg01706.html
+            //when peeled tag is null it means this is 'lighweight' tag and object id points to commit straight forward
+            return walk.parseCommit(tag.getObjectId()).getCommitterIdent().getWhen();
         }
     }
 
