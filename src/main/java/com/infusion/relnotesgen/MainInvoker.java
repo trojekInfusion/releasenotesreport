@@ -14,6 +14,9 @@ import java.util.List;
  */
 public class MainInvoker {
 
+    private static final String CUSTOM_APPENDER = "custom";
+    private static final String STDOUT_APPENDER = "STDOUT";
+
     private String commitId1;
     private String commitId2;
     private String tag1;
@@ -26,7 +29,7 @@ public class MainInvoker {
     private String gitCommitterName;
     private String gitCommitterMail;
     private String gitCommitMessageValidationOmmiter;
-    private boolean pushReleaseNotes;
+    private boolean pushReleaseNotes = false;
     private String jiraUrl;
     private String jiraUsername;
     private String jiraPassword;
@@ -45,14 +48,16 @@ public class MainInvoker {
 
         for (Field field : MainInvoker.class.getDeclaredFields()) {
             try {
-                field.setAccessible(true);
-                Object value = field.get(this);
-                if(value != null) {
-                    if(value instanceof String) {
-                        arguments.add("-" + field.getName());
-                        arguments.add(value.toString());
-                    } else if (value instanceof Boolean && ((Boolean) value)) {
-                        arguments.add("-" + field.getName());
+                if (!java.lang.reflect.Modifier.isStatic(field.getModifiers())) {
+                    field.setAccessible(true);
+                    Object value = field.get(this);
+                    if (value != null) {
+                        if (value instanceof String) {
+                            arguments.add("-" + field.getName());
+                            arguments.add(value.toString());
+                        } else if (value instanceof Boolean && ((Boolean) value)) {
+                            arguments.add("-" + field.getName());
+                        }
                     }
                 }
             } catch (Exception e) {
@@ -66,6 +71,10 @@ public class MainInvoker {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public static String getLoggerName() {
+        return Configuration.LOGGER_NAME;
     }
 
     public MainInvoker commitStart(final String commitStart) {
@@ -192,5 +201,4 @@ public class MainInvoker {
         this.reportTemplate = reportTemplate;
         return this;
     }
-
 }

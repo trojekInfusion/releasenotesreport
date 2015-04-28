@@ -28,7 +28,7 @@ import com.atlassian.jira.rest.client.internal.jersey.JerseyJiraRestClientFactor
  */
 public class JiraIssueDao {
 
-    private final static Logger logger = LoggerFactory.getLogger(JiraIssueDao.class);
+    private final static Logger logger = LoggerFactory.getLogger(Configuration.LOGGER_NAME);
 
     private IssueRestClient issueRestClient;
     private Configuration configuration;

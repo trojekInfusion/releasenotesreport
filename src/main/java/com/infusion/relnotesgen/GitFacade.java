@@ -57,7 +57,7 @@ import org.xml.sax.SAXException;
  */
 public class GitFacade implements SCMFacade {
 
-    private static final Logger logger = LoggerFactory.getLogger(GitFacade.class);
+    private static final Logger logger = LoggerFactory.getLogger(Configuration.LOGGER_NAME);
     private static final String RELEASES_DIR = "releases";
     private static final String DEFAULT_VERSION = "1.0";
 

@@ -17,6 +17,8 @@ import java.util.Properties;
  */
 public class Configuration {
 
+    public static final String LOGGER_NAME = "com.infusion.relnotesgen.log.ReleaseNotesLogger";
+
     static final String GIT_DIRECTORY = "git.directory";
     static final String GIT_BRANCH = "git.branch";
     static final String GIT_URL = "git.url";

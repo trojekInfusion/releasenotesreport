@@ -15,7 +15,7 @@ import org.slf4j.LoggerFactory;
  */
 public class JiraIssueIdMatcher {
 
-    private final static Logger logger = LoggerFactory.getLogger(JiraIssueIdMatcher.class);
+    private final static Logger logger = LoggerFactory.getLogger(Configuration.LOGGER_NAME);
 
     private Pattern pattern;
 

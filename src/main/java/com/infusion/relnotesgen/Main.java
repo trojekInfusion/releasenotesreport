@@ -26,7 +26,7 @@ import com.infusion.relnotesgen.Configuration.Element;
  */
 public class Main {
 
-    private final static Logger logger = LoggerFactory.getLogger(Main.class);
+    private final static Logger logger = LoggerFactory.getLogger(Configuration.LOGGER_NAME);
 
     public static final String CONFIGURATION_FILE = "./configuration.properties";
 
@@ -40,33 +40,16 @@ public class Main {
 
         //1. Getting git log messages
         SCMFacade gitFacade = new GitFacade(configuration);
-        SCMFacade.Response gitInfo = null;
-        if(isNotEmpty(programParameters.tag1) || isNotEmpty(programParameters.tag2)) {
-            logger.info("Reading scm history by tags '{}' and '{}'", programParameters.tag1, programParameters.tag2);
-            gitInfo = gitFacade.readByTag(programParameters.tag1, programParameters.tag2);
-        } else if(isNotEmpty(programParameters.tag1) || isNotEmpty(programParameters.tag2)) {
-            logger.info("Reading scm history by commit ids '{}' and '{}'", programParameters.commitId1, programParameters.commitId2);
-            gitInfo = gitFacade.readByCommit(programParameters.commitId1, programParameters.commitId2);
-        } else {
-            logger.info("Not commitid or tag parameter provided, reading scm history by two latests tags.");
-            gitInfo = gitFacade.readLatestReleasedVersion();
-        }
+        SCMFacade.Response gitInfo = getGitInfo(programParameters, gitFacade);
 
         //2. Matching issue ids from git log
         Set<String> jiraIssueIds = new JiraIssueIdMatcher(configuration.getJiraIssuePattern()).findJiraIds(gitInfo.messages);
 
         //3. Quering jira for issues
-        JiraIssueDao jiraIssueDao = new JiraIssueDao(configuration);
-        Collection<Issue> issues = jiraIssueDao.findIssues(jiraIssueIds);
+        Collection<Issue> issues = new JiraIssueDao(configuration).findIssues(jiraIssueIds);
 
         //4. Creating report
-        File reportDirectory = null;
-        if(StringUtils.isEmpty(configuration.getReportDirectory())) {
-            reportDirectory = Files.createTempDirectory("ReportDirectory").toFile();
-        } else {
-            reportDirectory = new File(configuration.getReportDirectory());
-        }
-        File report = new ReleaseNotesGenerator(configuration).generate(issues, reportDirectory, gitInfo.version);
+        File report = createReport(configuration, gitInfo, issues);
 
         //5. Pushing release notes to repo
         if(programParameters.pushReleaseNotes) {
@@ -76,6 +59,32 @@ public class Main {
         gitFacade.close();
 
         logger.info("Release notes generated under {}", report.getAbsolutePath());
+    }
+
+    private static SCMFacade.Response getGitInfo(final ProgramParameters programParameters, final SCMFacade gitFacade) {
+        if(isNotEmpty(programParameters.tag1) || isNotEmpty(programParameters.tag2)) {
+            logger.info("Reading scm history by tags '{}' and '{}'", programParameters.tag1, programParameters.tag2);
+            return gitFacade.readByTag(programParameters.tag1, programParameters.tag2);
+        } else if(isNotEmpty(programParameters.tag1) || isNotEmpty(programParameters.tag2)) {
+            logger.info("Reading scm history by commit ids '{}' and '{}'", programParameters.commitId1, programParameters.commitId2);
+            return gitFacade.readByCommit(programParameters.commitId1, programParameters.commitId2);
+        } else {
+            logger.info("No commit id or tag parameter provided, reading scm history by two latests tags.");
+            return gitFacade.readLatestReleasedVersion();
+        }
+    }
+
+    private static File createReport(final Configuration configuration, final SCMFacade.Response gitInfo, final Collection<Issue> issues)
+            throws IOException {
+        File reportDirectory = null;
+        if(StringUtils.isEmpty(configuration.getReportDirectory())) {
+            logger.info("No report directory defined, creating it under temp directory.");
+            reportDirectory = Files.createTempDirectory("ReportDirectory").toFile();
+        } else {
+            logger.info("Creating report under defined directory in {}", configuration.getReportDirectory());
+            reportDirectory = new File(configuration.getReportDirectory());
+        }
+        return new ReleaseNotesGenerator(configuration).generate(issues, reportDirectory, gitInfo.version);
     }
 
     private static Configuration readConfiguration(final ProgramParameters programParameters) throws IOException, FileNotFoundException {

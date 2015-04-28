@@ -36,7 +36,7 @@ import freemarker.template.Version;
  */
 public class ReleaseNotesGenerator {
 
-    private final static Logger logger = LoggerFactory.getLogger(ReleaseNotesGenerator.class);
+    private final static Logger logger = LoggerFactory.getLogger(Configuration.LOGGER_NAME);
     private Configuration configuration;
     private freemarker.template.Configuration freemarkerConf;
     private String templateName = "report.ftl";
