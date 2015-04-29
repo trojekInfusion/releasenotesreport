@@ -3,6 +3,7 @@
  */
 package com.infusion.relnotesgen;
 
+import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -43,7 +44,7 @@ public class MainInvoker {
     private String reportDirectory;
     private String reportTemplate;
 
-    public void invoke() {
+    public File invoke() {
         List<String> arguments = new ArrayList<>();
 
         for (Field field : MainInvoker.class.getDeclaredFields()) {
@@ -67,7 +68,7 @@ public class MainInvoker {
 
         String[] args = arguments.toArray(new String[0]);
         try {
-            Main.main(args);
+            return Main.generateReleaseNotes(args);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

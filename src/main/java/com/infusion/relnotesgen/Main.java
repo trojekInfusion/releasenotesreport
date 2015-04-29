@@ -31,6 +31,10 @@ public class Main {
     public static final String CONFIGURATION_FILE = "./configuration.properties";
 
     public static void main(final String[] args) throws IOException {
+        generateReleaseNotes(args);
+    }
+
+    static File generateReleaseNotes(final String[] args) throws IOException, FileNotFoundException {
         logger.info("Reading program parameters...");
         ProgramParameters programParameters = new ProgramParameters();
         new JCommander(programParameters, args);
@@ -59,6 +63,8 @@ public class Main {
         gitFacade.close();
 
         logger.info("Release notes generated under {}", report.getAbsolutePath());
+
+        return report;
     }
 
     private static SCMFacade.Response getGitInfo(final ProgramParameters programParameters, final SCMFacade gitFacade) {
