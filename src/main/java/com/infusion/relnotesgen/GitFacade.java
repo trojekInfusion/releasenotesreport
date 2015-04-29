@@ -182,6 +182,9 @@ public class GitFacade implements SCMFacade {
                 }
             }
             logger.info("Found {} commit messages.", messages.size());
+            if(messages.size() == 0) {
+                throw new RuntimeException("No commit were found for given commit ids " + commitId1 + ", " + commitId2 + ". Maybe branch is badly chosen.");
+            }
 
             return new Response(messages, getVersion(latestCommit));
         } catch (GitAPIException e) {
