@@ -81,7 +81,7 @@ public class GitFacade implements SCMFacade {
             } else {
                 logger.info("No git repository under {}", configuration.getGitDirectory());
                 if(!gitRepo.exists()) {
-                    logger.info("Directory {} doesn't exists, creating it...", configuration.getGitDirectory());
+                    logger.info("Directory {} doesn't exist, creating it...", configuration.getGitDirectory());
                     gitRepo.mkdirs();
                 }
 

@@ -68,6 +68,10 @@ public class ReleaseNotesGenerator {
     }
 
     public File generate(final Collection<Issue> issues, final File reportDirectory, final String version) throws IOException {
+        if(!reportDirectory.exists()) {
+            logger.info("Report directory {} doesn't exist, creating it.", reportDirectory.getAbsolutePath());
+            reportDirectory.mkdirs();
+        }
         File report = new File(reportDirectory, version.replace(".", "_") + ".html");
 
         logger.info("Generating report to file {} with {} issues", report.getAbsolutePath(), issues.size());
