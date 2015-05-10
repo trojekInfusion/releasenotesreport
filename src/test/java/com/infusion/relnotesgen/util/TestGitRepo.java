@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Files;
+import java.nio.file.Paths;
 
 import org.apache.commons.io.FileUtils;
 import org.eclipse.jgit.api.Git;
@@ -33,7 +34,7 @@ public class TestGitRepo {
 
     private void createOriginRepository() throws IOException, URISyntaxException {
         URL testrepo = GitMessageReadingTest.class.getResource("/testrepo");
-        originTempRepo = Files.createTempDirectory("TestOriginGitRepo").toFile();
+        originTempRepo = createTempDirectory("TestOriginGitRepo");
         FileUtils.copyDirectory(new File(testrepo.toURI()), originTempRepo);
 
         File[] gitDirectory = originTempRepo.listFiles(new FilenameFilter() {
@@ -50,21 +51,21 @@ public class TestGitRepo {
     private void cloneOriginRepository() throws IOException, InvalidRemoteException, TransportException, GitAPIException {
         gitRepo = Git.cloneRepository()
             .setURI(getOriginUrl())
-            .setDirectory(Files.createTempDirectory("TestGitRepo").toFile())
+            .setDirectory(createTempDirectory("TestGitRepo"))
             .call();
         testTempRepo = gitRepo.getRepository().getDirectory();
     }
-
-    public File gitDirectory() {
-        return testTempRepo;
+    
+    private File createTempDirectory(String prefix) throws IOException {
+    	return Files.createTempDirectory(prefix).toFile();
     }
 
     public void clean() {
         try {
             gitRepo.close();
 
-            FileUtils.deleteDirectory(testTempRepo);
-            FileUtils.deleteDirectory(originTempRepo);
+            FileUtils.deleteDirectory(testTempRepo.getParentFile());
+            FileUtils.deleteDirectory(originTempRepo.getParentFile());
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -82,5 +83,9 @@ public class TestGitRepo {
 
     public String getOriginGitDirectory() {
         return originTempRepo.getParentFile().getAbsolutePath();
+    }
+    
+    public String getGitDirectory() {
+        return testTempRepo.getParentFile().getAbsolutePath();
     }
 }

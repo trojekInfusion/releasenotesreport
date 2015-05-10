@@ -8,6 +8,7 @@ import static org.junit.Assert.assertThat;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Set;
 
 import org.apache.commons.io.FileUtils;
@@ -53,10 +54,12 @@ public class GitMessageReadingWithCloningOfRepositoryTest {
         // Given
         String commitId1 = "2ea0809c55657bc528933e6fda3a7772cacf8279";
         String commitId2 = "2ea0809c55657bc528933e6fda3a7772cacf8279";
-        gitMessageReader = new GitFacade(testGitRepo.configuration()
-                .gitDirectory(tempRepo.getAbsolutePath())
-                .branch("branch1")
-                .build());
+        gitMessageReader = new GitFacade(
+        		testGitRepo.configuration()
+	                .gitDirectory(tempRepo.getAbsolutePath())
+	                .branch("branch1")
+	                .build()
+		        );
 
         // When
         Set<String> messages = gitMessageReader.readByCommit(commitId1, commitId2).messages;
@@ -170,9 +173,11 @@ public class GitMessageReadingWithCloningOfRepositoryTest {
     @Test
     public void readByTagWithOneTag() {
         // Given
-        gitMessageReader = new GitFacade(testGitRepo.configuration()
-                .gitDirectory(tempRepo.getAbsolutePath())
-                .build());
+        gitMessageReader = new GitFacade(
+        		testGitRepo.configuration()
+	                .gitDirectory(tempRepo.getAbsolutePath())
+	                .build()
+                );
 
         // When
         SCMFacade.Response gitInfo = gitMessageReader.readByTag("1.3", null);

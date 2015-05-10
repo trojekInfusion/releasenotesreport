@@ -14,7 +14,9 @@ import java.nio.file.Files;
 
 import org.apache.commons.io.FileUtils;
 import org.glassfish.grizzly.http.util.HttpStatus;
+import org.junit.After;
 import org.junit.AfterClass;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -31,8 +33,7 @@ import com.xebialabs.restito.server.StubServer;
  */
 public class MainITTest {
 
-    private static TestGitRepo originGit;
-    private static File localGit;
+    private static TestGitRepo git;
     private static StubServer jira;
 
     @BeforeClass
@@ -42,32 +43,30 @@ public class MainITTest {
         StubedJiraIssue.stubAllExistingIssue(jira);
     }
 
-    @BeforeClass
-    public static void prepareGit() throws IOException {
-        originGit = new TestGitRepo();
-        localGit = Files.createTempDirectory("TestGitRepo").toFile();
-    }
-
     @AfterClass
     public static void stopJira() {
         jira.stop();
     }
+    
+    @Before
+    public void prepareGit() throws IOException {
+        git = new TestGitRepo();
+    }
 
-    @AfterClass
-    public static void cleanGitRepos() throws IOException {
-        FileUtils.deleteDirectory(localGit);
-        originGit.clean();
+    @After
+    public void cleanGitRepos() throws IOException {
+        git.clean();
     }
 
     @Test
-    public void reportIsCreated() throws IOException {
+    public void reportIsCreatedByTag() throws IOException {
         //Given
         String[] args = {
                 "-tag1", "1.3",
                 "-pushReleaseNotes",
-                "-gitDirectory", localGit.getAbsolutePath(),
+                "-gitDirectory", git.getGitDirectory(),
                 "-gitBranch", "master",
-                "-gitUrl", originGit.getOriginUrl(),
+                "-gitUrl", git.getOriginUrl(),
                 "-gitUsername", "username",
                 "-gitPassword", "password",
                 "-gitCommitterName", "username",
@@ -89,8 +88,43 @@ public class MainITTest {
         Main.main(args);
 
         //Then
-        File reportFile = new File(localGit.getAbsoluteFile(), "/releases/1_4.html");
+        File reportFile = new File(git.getGitDirectory(), "/releases/1_4.html");
         MainIT.assertTestReport(reportFile, "SYM-43", "SYM-42", "SYM-41");
+    }
+    
+    @Test
+    public void reportIsCreatedByCommit() throws IOException {
+        //Given
+        String[] args = {
+                "-commitId1", "459643f30fea11f0e0e2791c5b8b247c19df8eca",
+                "-commitId2", "f911f2f4db67fec386190df1abb0a3c38b457358",
+                "-pushReleaseNotes",
+                "-gitDirectory", git.getGitDirectory(),
+                "-gitBranch", "master",
+                "-gitUrl", git.getOriginUrl(),
+                "-gitUsername", "username",
+                "-gitPassword", "password",
+                "-gitCommitterName", "username",
+                "-gitCommitterMail", "username@mail.com",
+                "-gitCommitMessageValidationOmmiter", "",
+                "-jiraUrl", "http://localhost:" + jira.getPort(),
+                "-jiraUsername", "username",
+                "-jiraPassword", "password",
+                "-jiraIssuePattern", "SYM-\\d+",
+                "-issueFilterByComponent", "",
+                "-issueFilterByType", "",
+                "-issueFilterByLabel", "",
+                "-issueFilterByStatus", "",
+                "-issueSortType", "",
+                "-issueSortPriority", "",
+                "-reportDirectory", ""};
+
+        //When
+        Main.main(args);
+
+        //Then
+        File reportFile = new File(git.getGitDirectory(), "/releases/1_3.html");
+        MainIT.assertTestReport(reportFile, "SYM-32");
     }
 
     @Test
@@ -98,9 +132,9 @@ public class MainITTest {
         //Given
         MainInvoker mainInvoker = new MainInvoker()
                 .pushReleaseNotes(true)
-                .gitDirectory(localGit.getAbsolutePath())
+                .gitDirectory(git.getGitDirectory())
                 .gitBranch("master")
-                .gitUrl(originGit.getOriginUrl())
+                .gitUrl(git.getOriginUrl())
                 .gitUsername("username")
                 .gitPassword("password")
                 .gitCommitterName("username")
@@ -118,7 +152,7 @@ public class MainITTest {
         mainInvoker.invoke();
 
         //Then
-        File reportFile = new File(localGit.getAbsoluteFile(), "/releases/1_4.html");
+        File reportFile = new File(git.getGitDirectory(), "/releases/1_4.html");
         MainIT.assertTestReport(reportFile, "SYM-43", "SYM-42");
     }
 }

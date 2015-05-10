@@ -71,7 +71,7 @@ public class Main {
         if(isNotEmpty(programParameters.tag1) || isNotEmpty(programParameters.tag2)) {
             logger.info("Reading scm history by tags '{}' and '{}'", programParameters.tag1, programParameters.tag2);
             return gitFacade.readByTag(programParameters.tag1, programParameters.tag2);
-        } else if(isNotEmpty(programParameters.tag1) || isNotEmpty(programParameters.tag2)) {
+        } else if(isNotEmpty(programParameters.commitId1) || isNotEmpty(programParameters.commitId2)) {
             logger.info("Reading scm history by commit ids '{}' and '{}'", programParameters.commitId1, programParameters.commitId2);
             return gitFacade.readByCommit(programParameters.commitId1, programParameters.commitId2);
         } else {
