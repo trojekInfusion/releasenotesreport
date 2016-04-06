@@ -28,5 +28,11 @@
 	  
   </#list>
 
+  <h2>Git commit messages</h2>
+<#list messages as message>
+	  <li>${message}</li>
+
+  </#list>
+
 </body>
 </html>
