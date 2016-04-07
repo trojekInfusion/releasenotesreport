@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Set;
 
+import org.apache.commons.httpclient.auth.CredentialsProvider;
 import org.junit.AfterClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -25,7 +26,9 @@ import com.infusion.relnotesgen.util.TestGitRepo;
 public class GitMessageReadingTest {
 
     private static TestGitRepo testGitRepo = new TestGitRepo();
-    private static GitFacade gitMessageReader = new GitFacade(testGitRepo.configuration().build());
+    private static Configuration conf = testGitRepo.configuration().build();
+    private static Authenticator authenticator = new UserCredentialsAuthenticator(conf);
+    private static GitFacade gitMessageReader = new GitFacade(conf, authenticator);
 
     private String commitId1;
     private String commitId2;

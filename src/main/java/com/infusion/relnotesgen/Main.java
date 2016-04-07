@@ -43,7 +43,8 @@ public class Main {
         logger.info("Build configuration: {}", configuration);
 
         //1. Getting git log messages
-        SCMFacade gitFacade = new GitFacade(configuration);
+        Authenticator authenticator = new PublicKeyAuthenticator();
+        SCMFacade gitFacade = new GitFacade(configuration, authenticator);
         SCMFacade.Response gitInfo = getGitInfo(programParameters, gitFacade);
 
         //2. Matching issue ids from git log
