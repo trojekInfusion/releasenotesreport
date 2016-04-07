@@ -62,11 +62,13 @@ public class GitFacade implements SCMFacade {
     private static final Logger logger = LoggerFactory.getLogger(Configuration.LOGGER_NAME);
     private static final String RELEASES_DIR = "releases";
     private static final String DEFAULT_VERSION = "1.0";
+    private final Authenticator authenticator;
 
     private Git git;
     private Configuration configuration;
 
-    public GitFacade(final Configuration configuration) {
+    public GitFacade(final Configuration configuration, Authenticator authenticator) {
+        this.authenticator = authenticator;
         logger.info("Reading git repository under {}", configuration.getGitDirectory());
         this.configuration = configuration;
         try {
@@ -101,7 +103,7 @@ public class GitFacade implements SCMFacade {
             InvalidConfigurationException, DetachedHeadException, InvalidRemoteException, CanceledException,
             RefNotFoundException, NoHeadException, TransportException {
         logger.info("Performing pull...");
-        PullResult result = git.pull().setCredentialsProvider(credentials()).call();
+        PullResult result = authenticator.authenticate(git.pull()).call();
         if(result.isSuccessful()) {
             logger.info("Pull successfull");
         } else {
@@ -115,17 +117,16 @@ public class GitFacade implements SCMFacade {
     }
 
     private void cloneRepo() {
-        logger.info("Cloning git repository url: {}, user: {}, password: {}",
-                configuration.getGitUrl(), configuration.getGitUsername(), StringUtils.abbreviate(configuration.getGitPassword(), 6));
+        logger.info("Cloning git repository url: {}", configuration.getGitUrl());
 
         long startTime = System.currentTimeMillis();
 
         final File localPath = new File(configuration.getGitDirectory());
+
         try {
-            git = Git.cloneRepository()
+            git = authenticator.authenticate(Git.cloneRepository())
                 .setURI(configuration.getGitUrl())
                 .setDirectory(localPath)
-                .setCredentialsProvider(credentials())
                 .setBranch(configuration.getGitBranch())
                 .setCloneAllBranches(false)
                 .call();
@@ -350,9 +351,7 @@ public class GitFacade implements SCMFacade {
                     .call();
 
             logger.info("Pushing changes to remote...");
-            Iterable<PushResult> pushResults = git.push()
-                    .setCredentialsProvider(credentials())
-                    .call();
+            Iterable<PushResult> pushResults = authenticator.authenticate(git.push()).call();
             logger.info("Push call has ended.");
             for(PushResult pushResult : pushResults) {
                 logger.info("Push message: {}", pushResult.getMessages());

@@ -43,13 +43,16 @@ public class Main {
         logger.info("Build configuration: {}", configuration);
 
         //1. Getting git log messages
-        SCMFacade gitFacade = new GitFacade(configuration);
+        Authenticator authenticator = configuration.getGitUrl().toLowerCase().startsWith("ssh://") ?
+                new PublicKeyAuthenticator() :
+                new UserCredentialsAuthenticator(configuration);
+        SCMFacade gitFacade = new GitFacade(configuration, authenticator);
         SCMFacade.Response gitInfo = getGitInfo(programParameters, gitFacade);
 
         //2. Matching issue ids from git log
         Set<String> jiraIssueIds = new JiraIssueIdMatcher(configuration.getJiraIssuePattern()).findJiraIds(gitInfo.messages);
 
-        //3. Quering jira for issues
+        //3. Querying jira for issues
         Collection<Issue> issues = new JiraIssueDao(configuration).findIssues(jiraIssueIds);
 
         //4. Creating report
