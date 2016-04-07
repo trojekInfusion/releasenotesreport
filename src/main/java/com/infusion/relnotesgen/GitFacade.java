@@ -1,42 +1,12 @@
 package com.infusion.relnotesgen;
 
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
-
-import java.io.File;
-import java.io.FilenameFilter;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.StandardCopyOption;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
-
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.xpath.XPath;
-import javax.xml.xpath.XPathExpression;
-import javax.xml.xpath.XPathExpressionException;
-import javax.xml.xpath.XPathFactory;
-
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jgit.api.AddCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.PullResult;
 import org.eclipse.jgit.api.Status;
-import org.eclipse.jgit.api.errors.CanceledException;
-import org.eclipse.jgit.api.errors.CheckoutConflictException;
-import org.eclipse.jgit.api.errors.DetachedHeadException;
-import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.api.errors.InvalidConfigurationException;
-import org.eclipse.jgit.api.errors.InvalidRefNameException;
-import org.eclipse.jgit.api.errors.InvalidRemoteException;
-import org.eclipse.jgit.api.errors.NoHeadException;
-import org.eclipse.jgit.api.errors.RefAlreadyExistsException;
-import org.eclipse.jgit.api.errors.RefNotFoundException;
-import org.eclipse.jgit.api.errors.TransportException;
-import org.eclipse.jgit.api.errors.WrongRepositoryStateException;
+import org.eclipse.jgit.api.errors.*;
 import org.eclipse.jgit.errors.IncorrectObjectTypeException;
 import org.eclipse.jgit.errors.MissingObjectException;
 import org.eclipse.jgit.errors.NoWorkTreeException;
@@ -47,11 +17,30 @@ import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
 import org.eclipse.jgit.transport.CredentialsProvider;
 import org.eclipse.jgit.transport.PushResult;
+import org.eclipse.jgit.transport.TagOpt;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathExpression;
+import javax.xml.xpath.XPathExpressionException;
+import javax.xml.xpath.XPathFactory;
+import java.io.File;
+import java.io.FilenameFilter;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
+
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 /**
  * @author trojek
@@ -77,6 +66,7 @@ public class GitFacade implements SCMFacade {
                 logger.info("Found git repository under {}", configuration.getGitDirectory());
 
                 pull();
+                fetchTags();
                 checkout();
                 pull();
 
@@ -92,6 +82,12 @@ public class GitFacade implements SCMFacade {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private void fetchTags() {
+        logger.info("Performing fetch tags...");
+        git.fetch().setTagOpt(TagOpt.FETCH_TAGS);
+        logger.info("Fetch tags");
     }
 
     private void checkout() throws RefAlreadyExistsException, RefNotFoundException, InvalidRefNameException, CheckoutConflictException, GitAPIException {
