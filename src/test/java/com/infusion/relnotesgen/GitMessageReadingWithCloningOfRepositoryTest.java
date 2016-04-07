@@ -8,7 +8,6 @@ import static org.junit.Assert.assertThat;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.Set;
 
 import org.apache.commons.io.FileUtils;
@@ -54,12 +53,11 @@ public class GitMessageReadingWithCloningOfRepositoryTest {
         // Given
         String commitId1 = "2ea0809c55657bc528933e6fda3a7772cacf8279";
         String commitId2 = "2ea0809c55657bc528933e6fda3a7772cacf8279";
-        gitMessageReader = new GitFacade(
-        		testGitRepo.configuration()
-	                .gitDirectory(tempRepo.getAbsolutePath())
-	                .branch("branch1")
-	                .build()
-		        );
+        Configuration conf = testGitRepo.configuration()
+                .gitDirectory(tempRepo.getAbsolutePath())
+                .branch("branch1")
+                .build();
+        gitMessageReader = new GitFacade(conf, new UserCredentialsAuthenticator(conf));
 
         // When
         Set<String> messages = gitMessageReader.readByCommit(commitId1, commitId2).messages;
@@ -74,9 +72,10 @@ public class GitMessageReadingWithCloningOfRepositoryTest {
         // Given
         String commitId1 = "33589445102fd7b49421006e0447836429d84113";
         String commitId2 = "948fa8f6cc8a49f08e3c3a426c9e3d7323ce469a";
-        gitMessageReader = new GitFacade(testGitRepo.configuration()
+        Configuration conf = testGitRepo.configuration()
                 .gitDirectory(tempRepo.getAbsolutePath())
-                .build());
+                .build();
+        gitMessageReader = new GitFacade(conf, new UserCredentialsAuthenticator(conf));
 
         // When
         Set<String> messages = gitMessageReader.readByCommit(commitId1, commitId2).messages;
@@ -91,9 +90,10 @@ public class GitMessageReadingWithCloningOfRepositoryTest {
         // Given
         String commitId1 = "33589445102fd7b49421006e0447836429d84113";
         String commitId2 = "948fa8f6cc8a49f08e3c3a426c9e3d7323ce469a";
-        gitMessageReader = new GitFacade(testGitRepo.configuration()
+        Configuration conf = testGitRepo.configuration()
                 .gitDirectory(tempRepo.getAbsolutePath())
-                .build());
+                .build();
+        gitMessageReader = new GitFacade(conf, new UserCredentialsAuthenticator(conf));
 
         // When
         Set<String> messages = gitMessageReader.readByCommit(commitId1, commitId2).messages;
@@ -108,9 +108,10 @@ public class GitMessageReadingWithCloningOfRepositoryTest {
         // Given
         String commitId1 = "1c814546893dc5544f86ca87ca58f0d162c9ccd2";
         String commitId2 = "50dbc466d1fa6ddc714ebabbeae585af7a72524b";
-        gitMessageReader = new GitFacade(testGitRepo.configuration()
+        Configuration conf = testGitRepo.configuration()
                 .gitDirectory(tempRepo.getAbsolutePath())
-                .build());
+                .build();
+        gitMessageReader = new GitFacade(conf, new UserCredentialsAuthenticator(conf));
 
         // When
         String version = gitMessageReader.readByCommit(commitId1, commitId2).version;
@@ -124,9 +125,10 @@ public class GitMessageReadingWithCloningOfRepositoryTest {
         // Given
         String commitId1 = "1c814546893dc5544f86ca87ca58f0d162c9ccd2";
         String commitId2 = "4f4685dfcff6514558f08d3dd303bda4684f0ffd";
-        gitMessageReader = new GitFacade(testGitRepo.configuration()
+        Configuration conf = testGitRepo.configuration()
                 .gitDirectory(tempRepo.getAbsolutePath())
-                .build());
+                .build();
+        gitMessageReader = new GitFacade(conf, new UserCredentialsAuthenticator(conf));
 
         // When
         String version = gitMessageReader.readByCommit(commitId1, commitId2).version;
@@ -138,9 +140,11 @@ public class GitMessageReadingWithCloningOfRepositoryTest {
     @Test
     public void readByTagWithTwoNeighbourTags() {
         // Given
-        gitMessageReader = new GitFacade(testGitRepo.configuration()
+        Configuration conf = testGitRepo.configuration()
                 .gitDirectory(tempRepo.getAbsolutePath())
-                .build());
+                .build();
+
+        gitMessageReader = new GitFacade(conf, new UserCredentialsAuthenticator(conf));
 
         // When
         SCMFacade.Response gitInfo = gitMessageReader.readByTag("1.2", "1.3");
@@ -155,9 +159,10 @@ public class GitMessageReadingWithCloningOfRepositoryTest {
     @Test
     public void readByTagWithTwoTagsHavingOtherTagBetweenThem() {
         // Given
-        gitMessageReader = new GitFacade(testGitRepo.configuration()
+        Configuration conf = testGitRepo.configuration()
                 .gitDirectory(tempRepo.getAbsolutePath())
-                .build());
+                .build();
+        gitMessageReader = new GitFacade(conf, new UserCredentialsAuthenticator(conf));
 
         // When
         SCMFacade.Response gitInfo = gitMessageReader.readByTag("1.1", "1.4");
@@ -173,11 +178,10 @@ public class GitMessageReadingWithCloningOfRepositoryTest {
     @Test
     public void readByTagWithOneTag() {
         // Given
-        gitMessageReader = new GitFacade(
-        		testGitRepo.configuration()
-	                .gitDirectory(tempRepo.getAbsolutePath())
-	                .build()
-                );
+        Configuration conf = testGitRepo.configuration()
+                .gitDirectory(tempRepo.getAbsolutePath())
+                .build();
+        gitMessageReader = new GitFacade(conf, new UserCredentialsAuthenticator(conf));
 
         // When
         SCMFacade.Response gitInfo = gitMessageReader.readByTag("1.3", null);
@@ -192,9 +196,10 @@ public class GitMessageReadingWithCloningOfRepositoryTest {
     @Test
     public void readLatestReleasedVersionWhichMeansReadByTwoLatestTags() {
         // Given
-        gitMessageReader = new GitFacade(testGitRepo.configuration()
+        Configuration conf = testGitRepo.configuration()
                 .gitDirectory(tempRepo.getAbsolutePath())
-                .build());
+                .build();
+        gitMessageReader = new GitFacade(conf, new UserCredentialsAuthenticator(conf));
 
         // When
         SCMFacade.Response gitInfo = gitMessageReader.readLatestReleasedVersion();
