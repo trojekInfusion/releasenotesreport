@@ -54,12 +54,12 @@ public class ReleaseNotesReportGenerator {
             freemarkerConf.setClassForTemplateLoading(ReleaseNotesGenerator.class, "/");
         }
 
+        freemarkerConf.setURLEscapingCharset("UTF-8");
         freemarkerConf.setIncompatibleImprovements(new Version(2, 3, 20));
         freemarkerConf.setDefaultEncoding("UTF-8");
         freemarkerConf.setLocale(Locale.getDefault());
         freemarkerConf.setTemplateExceptionHandler(TemplateExceptionHandler.RETHROW_HANDLER);
         BeansWrapper beansWrapper = (BeansWrapper) ObjectWrapper.BEANS_WRAPPER;
-        beansWrapper.setExposeFields(true);
         freemarkerConf.setObjectWrapper(beansWrapper);
 
         try {

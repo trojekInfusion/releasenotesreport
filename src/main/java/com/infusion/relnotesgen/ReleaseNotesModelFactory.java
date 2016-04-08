@@ -36,6 +36,7 @@ public class ReleaseNotesModelFactory {
     public ReleaseNotesModel get() {
         String version = versionInfoProvider.getReleaseVersion();
         ImmutableSet<Commit> commits = commitInfoProvider.getCommits();
+
         Iterable<CommitWithParsedInfo> commitsWithParsedInfo = FluentIterable
             .from(commits)
             .transform(new Function<Commit, CommitWithParsedInfo>() {
@@ -142,7 +143,10 @@ public class ReleaseNotesModelFactory {
     }
 
     private ReportCommitModel toCommitModel(CommitWithParsedInfo commitWithParsedInfo) {
-        return new ReportCommitModel(commitWithParsedInfo.getCommit().getMessage(), commitWithParsedInfo.getDefectIds());
+        return new ReportCommitModel(
+                commitWithParsedInfo.getCommit().getId(),
+                commitWithParsedInfo.getCommit().getMessage(),
+                commitWithParsedInfo.getDefectIds());
     }
 
     private static class CommitWithParsedInfo {

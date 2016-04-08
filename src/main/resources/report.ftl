@@ -1,8 +1,10 @@
+<#escape x as x?html>
 <html>
 <head>
     <title>Release notes for version ${releaseVersion}</title>
 </head>
 <body>
+
 <h1>Release notes for version ${releaseVersion}</h1>
 
 <#list issueCategoryNames as categoryName>
@@ -20,7 +22,7 @@
 
 </#list>
 
-<h2>Items without JIRA issues (${commitsWithNoIssue.size()})</h2>
+<h2>Commits without JIRA issues (${commitsWithNoIssue.size()})</h2>
 <ul>
     <#list commitsWithNoIssue as commit>
         <li>
@@ -31,10 +33,11 @@
                 <#else>
                     <b>none</b>
             </#if>
-            ${commit.message}
+            [id: ${commit.id}] ${commit.message}
         </li>
     </#list>
 </ul>
 
 </body>
 </html>
+</#escape>
