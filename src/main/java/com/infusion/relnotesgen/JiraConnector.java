@@ -1,6 +1,6 @@
 package com.infusion.relnotesgen;
 
-import com.atlassian.jira.rest.client.domain.Issue;
+import com.atlassian.jira.rest.client.api.domain.Issue;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 

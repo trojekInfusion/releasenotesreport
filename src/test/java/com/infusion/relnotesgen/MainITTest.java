@@ -10,9 +10,7 @@ import static com.xebialabs.restito.semantics.Condition.alwaysTrue;
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
-import java.nio.file.Files;
 
-import org.apache.commons.io.FileUtils;
 import org.glassfish.grizzly.http.util.HttpStatus;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -20,7 +18,6 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import com.infusion.relnotesgen.util.StubedJiraIssue;
 import com.infusion.relnotesgen.util.TestGitRepo;
 import com.xebialabs.restito.server.StubServer;
 
@@ -36,18 +33,11 @@ public class MainITTest {
     private static TestGitRepo git;
     private static StubServer jira;
 
-    @BeforeClass
-    public static void startJira() throws IOException, URISyntaxException {
-        jira = new StubServer().run();
-        whenHttp(jira).match(alwaysTrue()).then(status(HttpStatus.NOT_FOUND_404));
-        StubedJiraIssue.stubAllExistingIssue(jira);
-    }
-
     @AfterClass
     public static void stopJira() {
         jira.stop();
     }
-    
+
     @Before
     public void prepareGit() throws IOException {
         git = new TestGitRepo();
@@ -91,7 +81,7 @@ public class MainITTest {
         File reportFile = new File(git.getGitDirectory(), "/releases/1_4.html");
         MainIT.assertTestReport(reportFile, "SYM-43", "SYM-42", "SYM-41");
     }
-    
+
     @Test
     public void reportIsCreatedByCommit() throws IOException {
         //Given

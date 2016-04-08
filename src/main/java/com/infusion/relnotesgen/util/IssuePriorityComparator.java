@@ -1,6 +1,6 @@
 package com.infusion.relnotesgen.util;
 
-import com.atlassian.jira.rest.client.domain.Issue;
+import com.atlassian.jira.rest.client.api.domain.Issue;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Comparator;

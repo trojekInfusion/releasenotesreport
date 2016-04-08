@@ -1,6 +1,6 @@
 package com.infusion.relnotesgen;
 
-import com.atlassian.jira.rest.client.domain.Issue;
+import com.atlassian.jira.rest.client.api.domain.Issue;
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.collect.*;
@@ -57,7 +57,7 @@ public class ReleaseNotesModelFactory {
                             return commitMessage.getJiraIssueKeys();
                         }
                     })
-                .toImmutableSet();
+                .toSet();
 
         ImmutableMap<String, Issue> jiraIssues = jiraConnector.getIssuesIncludeParents(issueIds);
 
@@ -107,7 +107,7 @@ public class ReleaseNotesModelFactory {
                         return toCommitModel(commitWithParsedInfo);
                     }
                 })
-                .toImmutableSet();
+                .toSet();
     }
 
     private ImmutableMap<String, ImmutableSet<ReportJiraIssueModel>> getIssuesByType(

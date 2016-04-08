@@ -1,12 +1,13 @@
 package com.infusion.relnotesgen.util;
 
-import com.atlassian.jira.rest.client.domain.Field;
-import com.atlassian.jira.rest.client.domain.Issue;
+
+import com.atlassian.jira.rest.client.api.domain.Issue;
+import com.atlassian.jira.rest.client.api.domain.IssueField;
 
 public class JiraUtilsImpl implements JiraUtils {
     @Override
     public String getFieldValueByNameSafe(Issue issue, String fieldName) {
-        Field field = issue.getFieldByName(fieldName);
+        IssueField field = issue.getFieldByName(fieldName);
 
         if (field == null) {
             return null;

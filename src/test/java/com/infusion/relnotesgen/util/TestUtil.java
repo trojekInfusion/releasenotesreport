@@ -19,6 +19,6 @@ public final class TestUtil {
                         return commit.getMessage();
                     }
                 })
-                .toImmutableSet();
+                .toSet();
     }
 }

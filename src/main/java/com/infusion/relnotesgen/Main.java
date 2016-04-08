@@ -1,6 +1,6 @@
 package com.infusion.relnotesgen;
 
-import com.atlassian.jira.rest.client.domain.Issue;
+import com.atlassian.jira.rest.client.api.domain.Issue;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.google.common.collect.FluentIterable;
@@ -11,6 +11,7 @@ import com.infusion.relnotesgen.util.IssueCategorizer;
 import com.infusion.relnotesgen.util.IssueCategorizerImpl;
 import com.infusion.relnotesgen.util.JiraUtils;
 import com.infusion.relnotesgen.util.JiraUtilsImpl;
+import org.apache.commons.lang3.NotImplementedException;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,19 +53,19 @@ public class Main {
 
         // Components
         final SCMFacade.Response gitInfo = getGitInfo(programParameters, gitFacade);
-        final JiraIssueDao jiraIssueDao = new JiraIssueDao(configuration);
 
         // Implementations
         CommitInfoProvider commitInfoProvider = new CommitInfoProvider() {
             @Override
             public ImmutableSet<Commit> getCommits() {
-                return FluentIterable.from(gitInfo.commits).toImmutableSet();
+                return FluentIterable.from(gitInfo.commits).toSet();
             }
         };
         JiraConnector jiraConnector = new JiraConnector() {
             @Override
             public ImmutableMap<String, Issue> getIssuesIncludeParents(ImmutableSet<String> issueIds) {
-                return jiraIssueDao.findAllIssuesAsMap(issueIds);
+                throw new NotImplementedException("");
+                // return jiraIssueDao.findAllIssuesAsMap(issueIds);
             }
 
             @Override

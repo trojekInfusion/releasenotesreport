@@ -1,6 +1,6 @@
 package com.infusion.relnotesgen;
 
-import com.atlassian.jira.rest.client.domain.Issue;
+import com.atlassian.jira.rest.client.api.domain.Issue;
 
 public class ReportJiraIssueModel {
     private final Issue issue;

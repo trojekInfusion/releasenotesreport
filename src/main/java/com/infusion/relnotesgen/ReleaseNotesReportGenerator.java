@@ -51,7 +51,7 @@ public class ReleaseNotesReportGenerator {
             }
         } else {
             logger.info("Using default template.");
-            freemarkerConf.setClassForTemplateLoading(ReleaseNotesGenerator.class, "/");
+            freemarkerConf.setClassForTemplateLoading(ReleaseNotesReportGenerator.class, "/");
         }
 
         freemarkerConf.setURLEscapingCharset("UTF-8");

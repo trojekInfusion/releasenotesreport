@@ -1,6 +1,6 @@
 package com.infusion.relnotesgen.util;
 
-import com.atlassian.jira.rest.client.domain.Issue;
+import com.atlassian.jira.rest.client.api.domain.Issue;
 
 import java.util.Collection;
 import java.util.List;
