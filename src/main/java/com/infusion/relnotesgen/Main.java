@@ -23,6 +23,7 @@ import java.nio.file.Files;
 import java.text.MessageFormat;
 import java.util.Properties;
 
+import static org.apache.commons.lang3.StringUtils.defaultIfEmpty;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 
 /**
@@ -80,7 +81,7 @@ public class Main {
         VersionInfoProvider versionInfoProvider = new VersionInfoProvider() {
             @Override
             public String getReleaseVersion() {
-                return gitInfo.version;
+                return defaultIfEmpty(configuration.getReleaseVersion(), gitInfo.version);
             }
         };
         IssueCategorizer issueCategorizer = new IssueCategorizerImpl(configuration);
@@ -246,5 +247,10 @@ public class Main {
         @Element(Configuration.REPORT_TEMPLATE)
         @Parameter(names = { "-reportTemplate" })
         private String reportTemplate;
+
+        @Element(Configuration.RELEASE_VERSION)
+        @Parameter(names = { "-releaseVersion" })
+        private String releaseVersion;
+
     }
 }
