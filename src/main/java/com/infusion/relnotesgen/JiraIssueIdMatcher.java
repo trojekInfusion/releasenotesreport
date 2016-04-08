@@ -1,11 +1,14 @@
 package com.infusion.relnotesgen;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
+import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.google.common.collect.ImmutableList;
+import org.apache.commons.lang3.StringEscapeUtils;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.http.annotation.Immutable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,21 +26,20 @@ public class JiraIssueIdMatcher {
         this.pattern = Pattern.compile(pattern);
     }
 
-    public Set<String> findJiraIds(final Collection<String> texts) {
-        logger.info("Searching for jira issue ids with patern '{}'", pattern);
-
-        Set<String> jiraIds = new HashSet<String>();
+    public ImmutableList<ImmutablePair<String, ImmutableList<String>>> findJiraIds(final Iterable<String> texts) {
+        ImmutableList.Builder<ImmutablePair<String, ImmutableList<String>>> resultBuilder = ImmutableList.builder();
 
         for (String text : texts) {
+            ImmutableList.Builder<String> matchesBuilder = ImmutableList.builder();
             Matcher matcher = pattern.matcher(text);
+
             while (matcher.find()) {
-                jiraIds.add(matcher.group());
+                matchesBuilder.add(matcher.group());
             }
+
+            resultBuilder.add(ImmutablePair.of(text, matchesBuilder.build()));
         }
 
-
-        logger.info("Found {} jira issue's ids", jiraIds.size());
-
-        return jiraIds;
+        return resultBuilder.build();
     }
 }

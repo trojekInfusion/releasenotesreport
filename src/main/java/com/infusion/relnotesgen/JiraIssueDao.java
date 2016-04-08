@@ -1,23 +1,23 @@
 package com.infusion.relnotesgen;
 
-import com.atlassian.jira.rest.client.IssueRestClient;
-import com.atlassian.jira.rest.client.JiraRestClient;
-import com.atlassian.jira.rest.client.NullProgressMonitor;
-import com.atlassian.jira.rest.client.RestClientException;
+import com.atlassian.jira.rest.client.*;
 import com.atlassian.jira.rest.client.domain.BasicComponent;
 import com.atlassian.jira.rest.client.domain.Issue;
 import com.atlassian.jira.rest.client.internal.jersey.JerseyJiraRestClientFactory;
+import com.google.common.base.Supplier;
+import com.google.common.collect.ImmutableCollection;
+import com.google.common.collect.ImmutableMap;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.URI;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Set;
+import java.net.URISyntaxException;
+import java.text.MessageFormat;
+import java.util.*;
 
 import static org.apache.commons.lang3.StringUtils.containsIgnoreCase;
 import static org.apache.commons.lang3.StringUtils.isBlank;
@@ -28,6 +28,7 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
 public class JiraIssueDao {
 
     private final static Logger logger = LoggerFactory.getLogger(Configuration.LOGGER_NAME);
+    private final JiraRestClient jiraClient;
 
     private IssueRestClient issueRestClient;
     private Configuration configuration;
@@ -37,58 +38,79 @@ public class JiraIssueDao {
         logger.info("Creating jira rest client with url {} and user {}", configuration.getJiraUrl(),
                 configuration.getJiraUsername());
 
-        try {
-            this.configuration = configuration;
+        this.configuration = configuration;
 
-            JerseyJiraRestClientFactory factory = new JerseyJiraRestClientFactory();
-            JiraRestClient restClient = factory.createWithBasicHttpAuthentication(new URI(configuration.getJiraUrl()),
-                    configuration.getJiraUsername(), configuration.getJiraPassword());
-            issueRestClient = restClient.getIssueClient();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+        URI jiraUri;
+
+        try {
+            jiraUri = new URI(configuration.getJiraUrl());
+        } catch (URISyntaxException e) {
+            throw new IllegalArgumentException("Configuration invalid: JIRA URL");
         }
+
+        JerseyJiraRestClientFactory factory = new JerseyJiraRestClientFactory();
+        JiraRestClient jiraClient = factory.createWithBasicHttpAuthentication(
+                jiraUri, configuration.getJiraUsername(), configuration.getJiraPassword());
+        issueRestClient = jiraClient.getIssueClient();
+        this.jiraClient = jiraClient;
         prepareFilters();
     }
 
-    public Collection<Issue> findIssues(final Set<String> issueIds) {
-        try {
-            Collection<Issue> issues = new ArrayList<>();
-            NullProgressMonitor pm = new NullProgressMonitor();
-            for (String issueId : issueIds) {
-                logger.info("Quering JIRA for issue {}", issueId);
-                try {
-                    Issue issue = getAndFilter(pm, issueId);
+    public ImmutableCollection<Issue> findIssues(final Set<String> issueIds) {
+        return findIssuesAsMap(issueIds).values();
+    }
 
-                    if (issue != null) {
-
-                        if (issue.getIssueType().isSubtask()) {
-                            // need to find parent
-                            String parentKey = ((JSONObject) issue.getFieldByName("Parent").getValue()).get("key").toString();
-
-                            Issue parent= getAndFilter(pm, parentKey);
-                            issues.add(parent);
-                        } else {
-                            issues.add(issue);
-                        }
+    public ImmutableMap<String, Issue> findIssuesAsMap(final Set<String> issueIds) {
+        Map<String, Issue> issuesMap = new HashMap<>();
+        final NullProgressMonitor pm = new NullProgressMonitor();
+        for (final String issueId : issueIds) {
+            logger.info("Quering JIRA for issue {}", issueId);
+            try {
+                Issue issue = getOrDefault(issuesMap, issueId, new Supplier<Issue>() {
+                    @Override
+                    public Issue get() {
+                        return getAndFilter(pm, issueId);
                     }
+                });
 
-                } catch (RestClientException e) {
-                    String message = ExceptionUtils.getRootCauseMessage(e);
-                    if (message.contains("response status: 404")) {
-                        logger.warn(StringUtils.repeat('=', 60));
-                        logger.warn("--- 404 status returned for issue {}.", issueId);
-                        logger.warn("--- Bad pattern definition or issue has been deleted.");
-                        logger.warn(StringUtils.repeat('=', 60));
+                if (issue != null) {
+
+                    if (issue.getIssueType().isSubtask()) {
+                        // need to find parent
+                        final String parentKey;
+                        try {
+                            parentKey = ((JSONObject) issue.getFieldByName("Parent").getValue()).get("key").toString();
+                        } catch(JSONException e) {
+                            throw new RuntimeException(MessageFormat.format("Malformed Parent field in issue {0}", issue.getKey()));
+                        }
+
+                        Issue parent = getOrDefault(issuesMap, parentKey, new Supplier<Issue>() {
+                            @Override
+                            public Issue get() {
+                                return getAndFilter(pm, issueId);
+                            }
+                        });
+
+                        issuesMap.put(parentKey, parent);
                     } else {
-                        throw e;
+                        issuesMap.put(issueId, issue);
                     }
                 }
-            }
 
-            return issues;
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+            } catch (RestClientException e) {
+                String message = ExceptionUtils.getRootCauseMessage(e);
+                if (message.contains("response status: 404")) {
+                    logger.warn(StringUtils.repeat('=', 60));
+                    logger.warn("--- 404 status returned for issue {}.", issueId);
+                    logger.warn("--- Bad pattern definition or issue has been deleted.");
+                    logger.warn(StringUtils.repeat('=', 60));
+                } else {
+                    throw e;
+                }
+            }
         }
+
+        return ImmutableMap.<String, Issue>builder().putAll(issuesMap).build();
     }
 
     private Issue getAndFilter(final NullProgressMonitor pm, final String issueId) {
@@ -207,6 +229,10 @@ public class JiraIssueDao {
         public String toString() {
             return predicate.toString() + " with values " + Arrays.toString(filters);
         }
+    }
+
+    private static <K,V> V getOrDefault(Map<K,V> map, K key, Supplier<V> defaultSupplier) {
+        return map.containsKey(key) ? map.get(key) : defaultSupplier.get();
     }
 
     private interface FilterPredicate {

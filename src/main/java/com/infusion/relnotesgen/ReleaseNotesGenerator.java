@@ -62,6 +62,7 @@ public class ReleaseNotesGenerator {
             logger.info("Report directory {} doesn't exist, creating it.", reportDirectory.getAbsolutePath());
             reportDirectory.mkdirs();
         }
+
         File report = new File(reportDirectory, version.replace(".", "_") + ".html");
 
         logger.info("Generating report to file {} with {} issues", report.getAbsolutePath(), issues.size());

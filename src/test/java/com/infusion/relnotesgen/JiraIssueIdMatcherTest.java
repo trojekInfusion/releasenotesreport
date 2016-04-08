@@ -1,12 +1,19 @@
 package com.infusion.relnotesgen;
 
+import com.google.common.base.Function;
+import com.google.common.collect.FluentIterable;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
+import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Set;
 
 import static org.junit.Assert.assertThat;
@@ -61,11 +68,20 @@ public class JiraIssueIdMatcherTest {
         // Given pattern and texts
 
         // When
-        Set<String> jiraIssueIds = new JiraIssueIdMatcher(pattern).findJiraIds(Arrays.asList(gitCommitMessages));
+        ImmutableList<ImmutablePair<String, ImmutableList<String>>> result =
+                new JiraIssueIdMatcher(pattern).findJiraIds(Arrays.asList(gitCommitMessages));
+
+        ImmutableList<String> jiraIssueIds = FluentIterable
+                .from(result)
+                .transformAndConcat(new Function<ImmutablePair<String, ImmutableList<String>>, Iterable<String>>() {
+                    @Override
+                    public Iterable<String> apply(ImmutablePair<String, ImmutableList<String>> pair) {
+                        return pair.getRight();
+                    }
+                }).toImmutableList();
 
         // Then
         assertThat(jiraIssueIds, Matchers.hasSize(this.jiraIssueIds.length));
         assertThat(jiraIssueIds, Matchers.hasItems(this.jiraIssueIds));
     }
-
 }

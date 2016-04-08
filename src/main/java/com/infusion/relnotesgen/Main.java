@@ -3,8 +3,14 @@ package com.infusion.relnotesgen;
 import com.atlassian.jira.rest.client.domain.Issue;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
+import com.google.common.base.Function;
+import com.google.common.base.Predicate;
+import com.google.common.collect.FluentIterable;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.infusion.relnotesgen.Configuration.Element;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,16 +54,30 @@ public class Main {
         SCMFacade.Response gitInfo = getGitInfo(programParameters, gitFacade);
 
         //2. Matching issue ids from git log
-        Set<String> jiraIssueIds = new JiraIssueIdMatcher(configuration.getJiraIssuePattern())
-                .findJiraIds(gitInfo.messages);
+        ImmutableList<ImmutablePair<String, ImmutableList<String>>> commitMessagesWithJiraIssueKeys =
+                new JiraIssueIdMatcher(configuration.getJiraIssuePattern())
+                        .findJiraIds(gitInfo.messages);
 
         //3. Querying jira for issues
-        Collection<Issue> issues = new JiraIssueDao(configuration).findIssues(jiraIssueIds);
+        ImmutableSet<String> issueIds = FluentIterable
+                .from(commitMessagesWithJiraIssueKeys)
+                .transformAndConcat(new Function<ImmutablePair<String, ImmutableList<String>>, Iterable<String>>() {
+                    @Override
+                    public Iterable<String> apply(ImmutablePair<String, ImmutableList<String>> pair) {
+                        return pair.getRight();
+                    }
+                })
+                .toImmutableSet();
 
-        //4. Creating report
+        Collection<Issue> issues = new JiraIssueDao(configuration).findIssues(issueIds);
+
+        //4. Creating report model
+        // ReleaseNotesModel model = new ReleaseNotesModel();
+
+        //5. Creating report
         File report = createReport(configuration, gitInfo, issues);
 
-        //5. Pushing release notes to repo
+        //6. Pushing release notes to repo
         if (programParameters.pushReleaseNotes) {
             logger.info("Pushing release notes to remote repository");
             gitFacade.pushReleaseNotes(report, gitInfo.version);
