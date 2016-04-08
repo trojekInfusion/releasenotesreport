@@ -35,24 +35,24 @@ public class ReleaseNotesModelFactory {
 
     public ReleaseNotesModel get() {
         String version = versionInfoProvider.getReleaseVersion();
-        ImmutableList<String> commitMessagesAsString = FluentIterable.from(commitInfoProvider.getCommitMessages()).toImmutableList();
-        Iterable<Commit> commits = FluentIterable
-            .from(commitMessagesAsString)
-            .transform(new Function<String, Commit>() {
+        ImmutableSet<Commit> commits = commitInfoProvider.getCommits();
+        Iterable<CommitWithParsedInfo> commitsWithParsedInfo = FluentIterable
+            .from(commits)
+            .transform(new Function<Commit, CommitWithParsedInfo>() {
                 @Override
-                public Commit apply(String commit) {
-                    return new Commit(
+                public CommitWithParsedInfo apply(Commit commit) {
+                    return new CommitWithParsedInfo(
                             commit,
-                            commitMessageParser.getJiraKeys(commit),
-                            commitMessageParser.getDefectIds(commit));
+                            commitMessageParser.getJiraKeys(commit.getMessage()),
+                            commitMessageParser.getDefectIds(commit.getMessage()));
                         }
             });
         ImmutableSet<String> issueIds = FluentIterable
-                .from(commits)
+                .from(commitsWithParsedInfo)
                 .transformAndConcat(
-                    new Function<Commit, Iterable<String>>() {
+                    new Function<CommitWithParsedInfo, Iterable<String>>() {
                         @Override
-                        public Iterable<String> apply(Commit commitMessage) {
+                        public Iterable<String> apply(CommitWithParsedInfo commitMessage) {
                             return commitMessage.getJiraIssueKeys();
                         }
                     })
@@ -76,22 +76,22 @@ public class ReleaseNotesModelFactory {
         ReleaseNotesModel model = new ReleaseNotesModel(
                 getIssueTypes(jiraIssuesByType),
                 getIssuesByType(jiraIssuesByType),
-                getCommitsWithNoJiraIssues(commits, jiraIssues),
+                getCommitsWithNoJiraIssues(commitsWithParsedInfo, jiraIssues),
                 version);
 
         return model;
     }
 
     private ImmutableSet<ReportCommitModel> getCommitsWithNoJiraIssues(
-            final Iterable<Commit> commitMessages,
+            final Iterable<CommitWithParsedInfo> commitMessages,
             final ImmutableMap<String, Issue> jiraIssues) {
 
         return FluentIterable
                 .from(commitMessages)
-                .filter(new Predicate<Commit>() {
+                .filter(new Predicate<CommitWithParsedInfo>() {
                     @Override
-                    public boolean apply(Commit commit) {
-                        ImmutableSet<String> issueKeys = commit.getJiraIssueKeys();
+                    public boolean apply(CommitWithParsedInfo commitWithParsedInfo) {
+                        ImmutableSet<String> issueKeys = commitWithParsedInfo.getJiraIssueKeys();
                         return issueKeys.isEmpty() || Iterables.all(issueKeys, new Predicate<String>() {
                             @Override
                             public boolean apply(String jiraId) {
@@ -100,10 +100,10 @@ public class ReleaseNotesModelFactory {
                         });
                     }
                 })
-                .transform(new Function<Commit, ReportCommitModel>() {
+                .transform(new Function<CommitWithParsedInfo, ReportCommitModel>() {
                     @Override
-                    public ReportCommitModel apply(Commit commit) {
-                        return toCommitModel(commit);
+                    public ReportCommitModel apply(CommitWithParsedInfo commitWithParsedInfo) {
+                        return toCommitModel(commitWithParsedInfo);
                     }
                 })
                 .toImmutableSet();
@@ -141,26 +141,22 @@ public class ReleaseNotesModelFactory {
                 jiraConnector.getIssueUrl(issue));
     }
 
-    private ReportCommitModel toCommitModel(Commit commit) {
-        return new ReportCommitModel(commit.getMessage(), commit.getDefectIds());
+    private ReportCommitModel toCommitModel(CommitWithParsedInfo commitWithParsedInfo) {
+        return new ReportCommitModel(commitWithParsedInfo.getCommit().getMessage(), commitWithParsedInfo.getDefectIds());
     }
 
-    public static class Commit {
-        private final String message;
+    private static class CommitWithParsedInfo {
         private final ImmutableSet<String> jiraIssueKeys;
         private final ImmutableSet<String> defectIds;
+        private final Commit commit;
 
-        private Commit(
-                final String message,
+        CommitWithParsedInfo(
+                final Commit commit,
                 final ImmutableSet<String> jiraIssueKeys,
                 final ImmutableSet<String> defectIds) {
-            this.message = message;
+            this.commit = commit;
             this.jiraIssueKeys = jiraIssueKeys;
             this.defectIds = defectIds;
-        }
-
-        public String getMessage() {
-            return message;
         }
 
         public ImmutableSet<String> getJiraIssueKeys() {
@@ -169,6 +165,10 @@ public class ReleaseNotesModelFactory {
 
         public ImmutableSet<String> getDefectIds() {
             return defectIds;
+        }
+
+        public Commit getCommit() {
+            return commit;
         }
     }
 }

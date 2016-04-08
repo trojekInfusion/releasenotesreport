@@ -1,7 +1,7 @@
 package com.infusion.relnotesgen;
 
-import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 
 public interface CommitInfoProvider {
-    ImmutableList<String> getCommitMessages();
+    ImmutableSet<Commit> getCommits();
 }

@@ -1,5 +1,6 @@
 package com.infusion.relnotesgen;
 
+import static com.infusion.relnotesgen.util.TestUtil.getMessages;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.hasSize;
@@ -10,6 +11,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.util.Set;
 
+import com.infusion.relnotesgen.util.TestUtil;
 import org.apache.commons.io.FileUtils;
 import org.hamcrest.Matchers;
 import org.junit.After;
@@ -60,7 +62,7 @@ public class GitMessageReadingWithCloningOfRepositoryTest {
         gitMessageReader = new GitFacade(conf, new UserCredentialsAuthenticator(conf));
 
         // When
-        Set<String> messages = gitMessageReader.readByCommit(commitId1, commitId2).messages;
+        Set<String> messages = getMessages(gitMessageReader.readByCommit(commitId1, commitId2).commits);
 
         // Then
         assertThat(messages, hasSize(1));
@@ -78,7 +80,7 @@ public class GitMessageReadingWithCloningOfRepositoryTest {
         gitMessageReader = new GitFacade(conf, new UserCredentialsAuthenticator(conf));
 
         // When
-        Set<String> messages = gitMessageReader.readByCommit(commitId1, commitId2).messages;
+        Set<String> messages = getMessages(gitMessageReader.readByCommit(commitId1, commitId2).commits);
 
         // Then
         assertThat(messages, hasSize(2));
@@ -96,7 +98,7 @@ public class GitMessageReadingWithCloningOfRepositoryTest {
         gitMessageReader = new GitFacade(conf, new UserCredentialsAuthenticator(conf));
 
         // When
-        Set<String> messages = gitMessageReader.readByCommit(commitId1, commitId2).messages;
+        Set<String> messages = getMessages(gitMessageReader.readByCommit(commitId1, commitId2).commits);
 
         // Then
         assertThat(messages, hasSize(2));
@@ -148,7 +150,7 @@ public class GitMessageReadingWithCloningOfRepositoryTest {
 
         // When
         SCMFacade.Response gitInfo = gitMessageReader.readByTag("1.2", "1.3");
-        Set<String> messages = gitInfo.messages;
+        Set<String> messages = getMessages(gitInfo.commits);
 
         // Then
         assertThat(messages, hasSize(4));
@@ -166,7 +168,7 @@ public class GitMessageReadingWithCloningOfRepositoryTest {
 
         // When
         SCMFacade.Response gitInfo = gitMessageReader.readByTag("1.1", "1.4");
-        Set<String> messages = gitInfo.messages;
+        Set<String> messages = getMessages(gitInfo.commits);
 
         // Then
         assertThat(messages, hasSize(10));
@@ -185,7 +187,7 @@ public class GitMessageReadingWithCloningOfRepositoryTest {
 
         // When
         SCMFacade.Response gitInfo = gitMessageReader.readByTag("1.3", null);
-        Set<String> messages = gitInfo.messages;
+        Set<String> messages = getMessages(gitInfo.commits);
 
         // Then
         assertThat(messages, hasSize(4));
@@ -203,7 +205,7 @@ public class GitMessageReadingWithCloningOfRepositoryTest {
 
         // When
         SCMFacade.Response gitInfo = gitMessageReader.readLatestReleasedVersion();
-        Set<String> messages = gitInfo.messages;
+        Set<String> messages = getMessages(gitInfo.commits);
 
         // Then
         assertThat(messages, hasSize(4));

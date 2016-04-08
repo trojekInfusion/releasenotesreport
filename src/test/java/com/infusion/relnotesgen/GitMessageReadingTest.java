@@ -9,7 +9,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Set;
 
-import org.apache.commons.httpclient.auth.CredentialsProvider;
+import com.infusion.relnotesgen.util.TestUtil;
 import org.junit.AfterClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -45,13 +45,13 @@ public class GitMessageReadingTest {
     @Parameters(name = "{index}: search limited by {0} and {1} should give {2}")
     public static Iterable<Object[]> data() {
         return Arrays.asList(new Object[][] {
-                //all messages
+                //all commits
                 { "1c814546893dc5544f86ca87ca58f0d162c9ccd2", "430c3f94a1f2dd4940c547ae8a5ede83910597b9",
                     new String[] {"SYM-1 created initial dummy file\n", "SYM-2 changed dummy file for first time\n",
                         "SYM-2 changed dummy file for second time\n", "SYM-3 changed dummy file for third time\n"},
                     "1.0"},
 
-                //all messages with reverted search parameters order
+                //all commits with reverted search parameters order
                 { "430c3f94a1f2dd4940c547ae8a5ede83910597b9", "1c814546893dc5544f86ca87ca58f0d162c9ccd2",
                     new String[] {"SYM-1 created initial dummy file\n", "SYM-2 changed dummy file for first time\n",
                         "SYM-2 changed dummy file for second time\n", "SYM-3 changed dummy file for third time\n"},
@@ -99,7 +99,7 @@ public class GitMessageReadingTest {
 
         // When
         SCMFacade.Response gitInfo = gitMessageReader.readByCommit(commitId1, commitId2);
-        Set<String> messages = gitInfo.messages;
+        Set<String> messages = TestUtil.getMessages(gitInfo.commits);
 
         // Then
         assertThat(messages, hasSize(this.messages.length));

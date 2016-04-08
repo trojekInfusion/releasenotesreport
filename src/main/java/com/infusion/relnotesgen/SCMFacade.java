@@ -20,11 +20,11 @@ public interface SCMFacade {
     void close();
 
     public static class Response {
-        public final Set<String> messages;
+        public final Set<Commit> commits;
         public final String version;
 
-        public Response(final Set<String> messages, final String version) {
-            this.messages = messages;
+        public Response(final Set<Commit> commits, final String version) {
+            this.commits = commits;
             this.version = version;
         }
     }

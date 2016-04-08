@@ -4,7 +4,6 @@ import com.atlassian.jira.rest.client.domain.Issue;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.google.common.collect.FluentIterable;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.infusion.relnotesgen.Configuration.Element;
@@ -45,7 +44,7 @@ public class Main {
         final Configuration configuration = readConfiguration(programParameters);
         logger.info("Build configuration: {}", configuration);
 
-        // Get git log messages
+        // Get git log commits
         Authenticator authenticator = configuration.getGitUrl().toLowerCase().startsWith("ssh://") ?
                 new PublicKeyAuthenticator() :
                 new UserCredentialsAuthenticator(configuration);
@@ -58,8 +57,8 @@ public class Main {
         // Implementations
         CommitInfoProvider commitInfoProvider = new CommitInfoProvider() {
             @Override
-            public ImmutableList<String> getCommitMessages() {
-                return FluentIterable.from(gitInfo.messages).toImmutableList();
+            public ImmutableSet<Commit> getCommits() {
+                return FluentIterable.from(gitInfo.commits).toImmutableSet();
             }
         };
         JiraConnector jiraConnector = new JiraConnector() {
@@ -251,6 +250,5 @@ public class Main {
         @Element(Configuration.RELEASE_VERSION)
         @Parameter(names = { "-releaseVersion" })
         private String releaseVersion;
-
     }
 }

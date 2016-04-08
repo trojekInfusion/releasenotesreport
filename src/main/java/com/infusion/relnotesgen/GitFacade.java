@@ -1,5 +1,6 @@
 package com.infusion.relnotesgen;
 
+import com.google.common.collect.ImmutableSet;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jgit.api.AddCommand;
@@ -152,38 +153,39 @@ public class GitFacade implements SCMFacade {
         try {
             Iterable<RevCommit> log = git.log().call();
 
-            Set<String> messages = new HashSet<String>();
+            Set<Commit> commits = new HashSet<>();
             RevCommit latestCommit = null;
             for (RevCommit commit : log) {
-                if (!messages.isEmpty() || (commitId1 == null || commitId2 == null)) {
+                if (!commits.isEmpty() || (commitId1 == null || commitId2 == null)) {
                     if(latestCommit == null) {
                         latestCommit = commit;
                     }
-                    messages.add(commit.getFullMessage());
+                    commits.add(new Commit(commit.getFullMessage(), commit.getId().getName()));
                 }
 
                 String commitId = commit.getId().getName();
                 if (commitId.equals(commitId1) || commitId.equals(commitId2)) {
-                    if (!messages.isEmpty() || (commitId1 == null || commitId2 == null)) {
+                    if (!commits.isEmpty() || (commitId1 == null || commitId2 == null)) {
                         break;
                     }
 
                     if(latestCommit == null) {
                         latestCommit = commit;
                     }
-                    messages.add(commit.getFullMessage());
+
+                    commits.add(new Commit(commit.getFullMessage(), commit.getId().getName()));
 
                     if(commitId1.equals(commitId2)) {
                         break;
                     }
                 }
             }
-            logger.info("Found {} commit messages.", messages.size());
-            if(messages.size() == 0) {
+            logger.info("Found {} commit commits.", commits.size());
+            if(commits.size() == 0) {
                 throw new RuntimeException("No commit were found for given commit ids " + commitId1 + ", " + commitId2 + ". Maybe branch is badly chosen.");
             }
 
-            return new Response(messages, getVersion(latestCommit));
+            return new Response(commits, getVersion(latestCommit));
         } catch (GitAPIException e) {
             throw new RuntimeException(e);
         }
