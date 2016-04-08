@@ -1,38 +1,40 @@
 <html>
 <head>
-  <title>Release notes for version ${version}</title>
+    <title>Release notes for version ${releaseVersion}</title>
 </head>
 <body>
-  <h1>Release notes for version ${version}</h1>
+<h1>Release notes for version ${releaseVersion}</h1>
 
-  <#list issues.entrySet() as entry>
-	  <p>Released issues with type ${entry.key} (${entry.value.size()})</p>
-	  <ul>
-	    <#list entry.value as issue>
-	      <li>
+<#list issueCategoryNames as categoryName>
+    <p>Released issues with type ${categoryName} (${getIssuesByCategoryName(categoryName).size()})</p>
+    <ul>
+        <#list getIssuesByCategoryName(categoryName) as issue>
+            <li>
+                <b>${(issue.defectId) ! "none"}</b>
 
-           <#if issue.fields??>
+                [${issue.issue.priority.name}] <a href="${issue.url}">${issue.issue.key}: ${issue.issue.summary}</a>
+            </li>
+        </#list>
+    </ul>
+    <br/>
 
+</#list>
 
-	      <#list issue.fields as field>
-          	        <#if field.name == "Defect_Id">
-          	            <b>${(field.value)!"none"}</b>
-          	        </#if>
-          </#list>
-</#if>
-
-	      [${issue.priority.name}] <a href="${jiraUrl}/browse/${issue.key}">${issue.key}: ${issue.summary}</a></li>
-	    </#list>
-	  </ul>
-	  <br/>
-	  
-  </#list>
-
-  <h2>Git commit messages</h2>
-<#list messages as message>
-	  <li>${message}</li>
-
-  </#list>
+<h2>Items without JIRA issues (${commitsWithNoIssue.size()})</h2>
+<ul>
+    <#list commitsWithNoIssue as commit>
+        <li>
+            <#if commit.defectIds?has_content>
+                <#list commit.defectIds as defectId>
+                    <b>${defectId}</b>
+                </#list>
+                <#else>
+                    <b>none</b>
+            </#if>
+            ${commit.message}
+        </li>
+    </#list>
+</ul>
 
 </body>
 </html>

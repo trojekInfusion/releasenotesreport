@@ -14,51 +14,49 @@ public class ReleaseNotesModelFactory {
     private final CommitInfoProvider commitInfoProvider;
     private final JiraConnector jiraConnector;
     private final IssueCategorizer issueCategorizer;
-    private final JiraIssueIdMatcher jiraIssueIdMatcher;
     private final VersionInfoProvider versionInfoProvider;
     private final JiraUtils jiraUtils;
-    private final Parser parser;
+    private final CommitMessageParser commitMessageParser;
 
     public ReleaseNotesModelFactory(
             final CommitInfoProvider commitInfoProvider,
             final JiraConnector jiraConnector,
             final IssueCategorizer issueCategorizer,
-            final JiraIssueIdMatcher jiraIssueIdMatcher,
             final VersionInfoProvider versionInfoProvider,
             final JiraUtils jiraUtils,
-            final Parser parser) {
+            final CommitMessageParser commitMessageParser) {
         this.commitInfoProvider = commitInfoProvider;
         this.jiraConnector = jiraConnector;
         this.issueCategorizer = issueCategorizer;
-        this.jiraIssueIdMatcher = jiraIssueIdMatcher;
         this.versionInfoProvider = versionInfoProvider;
         this.jiraUtils = jiraUtils;
-        this.parser = parser;
+        this.commitMessageParser = commitMessageParser;
     }
 
     public ReleaseNotesModel get() {
         String version = versionInfoProvider.getReleaseVersion();
-        ImmutableList<String> commitMessagesAsStrings = commitInfoProvider.getCommitMessages();
-        Iterable<CommitMessage> commitMessages = FluentIterable
-            .from(commitMessagesAsStrings)
-            .transform(new Function<String, CommitMessage>() {
+        ImmutableList<String> commitMessagesAsString = FluentIterable.from(commitInfoProvider.getCommitMessages()).toImmutableList();
+        Iterable<Commit> commits = FluentIterable
+            .from(commitMessagesAsString)
+            .transform(new Function<String, Commit>() {
                 @Override
-                public CommitMessage apply(String commitMessageString) {
-                    return new CommitMessage(
-                            commitMessageString,
-                            parser.getJiraKeys(commitMessageString),
-                            parser.getDefectIds(commitMessageString));
+                public Commit apply(String commit) {
+                    return new Commit(
+                            commit,
+                            commitMessageParser.getJiraKeys(commit),
+                            commitMessageParser.getDefectIds(commit));
                         }
             });
-        FluentIterable<String> issueIds = FluentIterable
-                .from(commitMessages)
+        ImmutableSet<String> issueIds = FluentIterable
+                .from(commits)
                 .transformAndConcat(
-                    new Function<CommitMessage, Iterable<String>>() {
+                    new Function<Commit, Iterable<String>>() {
                         @Override
-                        public Iterable<String> apply(CommitMessage commitMessage) {
+                        public Iterable<String> apply(Commit commitMessage) {
                             return commitMessage.getJiraIssueKeys();
                         }
-                    });
+                    })
+                .toImmutableSet();
 
         ImmutableMap<String, Issue> jiraIssues = jiraConnector.getIssuesIncludeParents(issueIds);
 
@@ -78,22 +76,22 @@ public class ReleaseNotesModelFactory {
         ReleaseNotesModel model = new ReleaseNotesModel(
                 getIssueTypes(jiraIssuesByType),
                 getIssuesByType(jiraIssuesByType),
-                getCommitsWithNoJiraIssues(commitMessages, jiraIssues),
+                getCommitsWithNoJiraIssues(commits, jiraIssues),
                 version);
 
         return model;
     }
 
-    private ImmutableSet<ReleaseNotesModel.CommitModel> getCommitsWithNoJiraIssues(
-            final Iterable<CommitMessage> commitMessages,
+    private ImmutableSet<ReportCommitModel> getCommitsWithNoJiraIssues(
+            final Iterable<Commit> commitMessages,
             final ImmutableMap<String, Issue> jiraIssues) {
 
         return FluentIterable
                 .from(commitMessages)
-                .filter(new Predicate<CommitMessage>() {
+                .filter(new Predicate<Commit>() {
                     @Override
-                    public boolean apply(CommitMessage commitMessage) {
-                        ImmutableSet<String> issueKeys = commitMessage.getJiraIssueKeys();
+                    public boolean apply(Commit commit) {
+                        ImmutableSet<String> issueKeys = commit.getJiraIssueKeys();
                         return issueKeys.isEmpty() || Iterables.all(issueKeys, new Predicate<String>() {
                             @Override
                             public boolean apply(String jiraId) {
@@ -102,26 +100,26 @@ public class ReleaseNotesModelFactory {
                         });
                     }
                 })
-                .transform(new Function<CommitMessage, ReleaseNotesModel.CommitModel>() {
+                .transform(new Function<Commit, ReportCommitModel>() {
                     @Override
-                    public ReleaseNotesModel.CommitModel apply(CommitMessage commitMessage) {
-                        return toCommitModel(commitMessage);
+                    public ReportCommitModel apply(Commit commit) {
+                        return toCommitModel(commit);
                     }
                 })
                 .toImmutableSet();
     }
 
-    private ImmutableMap<String, ImmutableSet<ReleaseNotesModel.JiraIssueModel>> getIssuesByType(
+    private ImmutableMap<String, ImmutableSet<ReportJiraIssueModel>> getIssuesByType(
             Map<String, List<Issue>> jiraIssuesByType) {
-        Map<String, ImmutableSet<ReleaseNotesModel.JiraIssueModel>> transformedMap =
+        Map<String, ImmutableSet<ReportJiraIssueModel>> transformedMap =
             Maps.transformValues(
                 jiraIssuesByType,
-                new Function<List<Issue>, ImmutableSet<ReleaseNotesModel.JiraIssueModel>>() {
+                new Function<List<Issue>, ImmutableSet<ReportJiraIssueModel>>() {
                     @Override
-                    public ImmutableSet<ReleaseNotesModel.JiraIssueModel> apply(List<Issue> issues) {
-                        return ImmutableSet.copyOf(Iterables.transform(issues, new Function<Issue, ReleaseNotesModel.JiraIssueModel>() {
+                    public ImmutableSet<ReportJiraIssueModel> apply(List<Issue> issues) {
+                        return ImmutableSet.copyOf(Iterables.transform(issues, new Function<Issue, ReportJiraIssueModel>() {
                             @Override
-                            public ReleaseNotesModel.JiraIssueModel apply(Issue issue) {
+                            public ReportJiraIssueModel apply(Issue issue) {
                                 return toJiraIssueModel(issue);
                             }
                         }));
@@ -136,22 +134,23 @@ public class ReleaseNotesModelFactory {
         return ImmutableSet.copyOf(jiraIssuesByType.keySet());
     }
 
-    private ReleaseNotesModel.JiraIssueModel toJiraIssueModel(Issue issue) {
-        return new ReleaseNotesModel.JiraIssueModel(
+    private ReportJiraIssueModel toJiraIssueModel(Issue issue) {
+        return new ReportJiraIssueModel(
                 issue,
-                jiraUtils.getFieldValueByNameSafe(issue, "Defect_Id"));
+                jiraUtils.getFieldValueByNameSafe(issue, "Defect_Id"),
+                jiraConnector.getIssueUrl(issue));
     }
 
-    private ReleaseNotesModel.CommitModel toCommitModel(CommitMessage commitMessage) {
-        return new ReleaseNotesModel.CommitModel(commitMessage.getMessage(), commitMessage.getDefectIds());
+    private ReportCommitModel toCommitModel(Commit commit) {
+        return new ReportCommitModel(commit.getMessage(), commit.getDefectIds());
     }
 
-    public static class CommitMessage {
+    public static class Commit {
         private final String message;
         private final ImmutableSet<String> jiraIssueKeys;
         private final ImmutableSet<String> defectIds;
 
-        private CommitMessage(
+        private Commit(
                 final String message,
                 final ImmutableSet<String> jiraIssueKeys,
                 final ImmutableSet<String> defectIds) {
