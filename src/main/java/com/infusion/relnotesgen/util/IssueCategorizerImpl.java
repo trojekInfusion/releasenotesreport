@@ -19,7 +19,7 @@ public class IssueCategorizerImpl implements IssueCategorizer {
             String issueType = issue.getIssueType().getName();
             List<Issue> typedIssues = issuesByType.get(issueType);
             if (typedIssues == null) {
-                typedIssues = new ArrayList<Issue>();
+                typedIssues = new ArrayList<>();
                 issuesByType.put(issueType, typedIssues);
             }
             typedIssues.add(issue);

@@ -4,10 +4,12 @@ import com.atlassian.jira.rest.client.*;
 import com.atlassian.jira.rest.client.domain.BasicComponent;
 import com.atlassian.jira.rest.client.domain.Issue;
 import com.atlassian.jira.rest.client.internal.jersey.JerseyJiraRestClientFactory;
+import com.google.common.base.Predicate;
 import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Maps;
 import freemarker.template.utility.NullArgumentException;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -64,6 +66,20 @@ public class JiraIssueDao {
     }
 
     public ImmutableMap<String, Issue> findIssuesAsMap(final ImmutableSet<String> issueIds) {
+        ImmutableMap<String, Issue> allIssuesAsMap = findAllIssuesAsMap(issueIds);
+
+        Map<String, Issue> allIssuesAsMapNoSubtasks = Maps
+                .filterValues(allIssuesAsMap, new Predicate<Issue>() {
+                    @Override
+                    public boolean apply(Issue issue) {
+                        return !issue.getIssueType().isSubtask();
+                    }
+                });
+
+        return ImmutableMap.copyOf(allIssuesAsMapNoSubtasks);
+    }
+
+    public ImmutableMap<String, Issue> findAllIssuesAsMap(final ImmutableSet<String> issueIds) {
         if (issueIds == null) {
             throw new NullArgumentException("issueIds");
         }
@@ -85,12 +101,11 @@ public class JiraIssueDao {
                     continue;
                 }
 
+                issuesMap.put(issueId, issue);
+
                 if (!issue.getIssueType().isSubtask()) {
-                    issuesMap.put(issueId, issue);
                     continue;
                 }
-
-                // TODO Should put subtasks to the map too and then remove them (optimization)
 
                 // need to find parent
                 final String parentKey;
@@ -104,7 +119,7 @@ public class JiraIssueDao {
                 Issue parent = getOrDefault(issuesMap, parentKey, new Supplier<Issue>() {
                     @Override
                     public Issue get() {
-                        return getAndFilter(pm, issueId);
+                        return getAndFilter(pm, parentKey);
                     }
                 });
 
