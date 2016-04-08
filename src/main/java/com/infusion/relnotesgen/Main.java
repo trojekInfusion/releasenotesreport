@@ -4,11 +4,12 @@ import com.atlassian.jira.rest.client.domain.Issue;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.google.common.base.Function;
-import com.google.common.base.Predicate;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.infusion.relnotesgen.Configuration.Element;
+import com.infusion.relnotesgen.util.IssueCategorizerImpl;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.slf4j.Logger;
@@ -21,7 +22,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.util.Collection;
 import java.util.Properties;
-import java.util.Set;
 
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 
@@ -54,28 +54,33 @@ public class Main {
         SCMFacade.Response gitInfo = getGitInfo(programParameters, gitFacade);
 
         //2. Matching issue ids from git log
-        ImmutableList<ImmutablePair<String, ImmutableList<String>>> commitMessagesWithJiraIssueKeys =
-                new JiraIssueIdMatcher(configuration.getJiraIssuePattern())
+        ImmutableList<ImmutablePair<String, ImmutableSet<String>>> commitMessagesWithJiraIssueKeys =
+                new JiraIssueIdMatcherImpl(configuration.getJiraIssuePattern())
                         .findJiraIds(gitInfo.messages);
 
         //3. Querying jira for issues
         ImmutableSet<String> issueIds = FluentIterable
                 .from(commitMessagesWithJiraIssueKeys)
-                .transformAndConcat(new Function<ImmutablePair<String, ImmutableList<String>>, Iterable<String>>() {
+                .transformAndConcat(new Function<ImmutablePair<String, ImmutableSet<String>>, Iterable<String>>() {
                     @Override
-                    public Iterable<String> apply(ImmutablePair<String, ImmutableList<String>> pair) {
+                    public Iterable<String> apply(ImmutablePair<String, ImmutableSet<String>> pair) {
                         return pair.getRight();
                     }
                 })
                 .toImmutableSet();
 
-        Collection<Issue> issues = new JiraIssueDao(configuration).findIssues(issueIds);
+        ImmutableMap<String, Issue> issuesMap = new JiraIssueDao(configuration).findIssuesAsMap(issueIds);
 
         //4. Creating report model
-        // ReleaseNotesModel model = new ReleaseNotesModel();
+//        ReleaseNotesModelFactory factory = new ReleaseNotesModelFactory(
+//                gitFacade,
+//                new JiraIssueIdMatcherImpl(configuration.getJiraIssuePattern()),
+//                new IssueCategorizerImpl(configuration));
+//
+//        ReleaseNotesModel releaseNotesModel = factory.get();
 
         //5. Creating report
-        File report = createReport(configuration, gitInfo, issues);
+        File report = createReport(configuration, gitInfo, issuesMap.values());
 
         //6. Pushing release notes to repo
         if (programParameters.pushReleaseNotes) {

@@ -1,10 +1,10 @@
 package com.infusion.relnotesgen;
 
 import com.atlassian.jira.rest.client.domain.Issue;
-import com.infusion.relnotesgen.util.PredefinedDictionaryComparator;
+import com.infusion.relnotesgen.util.IssueCategorizer;
+import com.infusion.relnotesgen.util.IssueCategorizerImpl;
 import freemarker.ext.beans.BeansWrapper;
 import freemarker.template.*;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,11 +23,13 @@ import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 public class ReleaseNotesGenerator {
 
     private final static Logger logger = LoggerFactory.getLogger(Configuration.LOGGER_NAME);
+    private final IssueCategorizer issueCategorizer;
     private Configuration configuration;
     private freemarker.template.Configuration freemarkerConf;
     private String templateName = "report.ftl";
 
     public ReleaseNotesGenerator(final Configuration configuration) {
+        issueCategorizer = new IssueCategorizerImpl(configuration);
         this.configuration = configuration;
         freemarkerConf = new freemarker.template.Configuration();
 
@@ -68,7 +70,7 @@ public class ReleaseNotesGenerator {
         logger.info("Generating report to file {} with {} issues", report.getAbsolutePath(), issues.size());
 
         Map<String, Object> input = new HashMap<String, Object>();
-        input.put("issues", splitByType(issues));
+        input.put("issues", issueCategorizer.byType(issues));
         input.put("jiraUrl", configuration.getJiraUrl());
         input.put("version", version);
         input.put("messages", messages);
@@ -85,49 +87,5 @@ public class ReleaseNotesGenerator {
         logger.info("Generation of report is finished.");
 
         return report;
-    }
-
-    private Map<String, List<Issue>> splitByType(final Collection<Issue> issues) {
-        TreeMap<String, List<Issue>> issuesByType = new TreeMap<>(new PredefinedDictionaryComparator(configuration.getIssueSortType()));
-        for (Issue issue : issues) {
-            String issueType = issue.getIssueType().getName();
-            List<Issue> typedIssues = issuesByType.get(issueType);
-            if (typedIssues == null) {
-                typedIssues = new ArrayList<Issue>();
-                issuesByType.put(issueType, typedIssues);
-            }
-            typedIssues.add(issue);
-        }
-
-        IssuePriorityComparator priorityComparator = new IssuePriorityComparator(configuration.getIssueSortPriority());
-        for(List<Issue> issuesByTypeList : issuesByType.values()) {
-            Collections.sort(issuesByTypeList, priorityComparator);
-        }
-        return issuesByType;
-    }
-
-    class IssuePriorityComparator implements Comparator<Issue> {
-
-        private PredefinedDictionaryComparator predefinedDictionaryComparator;
-        private String[] typeOrder = {"Highest", "High", "Medium", "Low", "Lowest"};
-
-        public IssuePriorityComparator(final String order) {
-            if(StringUtils.isNotEmpty(order)) {
-                this.typeOrder = order.split(",");
-            }
-            predefinedDictionaryComparator = new PredefinedDictionaryComparator(typeOrder);
-        }
-
-        @Override
-        public int compare(final Issue a, final Issue b) {
-            if(b.getPriority() == null) {
-                return -1;
-            }
-            if(a.getPriority() == null) {
-                return 1;
-            }
-
-            return predefinedDictionaryComparator.compare(a.getPriority().getName(), b.getPriority().getName());
-        }
     }
 }

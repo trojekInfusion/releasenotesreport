@@ -3,7 +3,7 @@ package com.infusion.relnotesgen;
 import com.google.common.base.Function;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Iterables;
+import com.google.common.collect.ImmutableSet;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.hamcrest.Matchers;
 import org.junit.Test;
@@ -11,10 +11,7 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
-import java.util.Set;
 
 import static org.junit.Assert.assertThat;
 
@@ -68,14 +65,14 @@ public class JiraIssueIdMatcherTest {
         // Given pattern and texts
 
         // When
-        ImmutableList<ImmutablePair<String, ImmutableList<String>>> result =
-                new JiraIssueIdMatcher(pattern).findJiraIds(Arrays.asList(gitCommitMessages));
+        ImmutableList<ImmutablePair<String, ImmutableSet<String>>> result =
+                new JiraIssueIdMatcherImpl(pattern).findJiraIds(Arrays.asList(gitCommitMessages));
 
         ImmutableList<String> jiraIssueIds = FluentIterable
                 .from(result)
-                .transformAndConcat(new Function<ImmutablePair<String, ImmutableList<String>>, Iterable<String>>() {
+                .transformAndConcat(new Function<ImmutablePair<String, ImmutableSet<String>>, Iterable<String>>() {
                     @Override
-                    public Iterable<String> apply(ImmutablePair<String, ImmutableList<String>> pair) {
+                    public Iterable<String> apply(ImmutablePair<String, ImmutableSet<String>> pair) {
                         return pair.getRight();
                     }
                 }).toImmutableList();

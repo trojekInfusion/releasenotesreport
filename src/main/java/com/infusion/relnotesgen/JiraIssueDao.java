@@ -7,8 +7,11 @@ import com.atlassian.jira.rest.client.internal.jersey.JerseyJiraRestClientFactor
 import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+import freemarker.template.utility.NullArgumentException;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.apache.http.annotation.Immutable;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 import org.slf4j.Logger;
@@ -57,12 +60,17 @@ public class JiraIssueDao {
     }
 
     public ImmutableCollection<Issue> findIssues(final Set<String> issueIds) {
-        return findIssuesAsMap(issueIds).values();
+        return findIssuesAsMap(ImmutableSet.copyOf(issueIds)).values();
     }
 
-    public ImmutableMap<String, Issue> findIssuesAsMap(final Set<String> issueIds) {
+    public ImmutableMap<String, Issue> findIssuesAsMap(final ImmutableSet<String> issueIds) {
+        if (issueIds == null) {
+            throw new NullArgumentException("issueIds");
+        }
+
         Map<String, Issue> issuesMap = new HashMap<>();
         final NullProgressMonitor pm = new NullProgressMonitor();
+
         for (final String issueId : issueIds) {
             logger.info("Quering JIRA for issue {}", issueId);
             try {
@@ -73,30 +81,34 @@ public class JiraIssueDao {
                     }
                 });
 
-                if (issue != null) {
-
-                    if (issue.getIssueType().isSubtask()) {
-                        // need to find parent
-                        final String parentKey;
-                        try {
-                            parentKey = ((JSONObject) issue.getFieldByName("Parent").getValue()).get("key").toString();
-                        } catch(JSONException e) {
-                            throw new RuntimeException(MessageFormat.format("Malformed Parent field in issue {0}", issue.getKey()));
-                        }
-
-                        Issue parent = getOrDefault(issuesMap, parentKey, new Supplier<Issue>() {
-                            @Override
-                            public Issue get() {
-                                return getAndFilter(pm, issueId);
-                            }
-                        });
-
-                        issuesMap.put(parentKey, parent);
-                    } else {
-                        issuesMap.put(issueId, issue);
-                    }
+                if (issue == null) {
+                    continue;
                 }
 
+                if (!issue.getIssueType().isSubtask()) {
+                    issuesMap.put(issueId, issue);
+                    continue;
+                }
+
+                // TODO Should put subtasks to the map too and then remove them (optimization)
+
+                // need to find parent
+                final String parentKey;
+
+                try {
+                    parentKey = ((JSONObject) issue.getFieldByName("Parent").getValue()).get("key").toString();
+                } catch (JSONException e) {
+                    throw new RuntimeException(MessageFormat.format("Malformed Parent field in issue {0}", issue.getKey()));
+                }
+
+                Issue parent = getOrDefault(issuesMap, parentKey, new Supplier<Issue>() {
+                    @Override
+                    public Issue get() {
+                        return getAndFilter(pm, issueId);
+                    }
+                });
+
+                issuesMap.put(parentKey, parent);
             } catch (RestClientException e) {
                 String message = ExceptionUtils.getRootCauseMessage(e);
                 if (message.contains("response status: 404")) {
