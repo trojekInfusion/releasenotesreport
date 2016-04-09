@@ -26,6 +26,10 @@ public class IssuePriorityComparator implements Comparator<Issue> {
             return 1;
         }
 
-        return predefinedDictionaryComparator.compare(a.getPriority().getName(), b.getPriority().getName());
+        int comparisonResult = predefinedDictionaryComparator.compare(
+                a.getPriority().getName(),
+                b.getPriority().getName());
+
+        return comparisonResult != 0 ? comparisonResult : a.getKey().compareTo(b.getKey());
     }
 }
