@@ -14,13 +14,6 @@ public class PublicKeyAuthenticator implements Authenticator {
         @Override
         protected void configure(OpenSshConfig.Host host, Session session) {
         }
-
-//        @Override
-//        protected JSch createDefaultJSch(FS fs) throws JSchException {
-//            JSch defaultJSch = super.createDefaultJSch(fs);
-//            defaultJSch.addIdentity("/path/to/private_key");
-//            return defaultJSch;
-//        }
     };
 
     @Override

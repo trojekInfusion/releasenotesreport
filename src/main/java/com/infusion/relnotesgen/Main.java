@@ -1,22 +1,29 @@
 package com.infusion.relnotesgen;
 
-import com.atlassian.jira.rest.client.domain.Issue;
+import com.atlassian.jira.rest.client.api.domain.Issue;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
+import com.google.common.collect.FluentIterable;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.infusion.relnotesgen.Configuration.Element;
+import com.infusion.relnotesgen.util.IssueCategorizer;
+import com.infusion.relnotesgen.util.IssueCategorizerImpl;
+import com.infusion.relnotesgen.util.JiraUtils;
+import com.infusion.relnotesgen.util.JiraUtilsImpl;
+import org.apache.commons.lang3.NotImplementedException;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
+import java.io.*;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.nio.file.Files;
-import java.util.Collection;
+import java.text.MessageFormat;
 import java.util.Properties;
-import java.util.Set;
 
+import static org.apache.commons.lang3.StringUtils.defaultIfEmpty;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 
 /**
@@ -26,47 +33,69 @@ public class Main {
 
     private final static Logger logger = LoggerFactory.getLogger(Configuration.LOGGER_NAME);
 
-    public static final String CONFIGURATION_FILE = "./configuration.properties";
-
     public static void main(final String[] args) throws IOException {
         generateReleaseNotes(args);
     }
 
-    static File generateReleaseNotes(final String[] args) throws IOException, FileNotFoundException {
+    static File generateReleaseNotes(final String[] args) throws IOException {
         logger.info("Reading program parameters...");
         ProgramParameters programParameters = new ProgramParameters();
         new JCommander(programParameters, args);
 
-        Configuration configuration = readConfiguration(programParameters);
+        final Configuration configuration = readConfiguration(programParameters);
         logger.info("Build configuration: {}", configuration);
 
-        //1. Getting git log messages
+        // Get git log commits
         Authenticator authenticator = configuration.getGitUrl().toLowerCase().startsWith("ssh://") ?
                 new PublicKeyAuthenticator() :
                 new UserCredentialsAuthenticator(configuration);
         SCMFacade gitFacade = new GitFacade(configuration, authenticator);
-        SCMFacade.Response gitInfo = getGitInfo(programParameters, gitFacade);
+        final SCMFacade.Response gitInfo = getGitInfo(programParameters, gitFacade);
 
-        //2. Matching issue ids from git log
-        Set<String> jiraIssueIds = new JiraIssueIdMatcher(configuration.getJiraIssuePattern())
-                .findJiraIds(gitInfo.messages);
+        // Components
+        CommitInfoProvider commitInfoProvider = new CommitInfoProvider() {
+            @Override
+            public ImmutableSet<Commit> getCommits() {
+                return FluentIterable.from(gitInfo.commits).toSet();
+            }
+        };
+        JiraConnector jiraConnector = new JiraConnectorImpl(configuration);
+        VersionInfoProvider versionInfoProvider = new VersionInfoProvider() {
+            @Override
+            public String getReleaseVersion() {
+                return defaultIfEmpty(configuration.getReleaseVersion(), gitInfo.version);
+            }
+        };
+        IssueCategorizer issueCategorizer = new IssueCategorizerImpl(configuration);
+        JiraUtils jiraUtils = new JiraUtilsImpl(configuration);
+        CommitMessageParser commitMessageParser = new CommitMessageParserImpl(configuration);
 
-        //3. Querying jira for issues
-        Collection<Issue> issues = new JiraIssueDao(configuration).findIssues(jiraIssueIds);
+        // Generate report model
+        ReleaseNotesModelFactory factory = new ReleaseNotesModelFactory(
+            commitInfoProvider,
+            jiraConnector,
+            issueCategorizer,
+            versionInfoProvider,
+            jiraUtils,
+            commitMessageParser);
 
-        //4. Creating report
-        File report = createReport(configuration, gitInfo, issues);
+        ReleaseNotesModel reportModel = factory.get();
 
-        //5. Pushing release notes to repo
-        if (programParameters.pushReleaseNotes) {
-            logger.info("Pushing release notes to remote repository");
-            gitFacade.pushReleaseNotes(report, gitInfo.version);
+        // Generate report
+        ReleaseNotesReportGenerator generator = new ReleaseNotesReportGenerator(configuration);
+        File reportFile = new File(
+                getReportDirectory(configuration),
+                versionInfoProvider.getReleaseVersion().replace(".", "_") + ".html");
+
+        logger.info("Creating report in {}", reportFile.getPath());
+
+        try (Writer fileWriter = new FileWriter(reportFile)) {
+            generator.generate(reportModel, fileWriter);
         }
-        gitFacade.close();
 
-        logger.info("Release notes generated under {}", report.getAbsolutePath());
+        logger.info("Generation of report is finished.");
 
-        return report;
+        return reportFile;
     }
 
     private static SCMFacade.Response getGitInfo(final ProgramParameters programParameters, final SCMFacade gitFacade) {
@@ -83,22 +112,14 @@ public class Main {
         }
     }
 
-    private static File createReport(final Configuration configuration, final SCMFacade.Response gitInfo,
-            final Collection<Issue> issues) throws IOException {
-        File reportDirectory = null;
-        if (StringUtils.isEmpty(configuration.getReportDirectory())) {
-            logger.info("No report directory defined, creating it under temp directory.");
-            reportDirectory = Files.createTempDirectory("ReportDirectory").toFile();
-        } else {
-            logger.info("Creating report under defined directory in {}", configuration.getReportDirectory());
-            reportDirectory = new File(configuration.getReportDirectory());
-        }
-        return new ReleaseNotesGenerator(configuration)
-                .generate(issues, reportDirectory, gitInfo.version, gitInfo.messages);
+    private static File getReportDirectory(final Configuration configuration) throws IOException {
+        return StringUtils.isEmpty(configuration.getReportDirectory()) ?
+                Files.createTempDirectory("ReportDirectory").toFile() :
+                new File(configuration.getReportDirectory());
     }
 
     private static Configuration readConfiguration(final ProgramParameters programParameters)
-            throws IOException, FileNotFoundException {
+            throws IOException {
         String path = programParameters.configurationFilePath;
         Properties properties = new Properties();
 
@@ -208,5 +229,9 @@ public class Main {
         @Element(Configuration.REPORT_TEMPLATE)
         @Parameter(names = { "-reportTemplate" })
         private String reportTemplate;
+
+        @Element(Configuration.RELEASE_VERSION)
+        @Parameter(names = { "-releaseVersion" })
+        private String releaseVersion;
     }
 }

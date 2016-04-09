@@ -39,6 +39,7 @@ public class Configuration {
     static final String ISSUE_SORT_PRIORITY = "issue.sort.priority";
     static final String REPORT_DIRECTORY = "report.directory";
     static final String REPORT_TEMPLATE = "report.template";
+    static final String RELEASE_VERSION = "version.release";
 
     private Properties properties;
 
@@ -143,6 +144,10 @@ public class Configuration {
 
     public String getReportTemplate() {
         return properties.getProperty(REPORT_TEMPLATE);
+    }
+
+    public String getReleaseVersion() {
+        return properties.getProperty(RELEASE_VERSION);
     }
 
     @Override

@@ -18,7 +18,11 @@
 	</properties>
 
 	<dependencies>
-
+		<dependency>
+			<groupId>com.google.guava</groupId>
+			<artifactId>guava</artifactId>
+			<version>19.0</version>
+		</dependency>
 		<dependency>
 			<groupId>org.eclipse.jgit</groupId>
 			<artifactId>org.eclipse.jgit</artifactId>
@@ -26,8 +30,8 @@
 		</dependency>
 		<dependency>
 			<groupId>com.atlassian.jira</groupId>
-			<artifactId>jira-rest-java-client</artifactId>
-			<version>1.0</version>
+			<artifactId>jira-rest-java-client-core</artifactId>
+			<version>3.0.0</version>
 		</dependency>
 		<dependency>
 			<groupId>com.beust</groupId>
@@ -164,4 +168,20 @@
 			</releases>
 		</repository>
 	</repositories>
+
+	<!-- Fix for JIRA client dependencies: https://answers.atlassian.com/questions/24291459/cannot-create-asynchronousjirarestclientfactory -->
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>org.apache.httpcomponents</groupId>
+				<artifactId>httpclient</artifactId>
+				<version>4.2.1-atlassian-2</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.httpcomponents</groupId>
+				<artifactId>httpasyncclient</artifactId>
+				<version>4.0-beta3-atlassian-1</version>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
 </project>
