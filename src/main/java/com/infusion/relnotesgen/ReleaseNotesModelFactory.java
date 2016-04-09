@@ -139,7 +139,7 @@ public class ReleaseNotesModelFactory {
         return new ReportJiraIssueModel(
                 issue,
                 jiraUtils.getFieldValueByNameSafe(issue, "Defect_Id"),
-                jiraConnector.getIssueUrl(issue));
+                jiraUtils.getIssueUrl(issue));
     }
 
     private ReportCommitModel toCommitModel(CommitWithParsedInfo commitWithParsedInfo) {

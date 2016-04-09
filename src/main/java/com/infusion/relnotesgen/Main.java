@@ -50,34 +50,16 @@ public class Main {
                 new PublicKeyAuthenticator() :
                 new UserCredentialsAuthenticator(configuration);
         SCMFacade gitFacade = new GitFacade(configuration, authenticator);
-
-        // Components
         final SCMFacade.Response gitInfo = getGitInfo(programParameters, gitFacade);
 
-        // Implementations
+        // Components
         CommitInfoProvider commitInfoProvider = new CommitInfoProvider() {
             @Override
             public ImmutableSet<Commit> getCommits() {
                 return FluentIterable.from(gitInfo.commits).toSet();
             }
         };
-        JiraConnector jiraConnector = new JiraConnector() {
-            @Override
-            public ImmutableMap<String, Issue> getIssuesIncludeParents(ImmutableSet<String> issueIds) {
-                throw new NotImplementedException("");
-                // return jiraIssueDao.findAllIssuesAsMap(issueIds);
-            }
-
-            @Override
-            public String getIssueUrl(Issue issue) {
-                try {
-                    URL baseURL = new URL(configuration.getJiraUrl());
-                    return new URL(baseURL, MessageFormat.format("/browse/{0}", issue.getKey())).toString();
-                } catch (MalformedURLException e) {
-                    return "#ERROR";
-                }
-            }
-        };
+        JiraConnector jiraConnector = new JiraConnectorImpl(configuration);
         VersionInfoProvider versionInfoProvider = new VersionInfoProvider() {
             @Override
             public String getReleaseVersion() {
@@ -85,7 +67,7 @@ public class Main {
             }
         };
         IssueCategorizer issueCategorizer = new IssueCategorizerImpl(configuration);
-        JiraUtils jiraUtils = new JiraUtilsImpl();
+        JiraUtils jiraUtils = new JiraUtilsImpl(configuration);
         CommitMessageParser commitMessageParser = new CommitMessageParserImpl(configuration);
 
         // Generate report model
