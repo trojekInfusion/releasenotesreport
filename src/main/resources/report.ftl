@@ -21,14 +21,14 @@
         <h3><p class="bg-success">Released issues with type ${categoryName} <span class="label label-success">${getIssuesByCategoryName(categoryName).size()}</span></p></h3>
     <ul>
         <#list getIssuesByCategoryName(categoryName) as issue>
-
             <li>
-            <#list issue.defectIds as defect>
-                <span class="label label-info">${defect}</span>
-            </#list>
+                <#list issue.defectIds as defect>
+                    <span class="label label-info">${defect}</span>
+                </#list>
 
-
-                [${issue.issue.priority.name}] <a href="${issue.url}">${issue.issue.key}: ${issue.issue.summary} <span class="label label-warning">${(issue.fixedInFlowWebVersion! "")}</span></a>
+               <img alt="" src="https://ensemble.atlassian.net/images/icons/priorities/${issue.issue.priority.name?lower_case}.svg" title="Highest - This problem will block progress." height="16" width="16">
+               </img>
+               <a href="${issue.url}">${issue.issue.key}: ${issue.issue.summary} <span class="label label-warning">${(issue.fixedInFlowWebVersion! "")}</span></a>
             </li>
         </#list>
     </ul>
