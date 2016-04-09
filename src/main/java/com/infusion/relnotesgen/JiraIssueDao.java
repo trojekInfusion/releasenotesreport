@@ -1,19 +1,5 @@
 package com.infusion.relnotesgen;
 
-import static org.apache.commons.lang3.StringUtils.containsIgnoreCase;
-import static org.apache.commons.lang3.StringUtils.isBlank;
-
-import java.net.URI;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Set;
-
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.atlassian.jira.rest.client.IssueRestClient;
 import com.atlassian.jira.rest.client.JiraRestClient;
 import com.atlassian.jira.rest.client.NullProgressMonitor;
@@ -21,10 +7,23 @@ import com.atlassian.jira.rest.client.RestClientException;
 import com.atlassian.jira.rest.client.domain.BasicComponent;
 import com.atlassian.jira.rest.client.domain.Issue;
 import com.atlassian.jira.rest.client.internal.jersey.JerseyJiraRestClientFactory;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.codehaus.jettison.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.net.URI;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Set;
+
+import static org.apache.commons.lang3.StringUtils.containsIgnoreCase;
+import static org.apache.commons.lang3.StringUtils.isBlank;
 
 /**
  * @author trojek
- *
  */
 public class JiraIssueDao {
 
@@ -59,9 +58,20 @@ public class JiraIssueDao {
                 logger.info("Quering JIRA for issue {}", issueId);
                 try {
                     Issue issue = getAndFilter(pm, issueId);
+
                     if (issue != null) {
-                        issues.add(issue);
+
+                        if (issue.getIssueType().isSubtask()) {
+                            // need to find parent
+                            String parentKey = ((JSONObject) issue.getFieldByName("Parent").getValue()).get("key").toString();
+
+                            Issue parent= getAndFilter(pm, parentKey);
+                            issues.add(parent);
+                        } else {
+                            issues.add(issue);
+                        }
                     }
+
                 } catch (RestClientException e) {
                     String message = ExceptionUtils.getRootCauseMessage(e);
                     if (message.contains("response status: 404")) {
@@ -84,8 +94,8 @@ public class JiraIssueDao {
     private Issue getAndFilter(final NullProgressMonitor pm, final String issueId) {
         Issue issue = issueRestClient.getIssue(issueId, pm);
 
-        for(Filter filter : filters) {
-            if(filter.filter(issue)) {
+        for (Filter filter : filters) {
+            if (filter.filter(issue)) {
                 logger.info("Filtered issue '{} {}' with filter '{}'", issue.getKey(), issue.getSummary(), filter);
                 return null;
             }
@@ -172,6 +182,7 @@ public class JiraIssueDao {
     }
 
     private class Filter {
+
         final String[] filters;
         final FilterPredicate predicate;
 
@@ -199,6 +210,7 @@ public class JiraIssueDao {
     }
 
     private interface FilterPredicate {
+
         boolean match(final Issue issue, final String value);
     }
 }

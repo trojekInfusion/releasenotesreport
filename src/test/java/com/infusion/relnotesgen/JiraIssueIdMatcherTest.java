@@ -1,15 +1,15 @@
 package com.infusion.relnotesgen;
 
-import static org.junit.Assert.assertThat;
-
-import java.util.Arrays;
-import java.util.Set;
-
 import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
+
+import java.util.Arrays;
+import java.util.Set;
+
+import static org.junit.Assert.assertThat;
 
 /**
  * @author trojek
@@ -41,7 +41,18 @@ public class JiraIssueIdMatcherTest {
                 //SYM-[numbers] pattern in different configuration
                 { "SYM-\\d+",
                     new String[] {"[SYM-1] createdSYM-3, initial dummy file\n", "'SYM-2' changed dummy file for first time\n"},
-                    new String[] {"SYM-1", "SYM-2", "SYM-3"}  }
+                    new String[] {"SYM-1", "SYM-2", "SYM-3"}  },
+
+                //SYM-[numbers] pattern in different configuration
+                { "((SYM)|(HA))-\\d+",
+                        new String[] {"SYM-1:createdSYM-3, initial dummy file\n", "Merge pull request #1284 in EN/harmony-poc from bugfix/HA-5262-strip-context-of-its-auto-creating to sprint/sprint-19-hotfix-1\n"
+                                + "\n" + "* commit '3b774605caeb477fc5def2671b17d4d70736c610':\n"
+                                + "HA-5067: HA-5070: HA-5262: work around JVM security nonsense\n"
+                                + "HA-5067: HA-5070: HA-5262: Safe navigation and script changes in AURA related scripts.\n"
+                                + "HA-5067: HA-5070: HA-5262: correct AuraElementScriptIT\n"
+                                + "HA-5067: HA-5070: HA-5262: Changes to Context; Changes to Context (removed auto-creation magic), publishing, added null pointer safety and access to context via string path.\n"
+                                + "HA-5067: HA-5070: HA-5262: Change error modal to accound for breaking scripts sent in the error message;fold onto 7692"},
+                        new String[] {"SYM-1", "SYM-3","HA-5067", "HA-5070", "HA-5262"}  }
         });
     }
 

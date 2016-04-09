@@ -1,34 +1,20 @@
 package com.infusion.relnotesgen;
 
-import static org.apache.commons.lang3.StringUtils.isNotEmpty;
+import com.atlassian.jira.rest.client.domain.Issue;
+import com.infusion.relnotesgen.util.PredefinedDictionaryComparator;
+import freemarker.ext.beans.BeansWrapper;
+import freemarker.template.*;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.atlassian.jira.rest.client.domain.Issue;
-import com.infusion.relnotesgen.util.PredefinedDictionaryComparator;
-
-import freemarker.ext.beans.BeansWrapper;
-import freemarker.template.ObjectWrapper;
-import freemarker.template.Template;
-import freemarker.template.TemplateException;
-import freemarker.template.TemplateExceptionHandler;
-import freemarker.template.Version;
+import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 
 /**
  * @author trojek
@@ -68,6 +54,10 @@ public class ReleaseNotesGenerator {
     }
 
     public File generate(final Collection<Issue> issues, final File reportDirectory, final String version) throws IOException {
+       return generate(issues,reportDirectory,version, new HashSet<String>());
+    }
+
+    public File generate(final Collection<Issue> issues, final File reportDirectory, final String version, final Set<String> messages) throws IOException {
         if(!reportDirectory.exists()) {
             logger.info("Report directory {} doesn't exist, creating it.", reportDirectory.getAbsolutePath());
             reportDirectory.mkdirs();
@@ -80,6 +70,7 @@ public class ReleaseNotesGenerator {
         input.put("issues", splitByType(issues));
         input.put("jiraUrl", configuration.getJiraUrl());
         input.put("version", version);
+        input.put("messages", messages);
 
         Template template = freemarkerConf.getTemplate(templateName);
 
