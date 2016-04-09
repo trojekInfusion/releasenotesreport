@@ -1,26 +1,20 @@
 package com.infusion.relnotesgen;
 
-import com.atlassian.jira.rest.client.api.domain.Issue;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.google.common.collect.FluentIterable;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.infusion.relnotesgen.Configuration.Element;
 import com.infusion.relnotesgen.util.IssueCategorizer;
 import com.infusion.relnotesgen.util.IssueCategorizerImpl;
 import com.infusion.relnotesgen.util.JiraUtils;
 import com.infusion.relnotesgen.util.JiraUtilsImpl;
-import org.apache.commons.lang3.NotImplementedException;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.nio.file.Files;
-import java.text.MessageFormat;
 import java.util.Properties;
 
 import static org.apache.commons.lang3.StringUtils.defaultIfEmpty;
@@ -35,6 +29,7 @@ public class Main {
 
     public static void main(final String[] args) throws IOException {
         generateReleaseNotes(args);
+        System.exit(0);
     }
 
     static File generateReleaseNotes(final String[] args) throws IOException {

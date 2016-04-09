@@ -139,14 +139,16 @@ public class ReleaseNotesModelFactory {
         return new ReportJiraIssueModel(
                 issue,
                 jiraUtils.getFieldValueByNameSafe(issue, "Defect_Id"),
-                jiraUtils.getIssueUrl(issue));
+                jiraUtils.getIssueUrl(issue),
+                jiraUtils.getFieldValueByNameSafe(issue,"FixedInFlowWebVersion"));
     }
 
     private ReportCommitModel toCommitModel(CommitWithParsedInfo commitWithParsedInfo) {
         return new ReportCommitModel(
                 commitWithParsedInfo.getCommit().getId(),
                 commitWithParsedInfo.getCommit().getMessage(),
-                commitWithParsedInfo.getDefectIds());
+                commitWithParsedInfo.getDefectIds(),
+                commitWithParsedInfo.commit.getAuthor());
     }
 
     private static class CommitWithParsedInfo {
