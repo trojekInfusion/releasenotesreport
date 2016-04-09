@@ -1,6 +1,5 @@
 package com.infusion.relnotesgen;
 
-import com.google.common.collect.ImmutableSet;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jgit.api.AddCommand;
@@ -160,7 +159,7 @@ public class GitFacade implements SCMFacade {
                     if(latestCommit == null) {
                         latestCommit = commit;
                     }
-                    commits.add(new Commit(commit.getFullMessage(), commit.getId().getName()));
+                    commits.add(new Commit(commit.getFullMessage(), commit.getId().getName(), commit.getAuthorIdent().getName()));
                 }
 
                 String commitId = commit.getId().getName();
@@ -173,7 +172,7 @@ public class GitFacade implements SCMFacade {
                         latestCommit = commit;
                     }
 
-                    commits.add(new Commit(commit.getFullMessage(), commit.getId().getName()));
+                    commits.add(new Commit(commit.getFullMessage(), commit.getId().getName(), commit.getAuthorIdent().getName()));
 
                     if(commitId1.equals(commitId2)) {
                         break;
