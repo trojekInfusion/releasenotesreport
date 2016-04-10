@@ -42,9 +42,9 @@
 
 <div class="row">
     <div class="col-md-8">
-<h3>Commits without JIRA issues <span class="badge">${commitsWithNoIssue.size()}</span></h3>
+<h3>Commits with Defects <span class="badge">${commitsWithDefectIds.size()}</span></h3>
 <ul>
-    <#list commitsWithNoIssue as commit>
+    <#list commitsWithDefectIds as commit>
         <li>
             <#if commit.defectIds?has_content>
                 <#list commit.defectIds as defectId>

@@ -6,21 +6,25 @@ package com.infusion.relnotesgen;
 import java.io.File;
 import java.util.Set;
 
-
 /**
  * @author trojek
- *
  */
 public interface SCMFacade {
 
     Response readByTag(final String tag1, final String tag2);
+
     Response readLatestReleasedVersion();
+
     Response readByCommit(final GitCommitTag commitId1, final GitCommitTag commitId2);
+
     Response readByCommit(String commitId1, String commitId2);
+
     boolean pushReleaseNotes(final File releaseNotes, final String version);
+
     void close();
 
     public static class Response {
+
         public final Set<Commit> commits;
         public final String version;
         public final GitCommitTag commitTag1;
@@ -35,8 +39,8 @@ public interface SCMFacade {
         }
     }
 
-    public static class GitCommitTag
-    {
+    public static class GitCommitTag {
+
         private final String commit;
         private final String tag;
 
@@ -52,5 +56,7 @@ public interface SCMFacade {
         public String getTag() {
             return tag;
         }
+
+        public final static GitCommitTag Empty = new GitCommitTag(null, null);
     }
 }

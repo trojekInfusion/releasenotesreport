@@ -64,10 +64,10 @@ public class GitFacade implements SCMFacade {
             if (gitRepo.exists() && searchGit(gitRepo)) {
                 logger.info("Found git repository under {}", configuration.getGitDirectory());
 
-                pull();
-                fetchTags();
-                checkout();
-                pull();
+//                pull();
+//                fetchTags();
+//                checkout();
+//                pull();
 
             } else {
                 logger.info("No git repository under {}", configuration.getGitDirectory());
@@ -249,8 +249,8 @@ public class GitFacade implements SCMFacade {
         try {
             Iterable<Ref> tags = git.tagList().call();
 
-            GitCommitTag commitTag1 = null;
-            GitCommitTag commitTag2 = null;
+            GitCommitTag commitTag1 = GitCommitTag.Empty;
+            GitCommitTag commitTag2 = GitCommitTag.Empty;
 
             for (Ref tag : tags) {
                 if (isNotBlank(tag1) && tag.getName().endsWith(tag1)) {

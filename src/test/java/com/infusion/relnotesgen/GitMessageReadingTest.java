@@ -59,11 +59,6 @@ public class GitMessageReadingTest {
                     new String[] {"SYM-2 changed dummy file for second time\n"},
                     "1.0" },
 
-                //one message semicolon
-                { "948fa8f6cc8a49f08e3c3a426c9e3d7323ce469a", "948fa8f6cc8a49f08e3c3a426c9e3d7323ce469a",
-                        new String[] {"SYM-2: changed dummy file for second time\n"},
-                        "1.0" },
-
                 //subcollection of elements
                 { "1c814546893dc5544f86ca87ca58f0d162c9ccd2", "948fa8f6cc8a49f08e3c3a426c9e3d7323ce469a",
                     new String[] {"SYM-1 created initial dummy file\n", "SYM-2 changed dummy file for first time\n",
