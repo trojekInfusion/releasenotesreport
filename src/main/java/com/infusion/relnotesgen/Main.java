@@ -44,11 +44,20 @@ public class Main {
         Authenticator authenticator = configuration.getGitUrl().toLowerCase().startsWith("ssh://") ?
                 new PublicKeyAuthenticator() :
                 new UserCredentialsAuthenticator(configuration);
-        SCMFacade gitFacade = new GitFacade(configuration, authenticator);
-        final SCMFacade.Response gitInfo = getGitInfo(programParameters, gitFacade);
+
+        final SCMFacade.Response gitInfo;
+        SCMFacade gitFacade = null;
+        try {
+            gitFacade = new GitFacade(configuration, authenticator);
+            gitInfo = getGitInfo(programParameters, gitFacade);
+        } finally {
+            if (gitFacade != null)
+                gitFacade.close();
+        }
 
         // Components
         CommitInfoProvider commitInfoProvider = new CommitInfoProvider() {
+
             @Override
             public ImmutableSet<Commit> getCommits() {
                 return FluentIterable.from(gitInfo.commits).toSet();
@@ -56,6 +65,7 @@ public class Main {
         };
         JiraConnector jiraConnector = new JiraConnectorImpl(configuration);
         VersionInfoProvider versionInfoProvider = new VersionInfoProvider() {
+
             @Override
             public String getReleaseVersion() {
                 return defaultIfEmpty(configuration.getReleaseVersion(), gitInfo.version);
@@ -66,20 +76,14 @@ public class Main {
         CommitMessageParser commitMessageParser = new CommitMessageParserImpl(configuration);
 
         // Generate report model
-        ReleaseNotesModelFactory factory = new ReleaseNotesModelFactory(
-            commitInfoProvider,
-            jiraConnector,
-            issueCategorizer,
-            versionInfoProvider,
-            jiraUtils,
-            commitMessageParser);
+        ReleaseNotesModelFactory factory = new ReleaseNotesModelFactory(commitInfoProvider, jiraConnector,
+                issueCategorizer, versionInfoProvider, jiraUtils, commitMessageParser, gitInfo);
 
         ReleaseNotesModel reportModel = factory.get();
 
         // Generate report
         ReleaseNotesReportGenerator generator = new ReleaseNotesReportGenerator(configuration);
-        File reportFile = new File(
-                getReportDirectory(configuration),
+        File reportFile = new File(getReportDirectory(configuration),
                 versionInfoProvider.getReleaseVersion().replace(".", "_") + ".html");
 
         logger.info("Creating report in {}", reportFile.getPath());
@@ -113,8 +117,7 @@ public class Main {
                 new File(configuration.getReportDirectory());
     }
 
-    private static Configuration readConfiguration(final ProgramParameters programParameters)
-            throws IOException {
+    private static Configuration readConfiguration(final ProgramParameters programParameters) throws IOException {
         String path = programParameters.configurationFilePath;
         Properties properties = new Properties();
 

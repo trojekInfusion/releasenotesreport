@@ -44,7 +44,6 @@ import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 /**
  * @author trojek
- *
  */
 public class GitFacade implements SCMFacade {
 
@@ -72,7 +71,7 @@ public class GitFacade implements SCMFacade {
 
             } else {
                 logger.info("No git repository under {}", configuration.getGitDirectory());
-                if(!gitRepo.exists()) {
+                if (!gitRepo.exists()) {
                     logger.info("Directory {} doesn't exist, creating it...", configuration.getGitDirectory());
                     gitRepo.mkdirs();
                 }
@@ -90,21 +89,24 @@ public class GitFacade implements SCMFacade {
         logger.info("Fetch tags");
     }
 
-    private void checkout() throws RefAlreadyExistsException, RefNotFoundException, InvalidRefNameException, CheckoutConflictException, GitAPIException {
+    private void checkout()
+            throws RefAlreadyExistsException, RefNotFoundException, InvalidRefNameException, CheckoutConflictException,
+            GitAPIException {
         logger.info("Git checkout to branch {}", configuration.getGitBranch());
         git.checkout().setName(configuration.getGitBranch()).call();
     }
 
-    private void pull() throws GitAPIException, WrongRepositoryStateException,
-            InvalidConfigurationException, DetachedHeadException, InvalidRemoteException, CanceledException,
-            RefNotFoundException, NoHeadException, TransportException {
+    private void pull()
+            throws GitAPIException, WrongRepositoryStateException, InvalidConfigurationException, DetachedHeadException,
+            InvalidRemoteException, CanceledException, RefNotFoundException, NoHeadException, TransportException {
         logger.info("Performing pull...");
         PullResult result = authenticator.authenticate(git.pull()).call();
-        if(result.isSuccessful()) {
+        if (result.isSuccessful()) {
             logger.info("Pull successfull");
         } else {
             logger.warn("Pull wasn't successfull, Fetch result: {}", result.getFetchResult().getMessages());
-            logger.warn("Pull wasn't successfull, Merge conflict count: {}", CollectionUtils.size(result.getMergeResult().getConflicts()));
+            logger.warn("Pull wasn't successfull, Merge conflict count: {}",
+                    CollectionUtils.size(result.getMergeResult().getConflicts()));
         }
     }
 
@@ -120,12 +122,8 @@ public class GitFacade implements SCMFacade {
         final File localPath = new File(configuration.getGitDirectory());
 
         try {
-            git = authenticator.authenticate(Git.cloneRepository())
-                .setURI(configuration.getGitUrl())
-                .setDirectory(localPath)
-                .setBranch(configuration.getGitBranch())
-                .setCloneAllBranches(false)
-                .call();
+            git = authenticator.authenticate(Git.cloneRepository()).setURI(configuration.getGitUrl())
+                    .setDirectory(localPath).setBranch(configuration.getGitBranch()).setCloneAllBranches(false).call();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -148,46 +146,55 @@ public class GitFacade implements SCMFacade {
     }
 
     @Override
-    public Response readByCommit(final String commitId1, final String commitId2) {
+    public Response readByCommit(final GitCommitTag commitTag1, final GitCommitTag commitTag2) {
         try {
             Iterable<RevCommit> log = git.log().call();
 
             Set<Commit> commits = new HashSet<>();
             RevCommit latestCommit = null;
             for (RevCommit commit : log) {
-                if (!commits.isEmpty() || (commitId1 == null || commitId2 == null)) {
-                    if(latestCommit == null) {
+                if (!commits.isEmpty() || (commitTag1.getCommit() == null || commitTag2.getCommit() == null)) {
+                    if (latestCommit == null) {
                         latestCommit = commit;
                     }
-                    commits.add(new Commit(commit.getFullMessage(), commit.getId().getName(), commit.getAuthorIdent().getName()));
+                    commits.add(new Commit(commit.getFullMessage(), commit.getId().getName(),
+                            commit.getAuthorIdent().getName()));
                 }
 
                 String commitId = commit.getId().getName();
-                if (commitId.equals(commitId1) || commitId.equals(commitId2)) {
-                    if (!commits.isEmpty() || (commitId1 == null || commitId2 == null)) {
+                if (commitId.equals(commitTag1.getCommit()) || commitId.equals(commitTag2.getCommit())) {
+                    if (!commits.isEmpty() || (commitTag1.getCommit() == null || commitTag2.getCommit() == null)) {
                         break;
                     }
 
-                    if(latestCommit == null) {
+                    if (latestCommit == null) {
                         latestCommit = commit;
                     }
 
-                    commits.add(new Commit(commit.getFullMessage(), commit.getId().getName(), commit.getAuthorIdent().getName()));
+                    commits.add(new Commit(commit.getFullMessage(), commit.getId().getName(),
+                            commit.getAuthorIdent().getName()));
 
-                    if(commitId1.equals(commitId2)) {
+                    if (commitTag1.getCommit().equals(commitTag2.getCommit())) {
                         break;
                     }
                 }
             }
             logger.info("Found {} commit commits.", commits.size());
-            if(commits.size() == 0) {
-                throw new RuntimeException("No commit were found for given commit ids " + commitId1 + ", " + commitId2 + ". Maybe branch is badly chosen.");
+            if (commits.size() == 0) {
+                throw new RuntimeException(
+                        "No commit were found for given commit ids " + commitTag1.getCommit() + ", " + commitTag2
+                                .getCommit() + ". Maybe branch is badly chosen.");
             }
 
-            return new Response(commits, getVersion(latestCommit));
+            return new Response(commits, getVersion(latestCommit), commitTag1, commitTag2);
         } catch (GitAPIException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    @Override
+    public Response readByCommit(final String commitId1, final String commitId2) {
+        return readByCommit(new GitCommitTag(commitId1, null), new GitCommitTag(commitId2, null));
     }
 
     private String getVersion(final RevCommit commit) {
@@ -242,21 +249,23 @@ public class GitFacade implements SCMFacade {
         try {
             Iterable<Ref> tags = git.tagList().call();
 
-            String commitId1 = null;
-            String commitId2 = null;
+            GitCommitTag commitTag1 = null;
+            GitCommitTag commitTag2 = null;
 
             for (Ref tag : tags) {
-                if(isNotBlank(tag1) && tag.getName().endsWith(tag1)) {
-                    commitId1 = retrieveCommitIdFromTag(tag);
-                    logger.info("Found tag '{}' using commit id '{}'.", tag.getName(), commitId1);
+                if (isNotBlank(tag1) && tag.getName().endsWith(tag1)) {
+                    final String commit1 = retrieveCommitIdFromTag(tag);
+                    commitTag1 = new GitCommitTag(commit1, tag.getName());
+                    logger.info("Found tag '{}' using commit id '{}'.", tag.getName(), commit1);
                 }
-                if(isNotBlank(tag2) && tag.getName().endsWith(tag2)) {
-                    commitId2 = retrieveCommitIdFromTag(tag);
-                    logger.info("Found tag '{}' using commit id '{}'.", tag.getName(), commitId2);
+                if (isNotBlank(tag2) && tag.getName().endsWith(tag2)) {
+                    final String commit2 = retrieveCommitIdFromTag(tag);
+                    commitTag2 = new GitCommitTag(commit2, tag.getName());
+                    logger.info("Found tag '{}' using commit id '{}'.", tag.getName(), commit2);
                 }
             }
 
-            return readByCommit(commitId1, commitId2);
+            return readByCommit(commitTag1, commitTag2);
         } catch (GitAPIException e) {
             throw new RuntimeException(e);
         }
@@ -264,7 +273,7 @@ public class GitFacade implements SCMFacade {
 
     private String retrieveCommitIdFromTag(final Ref tag) {
         Ref peeledTag = git.getRepository().peel(tag);
-        if(peeledTag.getPeeledObjectId() == null) {
+        if (peeledTag.getPeeledObjectId() == null) {
             //http://dev.eclipse.org/mhonarc/lists/jgit-dev/msg01706.html
             //when peeled tag is null it means this is 'lighweight' tag and object id points to commit straight forward
             return peeledTag.getObjectId().getName();
@@ -282,10 +291,10 @@ public class GitFacade implements SCMFacade {
             String tag1 = null;
             String tag2 = null;
             Date latestDate = new Date(0);
-            for(Ref tag : tags) {
+            for (Ref tag : tags) {
                 Date tagDate = getDateFromTag(walk, tag);
 
-                if(latestDate.before(tagDate)) {
+                if (latestDate.before(tagDate)) {
                     tag2 = tag1;
                     tag1 = tag.getName();
                     latestDate = tagDate;
@@ -298,7 +307,8 @@ public class GitFacade implements SCMFacade {
         }
     }
 
-    private Date getDateFromTag(final RevWalk walk, final Ref tag) throws MissingObjectException, IncorrectObjectTypeException, IOException {
+    private Date getDateFromTag(final RevWalk walk, final Ref tag)
+            throws MissingObjectException, IncorrectObjectTypeException, IOException {
         try {
             return walk.parseTag(tag.getObjectId()).getTaggerIdent().getWhen();
         } catch (IOException e) {
@@ -312,8 +322,9 @@ public class GitFacade implements SCMFacade {
     public boolean pushReleaseNotes(final File releaseNotes, final String version) {
         File notesDirectory = new File(git.getRepository().getDirectory().getParentFile(), RELEASES_DIR);
         boolean directoryCreated = false;
-        if(!notesDirectory.exists()) {
-            logger.info("Directory with release notes doesn't exist creating it in {}", notesDirectory.getAbsolutePath());
+        if (!notesDirectory.exists()) {
+            logger.info("Directory with release notes doesn't exist creating it in {}",
+                    notesDirectory.getAbsolutePath());
             directoryCreated = notesDirectory.mkdir();
         }
         logger.info("Copying release notes to {} (will overwrite if aleady exists)", notesDirectory.getAbsolutePath());
@@ -327,7 +338,7 @@ public class GitFacade implements SCMFacade {
         logger.info("Pushing release notes {}", releaseNotesInGit.getAbsolutePath());
         try {
             AddCommand addCommand = git.add();
-            if(directoryCreated) {
+            if (directoryCreated) {
                 addCommand.addFilepattern(RELEASES_DIR);
             } else {
                 addCommand.addFilepattern(RELEASES_DIR + "/" + releaseNotes.getName());
@@ -335,22 +346,21 @@ public class GitFacade implements SCMFacade {
             addCommand.call();
 
             Set<String> changes = validateChangesStatusOfReleaseNotes();
-            if(changes == null) {
+            if (changes == null) {
                 return false;
             }
 
             String commitMessage = buildCommitMessage(version);
             logger.info("Committing file '{}' with message '{}', committer name {}, committer mail {}",
-                    changes.iterator().next(), commitMessage, configuration.getGitCommitterName(), configuration.getGitCommitterMail());
-            git.commit()
-                    .setCommitter(configuration.getGitCommitterName(), configuration.getGitCommitterMail())
-                    .setMessage(commitMessage)
-                    .call();
+                    changes.iterator().next(), commitMessage, configuration.getGitCommitterName(),
+                    configuration.getGitCommitterMail());
+            git.commit().setCommitter(configuration.getGitCommitterName(), configuration.getGitCommitterMail())
+                    .setMessage(commitMessage).call();
 
             logger.info("Pushing changes to remote...");
             Iterable<PushResult> pushResults = authenticator.authenticate(git.push()).call();
             logger.info("Push call has ended.");
-            for(PushResult pushResult : pushResults) {
+            for (PushResult pushResult : pushResults) {
                 logger.info("Push message: {}", pushResult.getMessages());
             }
             return true;
@@ -365,21 +375,24 @@ public class GitFacade implements SCMFacade {
         Set<String> added = status.getAdded();
         Set<String> modified = status.getModified();
         Set<String> changed = status.getChanged();
-        if(added.size() > 1 || modified.size() > 1 || changed.size() > 1) {
-            logger.error("There are more than one change [added({}), modified({}), changed({})] to be commited, cancelling pushing release notes.", added.size(), modified.size(), changed.size());
+        if (added.size() > 1 || modified.size() > 1 || changed.size() > 1) {
+            logger.error(
+                    "There are more than one change [added({}), modified({}), changed({})] to be commited, cancelling pushing release notes.",
+                    added.size(), modified.size(), changed.size());
             return null;
         }
-        if(added.isEmpty() && modified.isEmpty() && changed.isEmpty()) {
-            logger.error("There are no changes to be commited, probably identical release notes has been already generated and pushed to repository.");
+        if (added.isEmpty() && modified.isEmpty() && changed.isEmpty()) {
+            logger.error(
+                    "There are no changes to be commited, probably identical release notes has been already generated and pushed to repository.");
             return null;
         }
-        if(!added.isEmpty()) {
+        if (!added.isEmpty()) {
             return added;
         }
-        if(!modified.isEmpty()) {
+        if (!modified.isEmpty()) {
             return modified;
         }
-        if(!changed.isEmpty()) {
+        if (!changed.isEmpty()) {
             return changed;
         }
         return null;
@@ -387,9 +400,8 @@ public class GitFacade implements SCMFacade {
 
     private String buildCommitMessage(final String version) {
         StringBuilder messageBuilder = new StringBuilder("[release-notes-generator] Release notes for version ")
-                .append(version)
-                .append(".");
-        if(StringUtils.isNotEmpty(configuration.getGitCommitMessageValidationOmmitter())) {
+                .append(version).append(".");
+        if (StringUtils.isNotEmpty(configuration.getGitCommitMessageValidationOmmitter())) {
             messageBuilder.append(" ").append(configuration.getGitCommitMessageValidationOmmitter());
         }
         return messageBuilder.toString();

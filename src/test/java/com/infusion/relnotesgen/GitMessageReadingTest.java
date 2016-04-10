@@ -1,14 +1,6 @@
 package com.infusion.relnotesgen;
 
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasItems;
-import static org.hamcrest.Matchers.hasSize;
-import static org.junit.Assert.assertThat;
-
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.Set;
-
+import com.infusion.relnotesgen.util.TestGitRepo;
 import com.infusion.relnotesgen.util.TestUtil;
 import org.junit.AfterClass;
 import org.junit.Test;
@@ -16,7 +8,12 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
-import com.infusion.relnotesgen.util.TestGitRepo;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.Set;
+
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.assertThat;
 
 /**
  * @author trojek
@@ -61,6 +58,11 @@ public class GitMessageReadingTest {
                 { "948fa8f6cc8a49f08e3c3a426c9e3d7323ce469a", "948fa8f6cc8a49f08e3c3a426c9e3d7323ce469a",
                     new String[] {"SYM-2 changed dummy file for second time\n"},
                     "1.0" },
+
+                //one message semicolon
+                { "948fa8f6cc8a49f08e3c3a426c9e3d7323ce469a", "948fa8f6cc8a49f08e3c3a426c9e3d7323ce469a",
+                        new String[] {"SYM-2: changed dummy file for second time\n"},
+                        "1.0" },
 
                 //subcollection of elements
                 { "1c814546893dc5544f86ca87ca58f0d162c9ccd2", "948fa8f6cc8a49f08e3c3a426c9e3d7323ce469a",

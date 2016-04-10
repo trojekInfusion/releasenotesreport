@@ -17,20 +17,18 @@ public class ReleaseNotesModelFactory {
     private final VersionInfoProvider versionInfoProvider;
     private final JiraUtils jiraUtils;
     private final CommitMessageParser commitMessageParser;
+    private final SCMFacade.Response gitInfo;
 
-    public ReleaseNotesModelFactory(
-            final CommitInfoProvider commitInfoProvider,
-            final JiraConnector jiraConnector,
-            final IssueCategorizer issueCategorizer,
-            final VersionInfoProvider versionInfoProvider,
-            final JiraUtils jiraUtils,
-            final CommitMessageParser commitMessageParser) {
+    public ReleaseNotesModelFactory(final CommitInfoProvider commitInfoProvider, final JiraConnector jiraConnector,
+            final IssueCategorizer issueCategorizer, final VersionInfoProvider versionInfoProvider,
+            final JiraUtils jiraUtils, final CommitMessageParser commitMessageParser, final SCMFacade.Response gitInfo) {
         this.commitInfoProvider = commitInfoProvider;
         this.jiraConnector = jiraConnector;
         this.issueCategorizer = issueCategorizer;
         this.versionInfoProvider = versionInfoProvider;
         this.jiraUtils = jiraUtils;
         this.commitMessageParser = commitMessageParser;
+        this.gitInfo = gitInfo;
     }
 
     public ReleaseNotesModel get() {
@@ -78,7 +76,10 @@ public class ReleaseNotesModelFactory {
                 getIssueTypes(jiraIssuesByType),
                 getIssuesByType(jiraIssuesByType),
                 getCommitsWithNoJiraIssues(commitsWithParsedInfo, jiraIssues),
-                version);
+                version,
+                gitInfo.commitTag1,
+                gitInfo.commitTag2,
+                gitInfo.commits.size());
 
         return model;
     }

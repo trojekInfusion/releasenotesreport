@@ -6,11 +6,15 @@
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
 </head>
 <body>
+<div class="page-header">
+  <h1>Release notes for version ${releaseVersion}</h1>
+  <h1><small>Generated for commits<span class="badge">${commitsCount}</span> from ${commitTag1.commit}<span class="label label-success">${(commitTag1.tag!"")}</span> to ${commitTag2.commit}<span class="label label-success">${(commitTag2.tag!"")}</span></small></h1>
+</div>
 
   <div class="container-fluid">
     <div class="row">
       <div class="col-md-10">
-<h1><p class="bg-primary">Release notes for version ${releaseVersion}</p></h1>
+<h1><p class="bg-primary"></p></h1>
 </div>
 </div>
 
@@ -18,7 +22,7 @@
 <#list issueCategoryNames as categoryName>
 <div class="row">
     <div class="col-md-8">
-        <h3><p class="bg-success">Released issues with type ${categoryName} <span class="label label-success">${getIssuesByCategoryName(categoryName).size()}</span></p></h3>
+        <h3><p class="bg-success">Released issues with type ${categoryName} <span class="badge">${getIssuesByCategoryName(categoryName).size()}</span></p></h3>
     <ul>
         <#list getIssuesByCategoryName(categoryName) as issue>
             <li>
@@ -38,7 +42,7 @@
 
 <div class="row">
     <div class="col-md-8">
-<h3>Commits without JIRA issues <span class="label label-success">${commitsWithNoIssue.size()}</span></h3>
+<h3>Commits without JIRA issues <span class="badge">${commitsWithNoIssue.size()}</span></h3>
 <ul>
     <#list commitsWithNoIssue as commit>
         <li>
