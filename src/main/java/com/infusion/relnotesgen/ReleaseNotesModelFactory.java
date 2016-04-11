@@ -71,7 +71,7 @@ public class ReleaseNotesModelFactory {
 
         ReleaseNotesModel model = new ReleaseNotesModel(getIssueTypes(jiraIssuesByType),
                 getIssuesByType(jiraIssuesByType), getCommitsWithDefectIds(commitsWithParsedInfo, jiraIssues), version,
-                gitInfo.commitTag1, gitInfo.commitTag2, gitInfo.commits.size());
+                gitInfo.commitTag1, gitInfo.commitTag2, gitInfo.commits.size(), gitInfo.gitBranch);
 
         return model;
     }

@@ -23,23 +23,25 @@ public interface SCMFacade {
 
     void close();
 
-    public static class Response {
+    class Response {
 
         public final Set<Commit> commits;
         public final String version;
         public final GitCommitTag commitTag1;
         public final GitCommitTag commitTag2;
+        public final String gitBranch;
 
         public Response(final Set<Commit> commits, final String version, final GitCommitTag commitTag1,
-                final GitCommitTag commitTag2) {
+                final GitCommitTag commitTag2, final String gitBranch) {
             this.commits = commits;
             this.version = version;
             this.commitTag1 = commitTag1;
             this.commitTag2 = commitTag2;
+            this.gitBranch = gitBranch;
         }
     }
 
-    public static class GitCommitTag {
+    class GitCommitTag {
 
         private final String commit;
         private final String tag;

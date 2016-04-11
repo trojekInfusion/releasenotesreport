@@ -11,10 +11,12 @@ public class ReleaseNotesModel {
     private final SCMFacade.GitCommitTag commitTag1;
     private final SCMFacade.GitCommitTag commitTag2;
     private final int commitsCount;
+    private final String gitBranch;
 
     public ReleaseNotesModel(final ImmutableSet<String> issueCategoryNames, final ImmutableMap<String, ImmutableSet<ReportJiraIssueModel>> issuesByCategory,
             final ImmutableSet<ReportCommitModel> commitsWithDefectIds, final String releaseVersion,
-            final SCMFacade.GitCommitTag commitTag1, final SCMFacade.GitCommitTag commitTag2, final int commitsCount) {
+            final SCMFacade.GitCommitTag commitTag1, final SCMFacade.GitCommitTag commitTag2, final int commitsCount,
+            final String gitBranch) {
         this.issueCategoryNames = issueCategoryNames;
         this.issuesByCategory = issuesByCategory;
         this.commitsWithDefectIds = commitsWithDefectIds;
@@ -22,6 +24,7 @@ public class ReleaseNotesModel {
         this.commitTag1 = commitTag1;
         this.commitTag2 = commitTag2;
         this.commitsCount = commitsCount;
+        this.gitBranch = gitBranch;
     }
 
     public ImmutableSet<String> getIssueCategoryNames() {
@@ -50,5 +53,9 @@ public class ReleaseNotesModel {
 
     public int getCommitsCount() {
         return commitsCount;
+    }
+
+    public String getGitBranch() {
+        return gitBranch;
     }
 }

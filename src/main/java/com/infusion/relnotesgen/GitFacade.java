@@ -64,10 +64,10 @@ public class GitFacade implements SCMFacade {
             if (gitRepo.exists() && searchGit(gitRepo)) {
                 logger.info("Found git repository under {}", configuration.getGitDirectory());
 
-//                pull();
-//                fetchTags();
-//                checkout();
-//                pull();
+                pull();
+                fetchTags();
+                checkout();
+                pull();
 
             } else {
                 logger.info("No git repository under {}", configuration.getGitDirectory());
@@ -186,7 +186,7 @@ public class GitFacade implements SCMFacade {
                                 .getCommit() + ". Maybe branch is badly chosen.");
             }
 
-            return new Response(commits, getVersion(latestCommit), commitTag1, commitTag2);
+            return new Response(commits, getVersion(latestCommit), commitTag1, commitTag2, this.configuration.getGitBranch() );
         } catch (GitAPIException e) {
             throw new RuntimeException(e);
         }
