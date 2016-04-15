@@ -1,6 +1,7 @@
 package com.infusion.relnotesgen;
 
-import static org.apache.commons.lang3.StringUtils.isNotEmpty;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -10,6 +11,8 @@ import java.lang.reflect.Field;
 import java.util.Map.Entry;
 import java.util.Properties;
 
+import static org.apache.commons.lang3.StringUtils.isNotEmpty;
+
 
 /**
  * @author trojek
@@ -18,6 +21,7 @@ import java.util.Properties;
 public class Configuration {
 
     public static final String LOGGER_NAME = "com.infusion.relnotesgen.log.ReleaseNotesLogger";
+    private static final Logger logger = LoggerFactory.getLogger(LOGGER_NAME);
 
     static final String GIT_DIRECTORY = "git.directory";
     static final String GIT_BRANCH = "git.branch";
@@ -27,6 +31,7 @@ public class Configuration {
     static final String GIT_COMMITTER_NAME = "git.committer.name";
     static final String GIT_COMMITTER_MAIL = "git.committer.mail";
     static final String GIT_COMMITMESSAGE_VALIDATIONOMMITER = "git.commitmessage.validationommiter";
+    static final String GIT_COMMIT_LIMIT = "git.commit.limit";
     static final String JIRA_URL = "jira.url";
     static final String JIRA_USERNAME = "jira.username";
     static final String JIRA_PASSWORD = "jira.password";
@@ -146,8 +151,16 @@ public class Configuration {
         return properties.getProperty(REPORT_TEMPLATE);
     }
 
-    public String getReleaseVersion() {
-        return properties.getProperty(RELEASE_VERSION);
+    public String getReleaseVersion() { return properties.getProperty(RELEASE_VERSION); }
+
+    public int getGitCommitLimit() {
+        try{
+            return Integer.parseInt(properties.getProperty(GIT_COMMIT_LIMIT));
+        }
+        catch (NumberFormatException e) {
+            logger.info("Couldn't parse '{}', defaulting value to 100", GIT_COMMIT_LIMIT);
+            return 100;
+        }
     }
 
     @Override

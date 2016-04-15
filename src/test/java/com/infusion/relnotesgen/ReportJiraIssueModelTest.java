@@ -17,6 +17,7 @@ public class ReportJiraIssueModelTest {
 
     private Issue issue;
     private final String fixedInFlowWebVersion = "1.0";
+    private final String releaseNotes = "my comment about the issue";
     private final String url = "http://dummy.com/1";
     private final String[] EmptyArray = new String[0];
 
@@ -31,7 +32,7 @@ public class ReportJiraIssueModelTest {
         String defectId = null;
 
         // When
-        ReportJiraIssueModel model = new ReportJiraIssueModel(issue, defectId, url, fixedInFlowWebVersion);
+        ReportJiraIssueModel model = new ReportJiraIssueModel(issue, defectId, url, fixedInFlowWebVersion, releaseNotes);
 
         // Then
         assertThat(model.getDefectIds(), equalTo(EmptyArray));
@@ -44,7 +45,7 @@ public class ReportJiraIssueModelTest {
         final String[] expected = { defectId };
 
         // When
-        ReportJiraIssueModel model = new ReportJiraIssueModel(issue, defectId, url, fixedInFlowWebVersion);
+        ReportJiraIssueModel model = new ReportJiraIssueModel(issue, defectId, url, fixedInFlowWebVersion, releaseNotes);
 
         // Then
         assertArrayEquals(expected, model.getDefectIds());
@@ -57,7 +58,7 @@ public class ReportJiraIssueModelTest {
         final String[] expected = { "Defect_123", "Defect_3" };
 
         // When
-        ReportJiraIssueModel model = new ReportJiraIssueModel(issue, defectId, url, fixedInFlowWebVersion);
+        ReportJiraIssueModel model = new ReportJiraIssueModel(issue, defectId, url, fixedInFlowWebVersion, releaseNotes);
 
         // Then
         assertArrayEquals(expected, model.getDefectIds());
@@ -70,7 +71,7 @@ public class ReportJiraIssueModelTest {
         final String[] expected = { "Defect_123", "Defect_3" };
 
         // When
-        ReportJiraIssueModel model = new ReportJiraIssueModel(issue, defectId, url, fixedInFlowWebVersion);
+        ReportJiraIssueModel model = new ReportJiraIssueModel(issue, defectId, url, fixedInFlowWebVersion, releaseNotes);
 
         // Then
         assertArrayEquals(expected, model.getDefectIds());

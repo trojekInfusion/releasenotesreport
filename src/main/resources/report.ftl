@@ -11,7 +11,7 @@
       <div class="col-md-10">
 <div class="page-header">
   <h1>Release notes for version ${releaseVersion}</h1>
-  <h2><small>Generated for commits<span class="badge">${commitsCount}</span> from branch <strong>${gitBranch}</strong> between ${commitTag1.commit}<span class="label label-success">${(commitTag1.tag!"")}</span> and ${commitTag2.commit}<span class="label label-success">${(commitTag2.tag!"")}</span></small></h2>
+      <h2><small>Generated for commits<span class="badge">${commitsCount}</span> from branch <strong>${gitBranch}</strong> between ${commitTag1.commit}<span class="label label-success">${(commitTag1.tag!"")}</span> and ${commitTag2.commit}<span class="label label-success">${(commitTag2.tag!"")}</span></small></h2>
 </div>
 </div>
 </div>
@@ -25,12 +25,15 @@
         <#list getIssuesByCategoryName(categoryName) as issue>
             <li>
                 <#list issue.defectIds as defect>
-                    <span class="label label-info">${defect}</span>
+                    <span class="label label-danger">${defect}</span>
                 </#list>
 
                <img alt="" src="https://ensemble.atlassian.net/images/icons/priorities/${issue.issue.priority.name?lower_case}.svg" title="Highest - This problem will block progress." height="16" width="16">
                </img>
                <a href="${issue.url}">${issue.issue.key}: ${issue.issue.summary} <span class="label label-warning">${(issue.fixedInFlowWebVersion! "")}</span></a>
+              <#if (issue.releaseNotes)??>
+                 <ul><li><em>${issue.releaseNotes}</em></li></ul>
+              </#if>
             </li>
         </#list>
     </ul>
@@ -46,7 +49,7 @@
         <li>
             <#if commit.defectIds?has_content>
                 <#list commit.defectIds as defectId>
-                    <span class="label label-info">${defectId}</span>
+                    <span class="label label-danger">${defectId}</span>
                 </#list>
             </#if>
             [id: ${commit.id}] ${commit.author} ${commit.message}

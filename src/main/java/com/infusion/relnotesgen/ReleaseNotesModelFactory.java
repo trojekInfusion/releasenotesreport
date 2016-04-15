@@ -122,7 +122,8 @@ public class ReleaseNotesModelFactory {
 
     private ReportJiraIssueModel toJiraIssueModel(Issue issue) {
         return new ReportJiraIssueModel(issue, jiraUtils.getFieldValueByNameSafe(issue, "Defect_Id"),
-                jiraUtils.getIssueUrl(issue), jiraUtils.getFieldValueByNameSafe(issue, "FixedInFlowWebVersion"));
+                jiraUtils.getIssueUrl(issue), jiraUtils.getFieldValueByNameSafe(issue, "FixedInFlowWebVersion"),
+                jiraUtils.getFieldValueByNameSafe(issue, "Release Notes"));
     }
 
     private ReportCommitModel toCommitModel(CommitWithParsedInfo commitWithParsedInfo) {

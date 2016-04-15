@@ -60,5 +60,10 @@ public interface SCMFacade {
         }
 
         public final static GitCommitTag Empty = new GitCommitTag(null, null);
+
+        @Override
+        public String toString() {
+            return commit + '[' + tag + ']';
+        }
     }
 }

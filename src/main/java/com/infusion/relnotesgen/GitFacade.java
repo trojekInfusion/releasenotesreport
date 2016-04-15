@@ -7,8 +7,6 @@ import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.PullResult;
 import org.eclipse.jgit.api.Status;
 import org.eclipse.jgit.api.errors.*;
-import org.eclipse.jgit.errors.IncorrectObjectTypeException;
-import org.eclipse.jgit.errors.MissingObjectException;
 import org.eclipse.jgit.errors.NoWorkTreeException;
 import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
@@ -89,16 +87,13 @@ public class GitFacade implements SCMFacade {
         logger.info("Fetch tags");
     }
 
-    private void checkout()
-            throws RefAlreadyExistsException, RefNotFoundException, InvalidRefNameException, CheckoutConflictException,
-            GitAPIException {
+    private void checkout() throws GitAPIException {
         logger.info("Git checkout to branch {}", configuration.getGitBranch());
         git.checkout().setName(configuration.getGitBranch()).call();
     }
 
-    private void pull()
-            throws GitAPIException, WrongRepositoryStateException, InvalidConfigurationException, DetachedHeadException,
-            InvalidRemoteException, CanceledException, RefNotFoundException, NoHeadException, TransportException {
+    private void pull() throws GitAPIException, DetachedHeadException, InvalidRemoteException, CanceledException,
+            RefNotFoundException, NoHeadException, TransportException {
         logger.info("Performing pull...");
         PullResult result = authenticator.authenticate(git.pull()).call();
         if (result.isSuccessful()) {
@@ -145,56 +140,196 @@ public class GitFacade implements SCMFacade {
         }
     }
 
+    /**
+     * Reads log from git
+     *
+     * @param commitTagRequestedLowerBound - id or tag of the older commit (bottom of the history)
+     * @param commitTagRequestedUpperBound - id or tag of the newer commit (top of the history)
+     * @return
+     */
     @Override
-    public Response readByCommit(final GitCommitTag commitTag1, final GitCommitTag commitTag2) {
+    public Response readByCommit(final GitCommitTag commitTagRequestedLowerBound,
+            final GitCommitTag commitTagRequestedUpperBound) {
+        logger.info("Attempting to read history between '{}' and '{}'.", commitTagRequestedLowerBound,
+                commitTagRequestedUpperBound);
+
+        GitCommitTag lowerBound = commitTagRequestedLowerBound;
+        GitCommitTag upperBound = commitTagRequestedUpperBound;
+
+        // get commit for tags
+        if (lowerBound.getTag() != null) {
+            final String commitForTag = getCommitForTagName(lowerBound.getTag());
+            lowerBound = new GitCommitTag(commitForTag, lowerBound.getTag());
+        }
+        // get commit for tags
+        if(upperBound.getTag() != null) {
+            final String commitForTag = getCommitForTagName(upperBound.getTag());
+            upperBound = new GitCommitTag(commitForTag, upperBound.getTag());
+        }
+
+        if (lowerBound.getCommit() != null && upperBound.getCommit() != null) {
+            // read everything in between
+            return readBetweenCommits(lowerBound, upperBound);
+        }
+        if (commitTagRequestedLowerBound.getCommit() != null) {
+            // upper bound null -> read from the latest all the way to lower bound
+            return readLatestCommits(lowerBound);
+        } else {
+            // lower bound null -> read from the upper bound all the way to the limit
+            final int limit = configuration.getGitCommitLimit();
+            return readOldestCommits(upperBound, limit);
+        }
+    }
+
+    private Response readOldestCommits(final GitCommitTag commitTagRequestedUpperBound, final int limit) {
         try {
-            Iterable<RevCommit> log = git.log().call();
+            final Iterable<RevCommit> log = git.log().call();
+            final Set<Commit> commits = new HashSet<>();
 
-            Set<Commit> commits = new HashSet<>();
             RevCommit latestCommit = null;
+            RevCommit oldestCommit = null;
+
+            // commits are ordered from new to old
             for (RevCommit commit : log) {
-                if (!commits.isEmpty() || (commitTag1.getCommit() == null || commitTag2.getCommit() == null)) {
-                    if (latestCommit == null) {
+                // skip commits that are before commit 1
+
+                if (latestCommit == null) {
+                    if (commit.getId().getName().equals(commitTagRequestedUpperBound.getCommit())) {
+                        // found commit 1 - this is where history starts
                         latestCommit = commit;
+                    } else {
+                        // do not process commit
+                        continue;
                     }
-                    commits.add(new Commit(commit.getFullMessage(), commit.getId().getName(),
-                            commit.getAuthorIdent().getName()));
                 }
 
-                String commitId = commit.getId().getName();
-                if (commitId.equals(commitTag1.getCommit()) || commitId.equals(commitTag2.getCommit())) {
-                    if (!commits.isEmpty() || (commitTag1.getCommit() == null || commitTag2.getCommit() == null)) {
-                        break;
-                    }
+                // add found commit to repose set
+                commits.add(new Commit(commit.getFullMessage(), commit.getId().getName(),
+                        commit.getAuthorIdent().getName()));
+                oldestCommit = commit;
 
-                    if (latestCommit == null) {
-                        latestCommit = commit;
-                    }
-
-                    commits.add(new Commit(commit.getFullMessage(), commit.getId().getName(),
-                            commit.getAuthorIdent().getName()));
-
-                    if (commitTag1.getCommit().equals(commitTag2.getCommit())) {
-                        break;
-                    }
+                if (commits.size() == limit) {
+                    // didn't found oldest, had to stop because of commit limit
+                    logger.info("Used limit of {} commits for history and reached '{}'", limit,
+                            oldestCommit.getId().getName());
+                    break;
                 }
             }
-            logger.info("Found {} commit commits.", commits.size());
+
+            logger.info("Found {} commit messages.", commits.size());
             if (commits.size() == 0) {
-                throw new RuntimeException(
-                        "No commit were found for given commit ids " + commitTag1.getCommit() + ", " + commitTag2
-                                .getCommit() + ". Maybe branch is badly chosen.");
+                throw new RuntimeException(String.format(
+                        "No commit were found for given commit ids [%s, empty]. Maybe branch is badly chosen.",
+                        commitTagRequestedUpperBound.getCommit()));
             }
 
-            return new Response(commits, getVersion(latestCommit), commitTag1, commitTag2, this.configuration.getGitBranch() );
+            return new Response(commits, getVersion(latestCommit),
+                    new GitCommitTag(oldestCommit.getId().getName(), null), commitTagRequestedUpperBound,
+                    this.configuration.getGitBranch());
         } catch (GitAPIException e) {
             throw new RuntimeException(e);
         }
     }
 
+    private Response readLatestCommits(final GitCommitTag commitTagRequestedLowerBound) {
+        try {
+            RevCommit latestCommit = null;
+            final Iterable<RevCommit> log = git.log().call();
+            final Set<Commit> commits = new HashSet<>();
+
+            // 'Requested' are commits or tags that user specified, 'Used' are the ones that were used for creating release notes
+            GitCommitTag commitTagUsedUpperBound = null;
+
+            // commits are ordered from new to old
+            for (RevCommit commit : log) {
+                // skip commits that are before commit 1
+
+                if (latestCommit == null) {
+                    // found commit 1 - this is where history starts
+                    latestCommit = commit;
+                    commitTagUsedUpperBound = new GitCommitTag(commit.getId().getName(), null);
+                }
+
+                // add found commit to repose set
+                commits.add(new Commit(commit.getFullMessage(), commit.getId().getName(),
+                        commit.getAuthorIdent().getName()));
+
+                if (commit.getId().getName().equals(commitTagRequestedLowerBound.getCommit())) {
+                    // found oldest commit
+                    break;
+                }
+            }
+
+            logger.info("Found {} commit messages.", commits.size());
+            if (commits.size() == 0) {
+                throw new RuntimeException(
+                        String.format("No commit were found for given commit ids %s, %s. Maybe branch is badly chosen.",
+                                commitTagRequestedLowerBound.getCommit(), commitTagRequestedLowerBound.getCommit()));
+            }
+
+            return new Response(commits, getVersion(latestCommit), commitTagRequestedLowerBound,
+                    commitTagUsedUpperBound, this.configuration.getGitBranch());
+        } catch (GitAPIException e)
+
+        {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private Response readBetweenCommits(final GitCommitTag commitTagRequestedLowerBound,
+            final GitCommitTag commitTagRequestedUpperBound) {
+        try {
+            final Iterable<RevCommit> log = git.log().call();
+            final Set<Commit> commits = new HashSet<>();
+            RevCommit latestCommitForVersion = null;
+
+            for (RevCommit commit : log) {
+                // skip commits that are before commit 1
+
+                if (latestCommitForVersion == null) {
+                    if (commit.getId().getName().equals(commitTagRequestedUpperBound.getCommit())) {
+                        // found commit 1 - this is where history starts
+                        latestCommitForVersion = commit;
+                    } else {
+                        // do not process commit
+                        continue;
+                    }
+                }
+
+                // add found commit to repose set
+                commits.add(new Commit(commit.getFullMessage(), commit.getId().getName(),
+                        commit.getAuthorIdent().getName()));
+
+                if (commit.getId().getName().equals(commitTagRequestedLowerBound.getCommit())) {
+                    // found oldest commit
+                    break;
+                }
+            }
+
+            logger.info("Found {} commit messages.", commits.size());
+            if (commits.size() == 0) {
+                throw new RuntimeException(
+                        "No commit were found for given commit ids " + commitTagRequestedLowerBound.getCommit() + ", "
+                                + commitTagRequestedLowerBound.getCommit() + ". Maybe branch is badly chosen.");
+            }
+
+            return new Response(commits, getVersion(latestCommitForVersion), commitTagRequestedLowerBound,
+                    commitTagRequestedUpperBound, this.configuration.getGitBranch());
+        } catch (GitAPIException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * Reads git log by commit ids
+     *
+     * @param commitIdLowerBound id of the older commit (bottom of the history)
+     * @param commitIdUpperBound id of the newer commit (top of the history)
+     * @return
+     */
     @Override
-    public Response readByCommit(final String commitId1, final String commitId2) {
-        return readByCommit(new GitCommitTag(commitId1, null), new GitCommitTag(commitId2, null));
+    public Response readByCommit(final String commitIdLowerBound, final String commitIdUpperBound) {
+        return readByCommit(new GitCommitTag(commitIdLowerBound, null), new GitCommitTag(commitIdUpperBound, null));
     }
 
     private String getVersion(final RevCommit commit) {
@@ -244,8 +379,15 @@ public class GitFacade implements SCMFacade {
         return expr.evaluate(doc);
     }
 
+    /**
+     * Reads git log by commit tags
+     *
+     * @param tagLowerBound id of the older commit (bottom of the history)
+     * @param tagUpperBound id of the newer commit (top of the history)
+     * @return
+     */
     @Override
-    public Response readByTag(final String tag1, final String tag2) {
+    public Response readByTag(final String tagLowerBound, final String tagUpperBound) {
         try {
             Iterable<Ref> tags = git.tagList().call();
 
@@ -253,19 +395,47 @@ public class GitFacade implements SCMFacade {
             GitCommitTag commitTag2 = GitCommitTag.Empty;
 
             for (Ref tag : tags) {
-                if (isNotBlank(tag1) && tag.getName().endsWith(tag1)) {
+                if (isNotBlank(tagLowerBound) && tag.getName().endsWith(tagLowerBound)) {
                     final String commit1 = retrieveCommitIdFromTag(tag);
                     commitTag1 = new GitCommitTag(commit1, tag.getName());
                     logger.info("Found tag '{}' using commit id '{}'.", tag.getName(), commit1);
                 }
-                if (isNotBlank(tag2) && tag.getName().endsWith(tag2)) {
+                if (isNotBlank(tagUpperBound) && tag.getName().endsWith(tagUpperBound)) {
                     final String commit2 = retrieveCommitIdFromTag(tag);
                     commitTag2 = new GitCommitTag(commit2, tag.getName());
                     logger.info("Found tag '{}' using commit id '{}'.", tag.getName(), commit2);
                 }
             }
 
+            if (isNotBlank(tagLowerBound) && commitTag1.getTag() == null) {
+                logger.info("Tag '{}' NOT FOUND.", tagLowerBound);
+            }
+            if (isNotBlank(tagUpperBound) && commitTag2.getTag() == null) {
+                logger.info("Tag '{}' NOT FOUND.", tagUpperBound);
+            }
+
             return readByCommit(commitTag1, commitTag2);
+        } catch (GitAPIException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public String getCommitForTagName(final String tagName) {
+        try {
+            Iterable<Ref> tags = git.tagList().call();
+
+            for (Ref tag : tags) {
+                // todo: why ends with?
+                if (isNotBlank(tagName) && tag.getName().endsWith(tagName)) {
+                    String commit = retrieveCommitIdFromTag(tag);
+                    logger.info("Found tag '{}' using commit id '{}'.", tag.getName(), commit);
+
+                    return commit;
+                }
+            }
+
+            throw new RuntimeException("Tag '" + tagName + "' NOT FOUND.");
+
         } catch (GitAPIException e) {
             throw new RuntimeException(e);
         }
@@ -301,14 +471,13 @@ public class GitFacade implements SCMFacade {
                 }
             }
 
-            return readByTag(tag1, tag2);
+            return readByTag(tag2, tag1);
         } catch (GitAPIException | IOException e) {
             throw new RuntimeException(e);
         }
     }
 
-    private Date getDateFromTag(final RevWalk walk, final Ref tag)
-            throws MissingObjectException, IncorrectObjectTypeException, IOException {
+    private Date getDateFromTag(final RevWalk walk, final Ref tag) throws IOException {
         try {
             return walk.parseTag(tag.getObjectId()).getTaggerIdent().getWhen();
         } catch (IOException e) {

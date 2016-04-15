@@ -10,14 +10,16 @@ public class ReportJiraIssueModel {
 
     private final Issue issue;
     private final String fixedInFlowWebVersion;
+    private final String releaseNotes;
     private final String[] defectIds;
     private final String url;
 
     public ReportJiraIssueModel(final Issue issue, final String defectId, final String url,
-            final String fixedInFlowWebVersion) {
+            final String fixedInFlowWebVersion, final String releaseNotes) {
         this.issue = issue;
         this.fixedInFlowWebVersion = fixedInFlowWebVersion;
         this.url = url;
+        this.releaseNotes = releaseNotes;
 
         if (defectId != null) {
             defectIds = FluentIterable.from(Arrays.asList(defectId.split("(,)|( )")))
@@ -54,4 +56,6 @@ public class ReportJiraIssueModel {
     public String getFixedInFlowWebVersion() {
         return fixedInFlowWebVersion;
     }
+
+    public String getReleaseNotes() { return releaseNotes; }
 }
