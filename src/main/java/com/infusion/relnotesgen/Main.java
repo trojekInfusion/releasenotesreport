@@ -107,7 +107,7 @@ public class Main {
         if (isEmpty(programParameters.tag1) && isEmpty(programParameters.tag2) && isEmpty(programParameters.commitId1)
                 && isEmpty(programParameters.commitId2)) {
             logger.info("No commit id or tag parameter provided, reading scm history by two latests tags.");
-            return gitFacade.readLatestReleasedVersion();
+            return gitFacade.readyTillLastTag();
         }
 
         SCMFacade.GitCommitTag commitTag1 = new SCMFacade.GitCommitTag(programParameters.commitId1,

@@ -13,7 +13,7 @@ public interface SCMFacade {
 
     Response readByTag(final String tag1, final String tag2);
 
-    Response readLatestReleasedVersion();
+    Response readyTillLastTag();
 
     Response readByCommit(final GitCommitTag commitId1, final GitCommitTag commitId2);
 

@@ -1,17 +1,6 @@
 package com.infusion.relnotesgen;
 
-import static com.infusion.relnotesgen.util.TestUtil.getMessages;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasItems;
-import static org.hamcrest.Matchers.hasSize;
-import static org.junit.Assert.assertThat;
-
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.util.Set;
-
-import com.infusion.relnotesgen.util.TestUtil;
+import com.infusion.relnotesgen.util.TestGitRepo;
 import org.apache.commons.io.FileUtils;
 import org.hamcrest.Matchers;
 import org.junit.After;
@@ -19,7 +8,14 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.infusion.relnotesgen.util.TestGitRepo;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.util.Set;
+
+import static com.infusion.relnotesgen.util.TestUtil.getMessages;
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.assertThat;
 
 
 /**
@@ -204,7 +200,8 @@ public class GitMessageReadingWithCloningOfRepositoryTest {
         gitMessageReader = new GitFacade(conf, new UserCredentialsAuthenticator(conf));
 
         // When
-        SCMFacade.Response gitInfo = gitMessageReader.readLatestReleasedVersion();
+//        SCMFacade.Response gitInfo = gitMessageReader.readLatestReleasedVersion();
+        SCMFacade.Response gitInfo = gitMessageReader.readyTillLastTag();
         Set<String> messages = getMessages(gitInfo.commits);
 
         // Then

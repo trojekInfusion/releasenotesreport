@@ -34,9 +34,7 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
@@ -75,7 +73,11 @@ public class GitFacade implements SCMFacade {
                 }
 
                 cloneRepo();
+                fetchTags();
+                checkout();
+                pull();
             }
+
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -145,7 +147,7 @@ public class GitFacade implements SCMFacade {
      *
      * @param commitTagRequestedLowerBound - id or tag of the older commit (bottom of the history)
      * @param commitTagRequestedUpperBound - id or tag of the newer commit (top of the history)
-     * @return
+     * @return git commit history
      */
     @Override
     public Response readByCommit(final GitCommitTag commitTagRequestedLowerBound,
@@ -162,7 +164,7 @@ public class GitFacade implements SCMFacade {
             lowerBound = new GitCommitTag(commitForTag, lowerBound.getTag());
         }
         // get commit for tags
-        if(upperBound.getTag() != null) {
+        if (upperBound.getTag() != null) {
             final String commitForTag = getCommitForTagName(upperBound.getTag());
             upperBound = new GitCommitTag(commitForTag, upperBound.getTag());
         }
@@ -203,7 +205,7 @@ public class GitFacade implements SCMFacade {
                     }
                 }
 
-                // add found commit to repose set
+                // add found commit to response set
                 commits.add(new Commit(commit.getFullMessage(), commit.getId().getName(),
                         commit.getAuthorIdent().getName()));
                 oldestCommit = commit;
@@ -250,7 +252,7 @@ public class GitFacade implements SCMFacade {
                     commitTagUsedUpperBound = new GitCommitTag(commit.getId().getName(), null);
                 }
 
-                // add found commit to repose set
+                // add found commit to response set
                 commits.add(new Commit(commit.getFullMessage(), commit.getId().getName(),
                         commit.getAuthorIdent().getName()));
 
@@ -296,7 +298,7 @@ public class GitFacade implements SCMFacade {
                     }
                 }
 
-                // add found commit to repose set
+                // add found commit to response set
                 commits.add(new Commit(commit.getFullMessage(), commit.getId().getName(),
                         commit.getAuthorIdent().getName()));
 
@@ -452,27 +454,72 @@ public class GitFacade implements SCMFacade {
         }
     }
 
+    private org.eclipse.jgit.lib.ObjectId getActualRefObjectId(Ref ref) {
+        final Ref repoPeeled = git.getRepository().peel(ref);
+        if (repoPeeled.getPeeledObjectId() != null) {
+            return repoPeeled.getPeeledObjectId();
+        }
+        return ref.getObjectId();
+    }
+
     @Override
-    public Response readLatestReleasedVersion() {
+    public Response readyTillLastTag() {
         try {
             Iterable<Ref> tags = git.tagList().call();
-            final RevWalk walk = new RevWalk(git.getRepository());
+            Dictionary<String, Set<String>> commitsWithTags = new Hashtable<>();
 
-            String tag1 = null;
-            String tag2 = null;
-            Date latestDate = new Date(0);
             for (Ref tag : tags) {
-                Date tagDate = getDateFromTag(walk, tag);
-
-                if (latestDate.before(tagDate)) {
-                    tag2 = tag1;
-                    tag1 = tag.getName();
-                    latestDate = tagDate;
+                // todo: why ends with?
+                String commit = retrieveCommitIdFromTag(tag);
+                logger.info("Found tag '{}' using commit id '{}'.", tag.getName(), commit);
+                if (commitsWithTags.get(commit) != null) {
+                    commitsWithTags.get(commit).add(tag.getName());
+                } else {
+                    HashSet<String> tagsList = new HashSet<>();
+                    tagsList.add(tag.getName());
+                    commitsWithTags.put(commit, tagsList);
                 }
             }
 
-            return readByTag(tag2, tag1);
-        } catch (GitAPIException | IOException e) {
+            // now read commits
+            final Iterable<RevCommit> log = git.log().call();
+            final Set<Commit> commits = new HashSet<>();
+            RevCommit latestCommit = null;
+            String lastTag = null;
+            String lastCommit = null;
+
+            for (RevCommit commit : log) {
+
+                // add found commit to response set
+                commits.add(new Commit(commit.getFullMessage(), commit.getId().getName(),
+                        commit.getAuthorIdent().getName()));
+
+                if (latestCommit != null) {
+                    // check if we reached a tag
+                    Set<String> tagsFound = commitsWithTags.get(commit.getId().getName());
+                    if (tagsFound != null) {
+                        lastCommit = commit.getId().getName();
+                        lastTag = tagsFound.toArray()[0].toString();
+                        logger.info("Found ending tag '{}' for commit {}", lastTag, lastCommit);
+                        break;
+                    }
+                }
+
+                // save the latest commit for version extraction
+                if (latestCommit == null) {
+                    latestCommit = commit;
+                }
+            }
+
+            logger.info("Found {} commit messages.", commits.size());
+            if (commits.size() == 0) {
+                throw new RuntimeException("No commit were found. Maybe branch is badly chosen.");
+            }
+
+            return new Response(commits, getVersion(latestCommit), new GitCommitTag(lastCommit, lastTag),
+                    new GitCommitTag(latestCommit.getId().getName(), null), this.configuration.getGitBranch());
+
+        } catch (GitAPIException e) {
             throw new RuntimeException(e);
         }
     }
