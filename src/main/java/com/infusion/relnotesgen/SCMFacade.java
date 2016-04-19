@@ -63,7 +63,7 @@ public interface SCMFacade {
 
         @Override
         public String toString() {
-            return commit + '[' + tag + ']';
+            return (commit == null ? "" : commit) + '[' + (tag == null ? "" : tag) + ']';
         }
     }
 }

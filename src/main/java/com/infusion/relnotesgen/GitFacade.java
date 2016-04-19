@@ -250,6 +250,8 @@ public class GitFacade implements SCMFacade {
                     // found commit 1 - this is where history starts
                     latestCommit = commit;
                     commitTagUsedUpperBound = new GitCommitTag(commit.getId().getName(), null);
+                    logger.info("Reading history between '{}' and '{}'.", commitTagRequestedLowerBound,
+                            commitTagUsedUpperBound);
                 }
 
                 // add found commit to response set
@@ -281,6 +283,9 @@ public class GitFacade implements SCMFacade {
     private Response readBetweenCommits(final GitCommitTag commitTagRequestedLowerBound,
             final GitCommitTag commitTagRequestedUpperBound) {
         try {
+            logger.info("Reading history between '{}' and '{}'.", commitTagRequestedLowerBound,
+                    commitTagRequestedUpperBound);
+
             final Iterable<RevCommit> log = git.log().call();
             final Set<Commit> commits = new HashSet<>();
             RevCommit latestCommitForVersion = null;
