@@ -59,6 +59,19 @@
 </div>
 </div>
 
+<div class="row">
+    <div class="col-md-8">
+<h3><p class="bg-success">All defects </p></h3>
+<ol>
+    <#list uniqueDefects as defect>
+        <li>
+              <span class="label label-danger">${defect}</span>
+        </li>
+    </#list>
+</ol>
+</div>
+</div>
+
 </body>
 </html>
 </#escape>
