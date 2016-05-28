@@ -1,6 +1,7 @@
 package com.infusion.relnotesgen;
 
 import com.atlassian.jira.rest.client.api.domain.Issue;
+import com.atlassian.jira.rest.client.api.domain.Version;
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.collect.*;
@@ -123,7 +124,14 @@ public class ReleaseNotesModelFactory {
     private ReportJiraIssueModel toJiraIssueModel(Issue issue) {
         return new ReportJiraIssueModel(issue, jiraUtils.getFieldValueByNameSafe(issue, "Defect_Id"),
                 jiraUtils.getIssueUrl(issue), jiraUtils.getFieldValueByNameSafe(issue, "FixedInFlowWebVersion"),
-                jiraUtils.getFieldValueByNameSafe(issue, "Release Notes"));
+                jiraUtils.getFieldValueByNameSafe(issue, "Release Notes"), FluentIterable.from(issue.getFixVersions()).transform(
+                new Function<Version, String>() {
+
+                    @Override
+                    public String apply(Version version) {
+                        return version.getName();
+                    }
+                }));
     }
 
     private ReportCommitModel toCommitModel(CommitWithParsedInfo commitWithParsedInfo) {
