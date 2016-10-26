@@ -61,7 +61,7 @@ public class JiraConnectorImpl implements JiraConnector {
 
         logger.info("Getting issues for keys: {}", issueIds);
 
-        SearchResult searchResult = searchClient.searchJql(searchQuery).claim();
+        SearchResult searchResult = searchClient.searchJql(searchQuery,200, 0, null).claim();
         List<Issue> issues = Lists.newArrayList(searchResult.getIssues());
 
         ImmutableSet<String> parentKeysToFetch = FluentIterable
