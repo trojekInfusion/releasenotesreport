@@ -104,7 +104,7 @@ public class ReleaseNotesModel {
                 );
 
         StringBuilder sb = new StringBuilder("https://ensemble.atlassian.net/issues/?jql=id%20in%20(");
-        for (String s : uniqueJiras.)
+        for (String s : uniqueJiras)
         {
             sb.append(s);
             sb.append("%2C%20");

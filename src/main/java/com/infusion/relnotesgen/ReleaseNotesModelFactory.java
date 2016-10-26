@@ -122,7 +122,7 @@ public class ReleaseNotesModelFactory {
     }
 
     private ReportJiraIssueModel toJiraIssueModel(Issue issue) {
-        return new ReportJiraIssueModel(issue, jiraUtils.getFieldValueByNameSafe(issue, "Defect_Id"),
+        return new ReportJiraIssueModel(issue, jiraUtils.getFieldValueByNameSafe(issue, "Defect_Id") + " " + jiraUtils.getFieldValueByNameSafe(issue, "Requirement VA ID"),
                 jiraUtils.getIssueUrl(issue), jiraUtils.getFieldValueByNameSafe(issue, "FixedInFlowWebVersion"),
                 jiraUtils.getFieldValueByNameSafe(issue, "Release Notes"), FluentIterable.from(issue.getFixVersions()).transform(
                 new Function<Version, String>() {
