@@ -61,7 +61,7 @@ public class JiraConnectorImpl implements JiraConnector {
 
         logger.info("Getting issues for keys: {}", issueIds);
 
-        SearchResult searchResult = searchClient.searchJql(searchQuery, 200, 0, null).claim();
+        SearchResult searchResult = searchClient.searchJql(searchQuery, 500, 0, null).claim();
         List<Issue> issues = Lists.newArrayList(searchResult.getIssues());
 
         if(issues.size() < searchResult.getTotal()) {

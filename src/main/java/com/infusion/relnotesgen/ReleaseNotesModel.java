@@ -104,11 +104,13 @@ public class ReleaseNotesModel {
                 );
 
         StringBuilder sb = new StringBuilder("https://ensemble.atlassian.net/issues/?jql=id%20in%20(");
+        final String coma = "%2C%20";
         for (String s : uniqueJiras)
         {
             sb.append(s);
-            sb.append("%2C%20");
+            sb.append(coma);
         }
+        sb.replace(sb.length()-coma.length(),sb.length(),"");
         sb.append(")");
 
         jqlLink = sb.toString();

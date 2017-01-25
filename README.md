@@ -15,7 +15,7 @@
 ### Command line with configuration .properties file
 Parameters for program can be defined in .properties file defined by cli parameter named _configurationFilePath_
 
-	java -jar target/release-notes-generator-1.0-SNAPSHOT.jar -configurationFilePath ./configuration.properties -tag1 0.19.0.20 
+	java -jar target/release-notes-generator-1.0-SNAPSHOT.jar -configurationFilePath ./configuration.properties -tag1 0.19.0.20
 sample configuration.properties file can be found in src/test/resources/configuration.properties
 
 ### Command line with cli parameters
