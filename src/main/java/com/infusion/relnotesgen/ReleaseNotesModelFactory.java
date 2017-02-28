@@ -22,9 +22,9 @@ public class ReleaseNotesModelFactory {
     private final SCMFacade.Response gitInfo;
 
     public ReleaseNotesModelFactory(final CommitInfoProvider commitInfoProvider, final JiraConnector jiraConnector,
-            final IssueCategorizer issueCategorizer, final VersionInfoProvider versionInfoProvider,
-            final JiraUtils jiraUtils, final CommitMessageParser commitMessageParser,
-            final SCMFacade.Response gitInfo) {
+                                    final IssueCategorizer issueCategorizer, final VersionInfoProvider versionInfoProvider,
+                                    final JiraUtils jiraUtils, final CommitMessageParser commitMessageParser,
+                                    final SCMFacade.Response gitInfo) {
         this.commitInfoProvider = commitInfoProvider;
         this.jiraConnector = jiraConnector;
         this.issueCategorizer = issueCategorizer;
@@ -78,7 +78,7 @@ public class ReleaseNotesModelFactory {
     }
 
     private ImmutableSet<ReportCommitModel> getCommitsWithDefectIds(final Iterable<CommitWithParsedInfo> commitMessages,
-            final ImmutableMap<String, Issue> jiraIssues) {
+                                                                    final ImmutableMap<String, Issue> jiraIssues) {
 
         return FluentIterable.from(commitMessages).filter(new Predicate<CommitWithParsedInfo>() {
 
@@ -121,17 +121,42 @@ public class ReleaseNotesModelFactory {
         return ImmutableSet.copyOf(jiraIssuesByType.keySet());
     }
 
-    private ReportJiraIssueModel toJiraIssueModel(Issue issue) {
-        return new ReportJiraIssueModel(issue, jiraUtils.getFieldValueByNameSafe(issue, "Defect_Id") + " " + jiraUtils.getFieldValueByNameSafe(issue, "Requirement VA ID"),
-                jiraUtils.getIssueUrl(issue), jiraUtils.getFieldValueByNameSafe(issue, "FixedInFlowWebVersion"),
-                jiraUtils.getFieldValueByNameSafe(issue, "Release Notes"), FluentIterable.from(issue.getFixVersions()).transform(
-                new Function<Version, String>() {
 
-                    @Override
-                    public String apply(Version version) {
-                        return version.getName();
-                    }
-                }));
+    public static String concatNotNullNotEmpty(String separator, String... ss) {
+        StringBuilder sb = new StringBuilder();
+        boolean priorAppend = false;
+        for (String s : ss) {
+            if (s != null && !s.equals("")) {
+                if (priorAppend) {
+                    sb.append(separator);
+                }
+                sb.append(s);
+                priorAppend = true;
+            }
+        }
+        return sb.toString();
+    }
+
+
+    private ReportJiraIssueModel toJiraIssueModel(Issue issue) {
+
+        final String defectId = jiraUtils.getFieldValueByNameSafe(issue, "Defect_Id");
+        final String requirementId = jiraUtils.getFieldValueByNameSafe(issue, "Requirement VA ID");
+        final String id = concatNotNullNotEmpty(" ", defectId, requirementId);
+        final String fixedInVersion = jiraUtils.getFieldValueByNameSafe(issue, "FixedInFlowWebVersion");
+        final String url = jiraUtils.getIssueUrl(issue);
+        final String releaseNotes = jiraUtils.getFieldValueByNameSafe(issue, "Release Notes");
+        final String impact = jiraUtils.getFieldValueByNameSafe(issue, "Impact");
+        final String detailsOfChange = jiraUtils.getFieldValueByNameSafe(issue, "Details of change");
+        final FluentIterable<String> fixVersions = FluentIterable.from(issue.getFixVersions()).transform(new Function<Version, String>() {
+
+            @Override
+            public String apply(Version version) {
+                return version.getName();
+            }
+        });
+
+        return new ReportJiraIssueModel(issue, id, url, fixedInVersion, releaseNotes, fixVersions, impact, detailsOfChange);
     }
 
     private ReportCommitModel toCommitModel(CommitWithParsedInfo commitWithParsedInfo) {
@@ -147,7 +172,7 @@ public class ReleaseNotesModelFactory {
         private final Commit commit;
 
         CommitWithParsedInfo(final Commit commit, final ImmutableSet<String> jiraIssueKeys,
-                final ImmutableSet<String> defectIds) {
+                             final ImmutableSet<String> defectIds) {
             this.commit = commit;
             this.jiraIssueKeys = jiraIssueKeys;
             this.defectIds = defectIds;

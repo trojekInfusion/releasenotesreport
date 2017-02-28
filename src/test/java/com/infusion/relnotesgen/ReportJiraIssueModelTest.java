@@ -25,6 +25,8 @@ public class ReportJiraIssueModelTest {
         add("V1");
         add("V2");
     }};
+    private final String Impact = "Isolated";
+    private final String DetailsOfChange = "Very important change";
 
     @Before
     public void setup() {
@@ -39,7 +41,7 @@ public class ReportJiraIssueModelTest {
         String defectId = null;
 
         // When
-        ReportJiraIssueModel model = new ReportJiraIssueModel(issue, defectId, url, fixedInFlowWebVersion, releaseNotes, Versions);
+        ReportJiraIssueModel model = new ReportJiraIssueModel(issue, defectId, url, fixedInFlowWebVersion, releaseNotes, Versions, Impact, DetailsOfChange);
 
         // Then
         assertThat(model.getDefectIds(), equalTo(EmptyArray));
@@ -52,7 +54,7 @@ public class ReportJiraIssueModelTest {
         final String[] expected = { defectId };
 
         // When
-        ReportJiraIssueModel model = new ReportJiraIssueModel(issue, defectId, url, fixedInFlowWebVersion, releaseNotes,new ArrayList<String>() );
+        ReportJiraIssueModel model = new ReportJiraIssueModel(issue, defectId, url, fixedInFlowWebVersion, releaseNotes,new ArrayList<String>(), Impact, DetailsOfChange);
 
         // Then
         assertArrayEquals(expected, model.getDefectIds());
@@ -65,7 +67,7 @@ public class ReportJiraIssueModelTest {
         final String[] expected = { "Defect_123", "Defect_3" };
 
         // When
-        ReportJiraIssueModel model = new ReportJiraIssueModel(issue, defectId, url, fixedInFlowWebVersion, releaseNotes, new ArrayList<String>());
+        ReportJiraIssueModel model = new ReportJiraIssueModel(issue, defectId, url, fixedInFlowWebVersion, releaseNotes, new ArrayList<String>(), Impact, DetailsOfChange);
 
         // Then
         assertArrayEquals(expected, model.getDefectIds());
@@ -78,7 +80,7 @@ public class ReportJiraIssueModelTest {
         final String[] expected = { "Defect_123", "Defect_3" };
 
         // When
-        ReportJiraIssueModel model = new ReportJiraIssueModel(issue, defectId, url, fixedInFlowWebVersion, releaseNotes, Versions);
+        ReportJiraIssueModel model = new ReportJiraIssueModel(issue, defectId, url, fixedInFlowWebVersion, releaseNotes, Versions, Impact, DetailsOfChange);
 
         // Then
         assertArrayEquals(expected, model.getDefectIds());

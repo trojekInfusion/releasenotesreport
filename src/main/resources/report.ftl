@@ -28,11 +28,17 @@
                     <span class="label label-danger">${defect}</span>
                 </#list>
 
-               <img alt="" src="https://ensemble.atlassian.net/images/icons/priorities/${issue.issue.priority.name?lower_case}.svg" title="Highest - This problem will block progress." height="16" width="16">
+               <img alt="" src="https://ensemble.atlassian.net/images/icons/priorities/${issue.issue.priority.name?lower_case}.svg" title="${issue.issue.priority.name}" height="16" width="16">
                </img>
                <a href="${issue.url}">${issue.issue.key}: ${issue.issue.summary} <span class="label label-warning">${(issue.fixedInFlowWebVersion! "")}</span> <span class="label label-warning">${(issue.fixVersions! "")}</span></a>
               <#if (issue.releaseNotes)??>
-                 <ul><li><em>${issue.releaseNotes}</em></li></ul>
+                 <ul><li><b>Release Notes: </b><em>${issue.releaseNotes}</em></li></ul>
+              </#if>
+                <#if (issue.impact)??>
+                   <ul><li><b>Impact: </b><em>${issue.impact}</em></li></ul>
+                </#if>
+              <#if (issue.detailsOfChange)??>
+                 <ul><li><b>Details of change: </b><em>${issue.detailsOfChange}</em></li></ul>
               </#if>
             </li>
         </#list>

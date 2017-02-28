@@ -11,16 +11,20 @@ public class ReportJiraIssueModel {
     private final Issue issue;
     private final String fixedInFlowWebVersion;
     private final String releaseNotes;
+    private final String impact;
+    private final String detailsOfChange;
     private final String[] defectIds;
     private final String url;
     private final String fixVersions;
 
     public ReportJiraIssueModel(final Issue issue, final String defectId, final String url,
-            final String fixedInFlowWebVersion, final String releaseNotes, final Iterable<String> jiraFixVersions) {
+                                final String fixedInFlowWebVersion, final String releaseNotes, final Iterable<String> jiraFixVersions, String impact, String detailsOfChange) {
         this.issue = issue;
         this.fixedInFlowWebVersion = fixedInFlowWebVersion;
         this.url = url;
         this.releaseNotes = releaseNotes;
+        this.impact = impact;
+        this.detailsOfChange = detailsOfChange;
 
         if (defectId != null) {
             defectIds = FluentIterable.from(Arrays.asList(defectId.split("(,)|( )")))
@@ -42,7 +46,7 @@ public class ReportJiraIssueModel {
         }
 
         StringBuilder sb = new StringBuilder();
-        for(String v : jiraFixVersions) {
+        for (String v : jiraFixVersions) {
             sb.append(v);
             sb.append(", ");
         }
@@ -66,7 +70,19 @@ public class ReportJiraIssueModel {
         return fixedInFlowWebVersion;
     }
 
-    public String getReleaseNotes() { return releaseNotes; }
+    public String getReleaseNotes() {
+        return releaseNotes;
+    }
 
-    public String getFixVersions() { return fixVersions; }
+    public String getFixVersions() {
+        return fixVersions;
+    }
+
+    public String getImpact() {
+        return impact;
+    }
+
+    public String getDetailsOfChange() {
+        return detailsOfChange;
+    }
 }
