@@ -76,7 +76,7 @@ public class Main {
 
         // Generate report model
         ReleaseNotesModelFactory factory = new ReleaseNotesModelFactory(commitInfoProvider, jiraConnector,
-                issueCategorizer, versionInfoProvider, jiraUtils, commitMessageParser, gitInfo);
+                issueCategorizer, versionInfoProvider, jiraUtils, commitMessageParser, gitInfo, configuration);
 
         ReleaseNotesModel reportModel = factory.get();
 
@@ -167,6 +167,10 @@ public class Main {
         @Element(Configuration.GIT_URL)
         @Parameter(names = { "-gitUrl" })
         private String gitUrl;
+
+        @Element(Configuration.GIT_BROWSE_PRS_URL)
+        @Parameter(names = { "-gitBrowsePrsUrl" })
+        private String gitBrowsePrsUrl;
 
         @Element(Configuration.GIT_USERNAME)
         @Parameter(names = { "-gitUsername" })

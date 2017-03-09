@@ -1,6 +1,7 @@
 package com.infusion.relnotesgen;
 
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.UnmodifiableIterator;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -8,6 +9,7 @@ import java.util.regex.Pattern;
 public class CommitMessageParserImpl implements CommitMessageParser {
     private final Pattern jiraKeyPattern;
     private final Pattern defectIdPattern; // TODO Pattern.compile("((HA)|(CP))-\\\\d+");
+    private final Pattern prPattern = Pattern.compile("Merge pull request #\\d+");
 
     public CommitMessageParserImpl(final Configuration configuration) {
         jiraKeyPattern = Pattern.compile(configuration.getJiraIssuePattern());
@@ -24,7 +26,23 @@ public class CommitMessageParserImpl implements CommitMessageParser {
         return matchAll(defectIdPattern, text);
     }
 
+    @Override
+    public String getPullRequestId(String text) {
+
+        ImmutableSet<String> matches = matchAll(prPattern, text);
+        if(matches.size() == 1) {
+            // one match for text, second for ID
+            return matches.asList().get(0).replace("Merge pull request #","");
+        }
+
+        return null;
+    }
+
     private ImmutableSet<String> matchAll(final Pattern pattern, final String text) {
+
+        if(!text.startsWith("Merge pull request"))
+            return ImmutableSet.of();
+
         ImmutableSet.Builder<String> matchesBuilder = ImmutableSet.builder();
         Matcher matcher = pattern.matcher(text);
 

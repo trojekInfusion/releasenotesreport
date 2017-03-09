@@ -8,8 +8,7 @@ import com.google.common.collect.*;
 import com.infusion.relnotesgen.util.IssueCategorizer;
 import com.infusion.relnotesgen.util.JiraUtils;
 
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class ReleaseNotesModelFactory {
 
@@ -20,11 +19,12 @@ public class ReleaseNotesModelFactory {
     private final JiraUtils jiraUtils;
     private final CommitMessageParser commitMessageParser;
     private final SCMFacade.Response gitInfo;
+    private final Configuration configuration;
 
     public ReleaseNotesModelFactory(final CommitInfoProvider commitInfoProvider, final JiraConnector jiraConnector,
                                     final IssueCategorizer issueCategorizer, final VersionInfoProvider versionInfoProvider,
                                     final JiraUtils jiraUtils, final CommitMessageParser commitMessageParser,
-                                    final SCMFacade.Response gitInfo) {
+                                    final SCMFacade.Response gitInfo, Configuration configuration) {
         this.commitInfoProvider = commitInfoProvider;
         this.jiraConnector = jiraConnector;
         this.issueCategorizer = issueCategorizer;
@@ -32,6 +32,7 @@ public class ReleaseNotesModelFactory {
         this.jiraUtils = jiraUtils;
         this.commitMessageParser = commitMessageParser;
         this.gitInfo = gitInfo;
+        this.configuration = configuration;
     }
 
     public ReleaseNotesModel get() {
@@ -43,10 +44,31 @@ public class ReleaseNotesModelFactory {
 
                     @Override
                     public CommitWithParsedInfo apply(Commit commit) {
-                        return new CommitWithParsedInfo(commit, commitMessageParser.getJiraKeys(commit.getMessage()),
-                                commitMessageParser.getDefectIds(commit.getMessage()));
+                        return new CommitWithParsedInfo(commit,
+                                commitMessageParser.getJiraKeys(commit.getMessage()),
+                                commitMessageParser.getDefectIds(commit.getMessage()),
+                                commitMessageParser.getPullRequestId(commit.getMessage()));
                     }
                 });
+
+        Map<String,Set<String>> prMap = new HashMap<>();
+        // add items to the map
+        for(CommitWithParsedInfo c : commitsWithParsedInfo) {
+
+            if(c.getPullRequestId() != null) {
+                for (String jira : c.getJiraIssueKeys()) {
+
+                    if(!prMap.containsKey(jira)) {
+                        HashSet<String> set = new HashSet<String>();
+                        set.add(c.getPullRequestId());
+                        prMap.put(jira, set);
+                    } else {
+                        prMap.get(jira).add(c.getPullRequestId());
+                    }
+                }
+            }
+        }
+
         ImmutableSet<String> issueIds = FluentIterable.from(commitsWithParsedInfo)
                 .transformAndConcat(new Function<CommitWithParsedInfo, Iterable<String>>() {
 
@@ -56,7 +78,7 @@ public class ReleaseNotesModelFactory {
                     }
                 }).toSet();
 
-        ImmutableMap<String, Issue> jiraIssues = jiraConnector.getIssuesIncludeParents(issueIds);
+        ImmutableMap < String, Issue > jiraIssues = jiraConnector.getIssuesIncludeParents(issueIds);
 
         // Filtering out subtasks
         Map<String, Issue> jiraIssuesNoSubtasks = Maps.filterValues(jiraIssues, new Predicate<Issue>() {
@@ -71,8 +93,8 @@ public class ReleaseNotesModelFactory {
         Map<String, List<Issue>> jiraIssuesByType = issueCategorizer.byType(jiraIssuesNoSubtasks.values());
 
         ReleaseNotesModel model = new ReleaseNotesModel(getIssueTypes(jiraIssuesByType),
-                getIssuesByType(jiraIssuesByType), getCommitsWithDefectIds(commitsWithParsedInfo, jiraIssues), version,
-                gitInfo.commitTag1, gitInfo.commitTag2, gitInfo.commits.size(), gitInfo.gitBranch);
+                getIssuesByType(jiraIssuesByType, prMap), getCommitsWithDefectIds(commitsWithParsedInfo, jiraIssues), version,
+                gitInfo.commitTag1, gitInfo.commitTag2, gitInfo.commits.size(), gitInfo.gitBranch, configuration);
 
         return model;
     }
@@ -97,7 +119,7 @@ public class ReleaseNotesModelFactory {
     }
 
     private ImmutableMap<String, ImmutableSet<ReportJiraIssueModel>> getIssuesByType(
-            Map<String, List<Issue>> jiraIssuesByType) {
+            Map<String, List<Issue>> jiraIssuesByType, final Map<String,Set<String>> pullRquestsMap) {
         Map<String, ImmutableSet<ReportJiraIssueModel>> transformedMap = Maps
                 .transformValues(jiraIssuesByType, new Function<List<Issue>, ImmutableSet<ReportJiraIssueModel>>() {
 
@@ -108,7 +130,12 @@ public class ReleaseNotesModelFactory {
 
                                     @Override
                                     public ReportJiraIssueModel apply(Issue issue) {
-                                        return toJiraIssueModel(issue);
+
+                                        if(pullRquestsMap.containsKey(issue.getKey())) {
+                                            return toJiraIssueModel(issue, pullRquestsMap.get(issue.getKey()));
+                                        }
+                                        else
+                                        return toJiraIssueModel(issue, null);
                                     }
                                 }));
                     }
@@ -138,7 +165,7 @@ public class ReleaseNotesModelFactory {
     }
 
 
-    private ReportJiraIssueModel toJiraIssueModel(Issue issue) {
+    private ReportJiraIssueModel toJiraIssueModel(Issue issue, Set<String> pullRequestIds) {
 
         final String defectId = jiraUtils.getFieldValueByNameSafe(issue, "Defect_Id");
         final String requirementId = jiraUtils.getFieldValueByNameSafe(issue, "Requirement VA ID");
@@ -156,7 +183,7 @@ public class ReleaseNotesModelFactory {
             }
         });
 
-        return new ReportJiraIssueModel(issue, id, url, fixedInVersion, releaseNotes, fixVersions, impact, detailsOfChange);
+        return new ReportJiraIssueModel(issue, id, url, fixedInVersion, releaseNotes, fixVersions, impact, detailsOfChange, pullRequestIds);
     }
 
     private ReportCommitModel toCommitModel(CommitWithParsedInfo commitWithParsedInfo) {
@@ -169,13 +196,15 @@ public class ReleaseNotesModelFactory {
 
         private final ImmutableSet<String> jiraIssueKeys;
         private final ImmutableSet<String> defectIds;
+        private final String pullRequestId;
         private final Commit commit;
 
         CommitWithParsedInfo(final Commit commit, final ImmutableSet<String> jiraIssueKeys,
-                             final ImmutableSet<String> defectIds) {
+                             final ImmutableSet<String> defectIds, String pullRequestId) {
             this.commit = commit;
             this.jiraIssueKeys = jiraIssueKeys;
             this.defectIds = defectIds;
+            this.pullRequestId = pullRequestId;
         }
 
         public ImmutableSet<String> getJiraIssueKeys() {
@@ -188,6 +217,10 @@ public class ReleaseNotesModelFactory {
 
         public Commit getCommit() {
             return commit;
+        }
+
+        public String getPullRequestId() {
+            return pullRequestId;
         }
     }
 }

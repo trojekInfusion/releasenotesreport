@@ -26,6 +26,7 @@ public class Configuration {
     static final String GIT_DIRECTORY = "git.directory";
     static final String GIT_BRANCH = "git.branch";
     static final String GIT_URL = "git.url";
+    static final String GIT_BROWSE_PRS_URL = "git.browsePrs.url";
     static final String GIT_USERNAME = "git.username";
     static final String GIT_PASSWORD = "git.password";
     static final String GIT_COMMITTER_NAME = "git.committer.name";
@@ -81,6 +82,10 @@ public class Configuration {
 
     public String getGitUrl() {
         return properties.getProperty(GIT_URL);
+    }
+
+    public String getGitBrowsePrsUrl() {
+        return properties.getProperty(GIT_BROWSE_PRS_URL);
     }
 
     public String getGitUsername() {

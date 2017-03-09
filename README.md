@@ -43,6 +43,7 @@ Check ```com.infusion.relnotesgen.MainITTest``` for appropriate use case.
 | n/a	 			   		| -tag2 						| tag 2 name - connected commit to given tag will serve as commitId2 parameter | 1.0.0 |
 | n/a	 			     	| -pushReleaseNotes 			| boolean parameter, define should push to remote repository under 'releases/version_number.html' should be performed | |
 | git.url         			| -gitUrl 						| URL to git repository | https://stash.infusion.com/scm/en/symphony.git |
+| git.browsePrs.url         | -gitBrowsePrsUrl 				| URL to browse git repository | stash.infusion.com/projects/EN/repos/harmony/pull-requests/ |
 | git.directory    			| -gitDirectory 				| Path under which git repository is held localy. If none exists it will be cloned under this location. Directory structure will be created if it doesn't exist | C:/temp/testsymphony |
 | git.branch       			| -gitBranch 					| Branch name from where scm history will be read and release notes will be pushed | develop |
 | git.username      		| -gitUsername 					| Git username | johnny |

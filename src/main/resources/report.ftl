@@ -30,7 +30,17 @@
 
                <img alt="" src="https://ensemble.atlassian.net/images/icons/priorities/${issue.issue.priority.name?lower_case}.svg" title="${issue.issue.priority.name}" height="16" width="16">
                </img>
-               <a href="${issue.url}">${issue.issue.key}: ${issue.issue.summary} <span class="label label-warning">${(issue.fixedInFlowWebVersion! "")}</span> <span class="label label-warning">${(issue.fixVersions! "")}</span></a>
+               <div>
+                   <a href="${issue.url}">${issue.issue.key}: ${issue.issue.summary} </a>
+
+                   <span class="label label-warning">${(issue.fixedInFlowWebVersion! "")}</span>
+
+                   <#list issue.pullRequestIds as prId>
+                         <a href="${configuration.gitBrowsePrsUrl + prId}"><span class="label label-warning">PR:${prId}</span> </a>
+                   </#list>
+
+                   <span class="label label-warning">${(issue.fixVersions! "")}</span>
+                   </div>
               <#if (issue.releaseNotes)??>
                  <ul><li><b>Release Notes: </b><em>${issue.releaseNotes}</em></li></ul>
               </#if>

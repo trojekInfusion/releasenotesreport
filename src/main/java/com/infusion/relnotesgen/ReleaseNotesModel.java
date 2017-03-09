@@ -17,13 +17,14 @@ public class ReleaseNotesModel {
     private final SCMFacade.GitCommitTag commitTag2;
     private final int commitsCount;
     private final String gitBranch;
+    private final Configuration configuration;
     private final ImmutableSortedSet<String> uniqueDefects;
     private final String jqlLink;
 
     public ReleaseNotesModel(final ImmutableSet<String> issueCategoryNames, final ImmutableMap<String, ImmutableSet<ReportJiraIssueModel>> issuesByCategory,
-            final ImmutableSet<ReportCommitModel> commitsWithDefectIds, final String releaseVersion,
-            final SCMFacade.GitCommitTag commitTag1, final SCMFacade.GitCommitTag commitTag2, final int commitsCount,
-            final String gitBranch) {
+                             final ImmutableSet<ReportCommitModel> commitsWithDefectIds, final String releaseVersion,
+                             final SCMFacade.GitCommitTag commitTag1, final SCMFacade.GitCommitTag commitTag2, final int commitsCount,
+                             final String gitBranch, Configuration configuration) {
         this.issueCategoryNames = issueCategoryNames;
         this.issuesByCategory = issuesByCategory;
         this.commitsWithDefectIds = commitsWithDefectIds;
@@ -32,6 +33,7 @@ public class ReleaseNotesModel {
         this.commitTag2 = commitTag2;
         this.commitsCount = commitsCount;
         this.gitBranch = gitBranch;
+        this.configuration = configuration;
 
         uniqueDefects = FluentIterable
                 .from(issuesByCategory.values())
@@ -153,4 +155,6 @@ public class ReleaseNotesModel {
     }
 
     public String getJqlLink() {return jqlLink; }
+
+    public Configuration getConfiguration() { return configuration;  }
 }

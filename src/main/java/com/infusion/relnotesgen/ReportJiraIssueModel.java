@@ -3,8 +3,12 @@ package com.infusion.relnotesgen;
 import com.atlassian.jira.rest.client.api.domain.Issue;
 import com.google.common.base.Function;
 import com.google.common.collect.FluentIterable;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.StringTokenizer;
 
 public class ReportJiraIssueModel {
 
@@ -13,18 +17,22 @@ public class ReportJiraIssueModel {
     private final String releaseNotes;
     private final String impact;
     private final String detailsOfChange;
+    private final String[] pullRequestIds;
     private final String[] defectIds;
     private final String url;
     private final String fixVersions;
 
     public ReportJiraIssueModel(final Issue issue, final String defectId, final String url,
-                                final String fixedInFlowWebVersion, final String releaseNotes, final Iterable<String> jiraFixVersions, String impact, String detailsOfChange) {
+                                final String fixedInFlowWebVersion, final String releaseNotes, final Iterable<String> jiraFixVersions,
+                                String impact, String detailsOfChange, Set<String> pullRequestIds) {
         this.issue = issue;
         this.fixedInFlowWebVersion = fixedInFlowWebVersion;
         this.url = url;
         this.releaseNotes = releaseNotes;
         this.impact = impact;
         this.detailsOfChange = detailsOfChange;
+        this.pullRequestIds = pullRequestIds != null ?  pullRequestIds.toArray(new String[0]) : new String[0];
+
 
         if (defectId != null) {
             defectIds = FluentIterable.from(Arrays.asList(defectId.split("(,)|( )")))
@@ -85,4 +93,6 @@ public class ReportJiraIssueModel {
     public String getDetailsOfChange() {
         return detailsOfChange;
     }
+
+    public String[] getPullRequestIds() { return pullRequestIds; }
 }
