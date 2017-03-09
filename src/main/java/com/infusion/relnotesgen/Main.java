@@ -17,8 +17,7 @@ import java.io.*;
 import java.nio.file.Files;
 import java.util.Properties;
 
-import static org.apache.commons.lang3.StringUtils.defaultIfEmpty;
-import static org.apache.commons.lang3.StringUtils.isNotEmpty;
+import static org.apache.commons.lang3.StringUtils.*;
 
 /**
  * @author trojek
@@ -44,11 +43,20 @@ public class Main {
         Authenticator authenticator = configuration.getGitUrl().toLowerCase().startsWith("ssh://") ?
                 new PublicKeyAuthenticator() :
                 new UserCredentialsAuthenticator(configuration);
-        SCMFacade gitFacade = new GitFacade(configuration, authenticator);
-        final SCMFacade.Response gitInfo = getGitInfo(programParameters, gitFacade);
+
+        final SCMFacade.Response gitInfo;
+        SCMFacade gitFacade = null;
+        try {
+            gitFacade = new GitFacade(configuration, authenticator);
+            gitInfo = getGitInfo(programParameters, gitFacade);
+        } finally {
+            if (gitFacade != null)
+                gitFacade.close();
+        }
 
         // Components
         CommitInfoProvider commitInfoProvider = new CommitInfoProvider() {
+
             @Override
             public ImmutableSet<Commit> getCommits() {
                 return FluentIterable.from(gitInfo.commits).toSet();
@@ -56,6 +64,7 @@ public class Main {
         };
         JiraConnector jiraConnector = new JiraConnectorImpl(configuration);
         VersionInfoProvider versionInfoProvider = new VersionInfoProvider() {
+
             @Override
             public String getReleaseVersion() {
                 return defaultIfEmpty(configuration.getReleaseVersion(), gitInfo.version);
@@ -66,20 +75,14 @@ public class Main {
         CommitMessageParser commitMessageParser = new CommitMessageParserImpl(configuration);
 
         // Generate report model
-        ReleaseNotesModelFactory factory = new ReleaseNotesModelFactory(
-            commitInfoProvider,
-            jiraConnector,
-            issueCategorizer,
-            versionInfoProvider,
-            jiraUtils,
-            commitMessageParser);
+        ReleaseNotesModelFactory factory = new ReleaseNotesModelFactory(commitInfoProvider, jiraConnector,
+                issueCategorizer, versionInfoProvider, jiraUtils, commitMessageParser, gitInfo);
 
         ReleaseNotesModel reportModel = factory.get();
 
         // Generate report
         ReleaseNotesReportGenerator generator = new ReleaseNotesReportGenerator(configuration);
-        File reportFile = new File(
-                getReportDirectory(configuration),
+        File reportFile = new File(getReportDirectory(configuration),
                 versionInfoProvider.getReleaseVersion().replace(".", "_") + ".html");
 
         logger.info("Creating report in {}", reportFile.getPath());
@@ -94,17 +97,26 @@ public class Main {
     }
 
     private static SCMFacade.Response getGitInfo(final ProgramParameters programParameters, final SCMFacade gitFacade) {
-        if (isNotEmpty(programParameters.tag1) || isNotEmpty(programParameters.tag2)) {
-            logger.info("Reading scm history by tags '{}' and '{}'", programParameters.tag1, programParameters.tag2);
-            return gitFacade.readByTag(programParameters.tag1, programParameters.tag2);
-        } else if (isNotEmpty(programParameters.commitId1) || isNotEmpty(programParameters.commitId2)) {
-            logger.info("Reading scm history by commit ids '{}' and '{}'", programParameters.commitId1,
-                    programParameters.commitId2);
-            return gitFacade.readByCommit(programParameters.commitId1, programParameters.commitId2);
-        } else {
-            logger.info("No commit id or tag parameter provided, reading scm history by two latests tags.");
-            return gitFacade.readLatestReleasedVersion();
+        if (isNotEmpty(programParameters.tag1) && isNotEmpty(programParameters.commitId1)) {
+            throw new RuntimeException("Either tag1 or commitId1 can be provided. Invalid parameters.");
         }
+        if (isNotEmpty(programParameters.tag2) && isNotEmpty(programParameters.commitId2)) {
+            throw new RuntimeException("Either tag2 or commitId2 can be provided. Invalid parameters.");
+        }
+
+        if (isEmpty(programParameters.tag1) && isEmpty(programParameters.tag2) && isEmpty(programParameters.commitId1)
+                && isEmpty(programParameters.commitId2)) {
+            logger.info("No commit id or tag parameter provided, reading scm history by two latests tags.");
+            return gitFacade.readyTillLastTag();
+        }
+
+        SCMFacade.GitCommitTag commitTag1 = new SCMFacade.GitCommitTag(programParameters.commitId1,
+                programParameters.tag1);
+        SCMFacade.GitCommitTag commitTag2 = new SCMFacade.GitCommitTag(programParameters.commitId2,
+                programParameters.tag2);
+        logger.info("Reading scm history by tags '{}' and '{}'", commitTag1, commitTag2);
+
+        return gitFacade.readByCommit(commitTag1, commitTag2);
     }
 
     private static File getReportDirectory(final Configuration configuration) throws IOException {
@@ -113,8 +125,7 @@ public class Main {
                 new File(configuration.getReportDirectory());
     }
 
-    private static Configuration readConfiguration(final ProgramParameters programParameters)
-            throws IOException {
+    private static Configuration readConfiguration(final ProgramParameters programParameters) throws IOException {
         String path = programParameters.configurationFilePath;
         Properties properties = new Properties();
 
