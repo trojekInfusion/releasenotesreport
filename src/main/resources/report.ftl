@@ -28,11 +28,27 @@
                     <span class="label label-danger">${defect}</span>
                 </#list>
 
-               <img alt="" src="https://ensemble.atlassian.net/images/icons/priorities/${issue.issue.priority.name?lower_case}.svg" title="Highest - This problem will block progress." height="16" width="16">
+               <img alt="" src="https://ensemble.atlassian.net/images/icons/priorities/${issue.issue.priority.name?lower_case}.svg" title="${issue.issue.priority.name}" height="16" width="16">
                </img>
-               <a href="${issue.url}">${issue.issue.key}: ${issue.issue.summary} <span class="label label-warning">${(issue.fixedInFlowWebVersion! "")}</span></a>
+               <div>
+                   <a href="${issue.url}">${issue.issue.key}: ${issue.issue.summary} </a>
+
+                   <span class="label label-warning">${(issue.fixedInFlowWebVersion! "")}</span>
+
+                   <#list issue.pullRequestIds as prId>
+                         <a href="${configuration.gitBrowsePrsUrl + prId}"><span class="label label-warning">PR:${prId}</span> </a>
+                   </#list>
+
+                   <span class="label label-warning">${(issue.fixVersions! "")}</span>
+                   </div>
               <#if (issue.releaseNotes)??>
-                 <ul><li><em>${issue.releaseNotes}</em></li></ul>
+                 <ul><li><b>Release Notes: </b><em>${issue.releaseNotes}</em></li></ul>
+              </#if>
+                <#if (issue.impact)??>
+                   <ul><li><b>Impact: </b><em>${issue.impact}</em></li></ul>
+                </#if>
+              <#if (issue.detailsOfChange)??>
+                 <ul><li><b>Details of change: </b><em>${issue.detailsOfChange}</em></li></ul>
               </#if>
             </li>
         </#list>
@@ -56,6 +72,26 @@
         </li>
     </#list>
 </ul>
+</div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+<h3><p class="bg-success">All defects </p></h3>
+<ol>
+    <#list uniqueDefects as defect>
+        <li>
+              <span class="label label-danger">${defect}</span>
+        </li>
+    </#list>
+</ol>
+</div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+<h3><p class="bg-success">Link to JIRA</p></h3>
+<a href="${jqlLink}">Link to JIRA</a>
 </div>
 </div>
 

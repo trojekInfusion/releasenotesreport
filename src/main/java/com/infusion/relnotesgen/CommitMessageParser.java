@@ -6,4 +6,6 @@ public interface CommitMessageParser {
     ImmutableSet<String> getJiraKeys(String text);
 
     ImmutableSet<String> getDefectIds(String text);
+
+    String getPullRequestId(String text);
 }
