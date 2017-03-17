@@ -7,10 +7,13 @@ import org.junit.Test;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.hasItems;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertThat;
 
@@ -94,7 +97,7 @@ public class ReportJiraIssueModelTest {
     public void reportJiraIssueModel_should_haveTwoPRs_when_PullRequestIdsProvided() throws IOException {
         // Given
         final String defectId = "Defect_123 Defect_3";
-        final String expected = "12 765";
+        final String[] expected = new String[]{"765", "12"};
         final Set<String> prs = new HashSet<>();
         prs.add("765");
         prs.add("12");
@@ -103,6 +106,6 @@ public class ReportJiraIssueModelTest {
         ReportJiraIssueModel model = new ReportJiraIssueModel(issue, defectId, url, fixedInFlowWebVersion, releaseNotes, Versions, Impact, DetailsOfChange, prs);
 
         // Then
-        Assert.assertEquals(expected, model.getPullRequestIds());
+        assertThat(Arrays.asList(model.getPullRequestIds()), hasItems(expected));
     }
 }

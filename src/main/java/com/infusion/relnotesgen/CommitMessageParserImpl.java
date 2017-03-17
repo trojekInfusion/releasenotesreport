@@ -13,7 +13,7 @@ public class CommitMessageParserImpl implements CommitMessageParser {
 
     public CommitMessageParserImpl(final Configuration configuration) {
         jiraKeyPattern = Pattern.compile(configuration.getJiraIssuePattern());
-        defectIdPattern = Pattern.compile("((defect_)|(FSU-)|(CR_CR)|(CR_FOR)|(R2REQ)|(R3REQ))\\d+", Pattern.CASE_INSENSITIVE);
+        defectIdPattern = Pattern.compile("((defect_)|(FSU-)|(CR_CR)|(CR_FOR)|(R2REQ)|(R3REQ)|(INC000000)|(PBI0000000))\\d+", Pattern.CASE_INSENSITIVE);
     }
 
     @Override
