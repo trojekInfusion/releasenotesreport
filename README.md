@@ -55,6 +55,7 @@ Check ```com.infusion.relnotesgen.MainITTest``` for appropriate use case.
 | jira.username   			| -jiraUsername 				| Jira username | johnny  |
 | jira.password   			| -jiraPassword 				| Jira password | passw0rd123  |
 | jira.issuepattern   		| -jiraIssuePattern 			| Pattern from which jira issue's id will be search in scm commit messages | SYM-\d+ |
+| jira.completedStatuses	| -completedStatuses 			| Coma seprated list of statuses that indicate that Jira was completed eg. PO Review,Completed,Verify On Dublin QA,Ready For QA,QA in Progress,Removed |
 | issue.filterby.component	| -issueFilterByComponent 		| List of jira's component's name separated by ',' if defined only issues that has at least one of those component will be in release notes (exacly jira's component's name must contains ignore case given here component) | System 1,veryImportan,Something something |
 | issue.filterby.type		| -issueFilterByType 			| List of jira's issue type's name separated by ',' if defined only issues that has at least one of those type will be in release notes (defined here type name must exacly (ignore case) match type name of issues in jira) | New Feature,Bug,Technical Task |
 | issue.filterby.label		| -issueFilterByLabel 			| List of jira's labels separated by ',' if defined only issues that has at least one of those labels will be in release notes (exacly jira's label's name must contains ignore case given here label) | label1,label2,label3 |
