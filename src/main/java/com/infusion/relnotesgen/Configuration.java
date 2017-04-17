@@ -46,6 +46,7 @@ public class Configuration {
     static final String REPORT_DIRECTORY = "report.directory";
     static final String REPORT_TEMPLATE = "report.template";
     static final String RELEASE_VERSION = "version.release";
+    static final String COMPLETED_STATUSES = "jira.completedStatuses";
 
     private Properties properties;
 
@@ -165,6 +166,15 @@ public class Configuration {
         catch (NumberFormatException e) {
             logger.info("Couldn't parse '{}', defaulting value to 100", GIT_COMMIT_LIMIT);
             return 100;
+        }
+    }
+
+    public String[] getCompletedStatuses() {
+        try {
+            return properties.getProperty(COMPLETED_STATUSES).split(",");
+        }
+        catch(Exception e) {
+            return new String[]{};
         }
     }
 

@@ -35,6 +35,13 @@
 
                    <span class="label label-warning">${(issue.fixedInFlowWebVersion! "")}</span>
 
+                   <#if (issue.isStatusOk)>
+                        <span class="label label-success">${(issue.status! "")}</span>
+                   <#else>
+                        <span class="label label-danger">${(issue.status! "")}</span>
+                   </#if>
+
+
                    <#list issue.pullRequestIds as prId>
                          <a href="${configuration.gitBrowsePrsUrl + prId}"><span class="label label-warning">PR:${prId}</span> </a>
                    </#list>

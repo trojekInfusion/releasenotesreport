@@ -105,7 +105,7 @@ public class ReleaseNotesModel {
 
                 );
 
-        StringBuilder sb = new StringBuilder("https://ensemble.atlassian.net/issues/?jql=id%20in%20(");
+        StringBuilder sb = new StringBuilder(configuration.getJiraUrl() + "/issues/?jql=id%20in%20(");
         final String coma = "%2C%20";
         for (String s : uniqueJiras)
         {

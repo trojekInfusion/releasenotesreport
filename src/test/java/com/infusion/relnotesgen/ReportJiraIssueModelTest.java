@@ -1,7 +1,6 @@
 package com.infusion.relnotesgen;
 
 import com.atlassian.jira.rest.client.api.domain.Issue;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -34,6 +33,8 @@ public class ReportJiraIssueModelTest {
     private final Set<String> pullRequestIds = null;
     private final String Impact = "Isolated";
     private final String DetailsOfChange = "Very important change";
+    private final boolean isStatusOk = true;
+    private final String status = "Completed";
 
     @Before
     public void setup() {
@@ -48,7 +49,7 @@ public class ReportJiraIssueModelTest {
         String defectId = null;
 
         // When
-        ReportJiraIssueModel model = new ReportJiraIssueModel(issue, defectId, url, fixedInFlowWebVersion, releaseNotes, Versions, Impact, DetailsOfChange, pullRequestIds);
+        ReportJiraIssueModel model = new ReportJiraIssueModel(issue, defectId, url, fixedInFlowWebVersion, releaseNotes, Versions, Impact, DetailsOfChange, pullRequestIds, isStatusOk, status);
 
         // Then
         assertThat(model.getDefectIds(), equalTo(EmptyArray));
@@ -61,7 +62,7 @@ public class ReportJiraIssueModelTest {
         final String[] expected = { defectId };
 
         // When
-        ReportJiraIssueModel model = new ReportJiraIssueModel(issue, defectId, url, fixedInFlowWebVersion, releaseNotes,new ArrayList<String>(), Impact, DetailsOfChange, pullRequestIds);
+        ReportJiraIssueModel model = new ReportJiraIssueModel(issue, defectId, url, fixedInFlowWebVersion, releaseNotes,new ArrayList<String>(), Impact, DetailsOfChange, pullRequestIds, isStatusOk, status);
 
         // Then
         assertArrayEquals(expected, model.getDefectIds());
@@ -74,7 +75,7 @@ public class ReportJiraIssueModelTest {
         final String[] expected = { "Defect_123", "Defect_3" };
 
         // When
-        ReportJiraIssueModel model = new ReportJiraIssueModel(issue, defectId, url, fixedInFlowWebVersion, releaseNotes, new ArrayList<String>(), Impact, DetailsOfChange, pullRequestIds);
+        ReportJiraIssueModel model = new ReportJiraIssueModel(issue, defectId, url, fixedInFlowWebVersion, releaseNotes, new ArrayList<String>(), Impact, DetailsOfChange, pullRequestIds, isStatusOk, status);
 
         // Then
         assertArrayEquals(expected, model.getDefectIds());
@@ -87,7 +88,7 @@ public class ReportJiraIssueModelTest {
         final String[] expected = { "Defect_123", "Defect_3" };
 
         // When
-        ReportJiraIssueModel model = new ReportJiraIssueModel(issue, defectId, url, fixedInFlowWebVersion, releaseNotes, Versions, Impact, DetailsOfChange, pullRequestIds);
+        ReportJiraIssueModel model = new ReportJiraIssueModel(issue, defectId, url, fixedInFlowWebVersion, releaseNotes, Versions, Impact, DetailsOfChange, pullRequestIds, isStatusOk, status);
 
         // Then
         assertArrayEquals(expected, model.getDefectIds());
@@ -103,7 +104,7 @@ public class ReportJiraIssueModelTest {
         prs.add("12");
 
         // When
-        ReportJiraIssueModel model = new ReportJiraIssueModel(issue, defectId, url, fixedInFlowWebVersion, releaseNotes, Versions, Impact, DetailsOfChange, prs);
+        ReportJiraIssueModel model = new ReportJiraIssueModel(issue, defectId, url, fixedInFlowWebVersion, releaseNotes, Versions, Impact, DetailsOfChange, prs, isStatusOk, status);
 
         // Then
         assertThat(Arrays.asList(model.getPullRequestIds()), hasItems(expected));
