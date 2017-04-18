@@ -1,16 +1,6 @@
 package com.infusion.relnotesgen;
 
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasItems;
-import static org.hamcrest.Matchers.hasSize;
-import static org.junit.Assert.assertThat;
-
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.Set;
-
+import com.infusion.relnotesgen.util.TestGitRepo;
 import org.apache.commons.io.FileUtils;
 import org.hamcrest.Matchers;
 import org.junit.After;
@@ -18,7 +8,14 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.infusion.relnotesgen.util.TestGitRepo;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.util.Set;
+
+import static com.infusion.relnotesgen.util.TestUtil.getMessages;
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.assertThat;
 
 
 /**
@@ -54,15 +51,14 @@ public class GitMessageReadingWithCloningOfRepositoryTest {
         // Given
         String commitId1 = "2ea0809c55657bc528933e6fda3a7772cacf8279";
         String commitId2 = "2ea0809c55657bc528933e6fda3a7772cacf8279";
-        gitMessageReader = new GitFacade(
-        		testGitRepo.configuration()
-	                .gitDirectory(tempRepo.getAbsolutePath())
-	                .branch("branch1")
-	                .build()
-		        );
+        Configuration conf = testGitRepo.configuration()
+                .gitDirectory(tempRepo.getAbsolutePath())
+                .branch("branch1")
+                .build();
+        gitMessageReader = new GitFacade(conf, new UserCredentialsAuthenticator(conf));
 
         // When
-        Set<String> messages = gitMessageReader.readByCommit(commitId1, commitId2).messages;
+        Set<String> messages = getMessages(gitMessageReader.readByCommit(commitId1, commitId2).commits);
 
         // Then
         assertThat(messages, hasSize(1));
@@ -74,12 +70,13 @@ public class GitMessageReadingWithCloningOfRepositoryTest {
         // Given
         String commitId1 = "33589445102fd7b49421006e0447836429d84113";
         String commitId2 = "948fa8f6cc8a49f08e3c3a426c9e3d7323ce469a";
-        gitMessageReader = new GitFacade(testGitRepo.configuration()
+        Configuration conf = testGitRepo.configuration()
                 .gitDirectory(tempRepo.getAbsolutePath())
-                .build());
+                .build();
+        gitMessageReader = new GitFacade(conf, new UserCredentialsAuthenticator(conf));
 
         // When
-        Set<String> messages = gitMessageReader.readByCommit(commitId1, commitId2).messages;
+        Set<String> messages = getMessages(gitMessageReader.readByCommit(commitId1, commitId2).commits);
 
         // Then
         assertThat(messages, hasSize(2));
@@ -91,12 +88,13 @@ public class GitMessageReadingWithCloningOfRepositoryTest {
         // Given
         String commitId1 = "33589445102fd7b49421006e0447836429d84113";
         String commitId2 = "948fa8f6cc8a49f08e3c3a426c9e3d7323ce469a";
-        gitMessageReader = new GitFacade(testGitRepo.configuration()
+        Configuration conf = testGitRepo.configuration()
                 .gitDirectory(tempRepo.getAbsolutePath())
-                .build());
+                .build();
+        gitMessageReader = new GitFacade(conf, new UserCredentialsAuthenticator(conf));
 
         // When
-        Set<String> messages = gitMessageReader.readByCommit(commitId1, commitId2).messages;
+        Set<String> messages = getMessages(gitMessageReader.readByCommit(commitId1, commitId2).commits);
 
         // Then
         assertThat(messages, hasSize(2));
@@ -108,9 +106,10 @@ public class GitMessageReadingWithCloningOfRepositoryTest {
         // Given
         String commitId1 = "1c814546893dc5544f86ca87ca58f0d162c9ccd2";
         String commitId2 = "50dbc466d1fa6ddc714ebabbeae585af7a72524b";
-        gitMessageReader = new GitFacade(testGitRepo.configuration()
+        Configuration conf = testGitRepo.configuration()
                 .gitDirectory(tempRepo.getAbsolutePath())
-                .build());
+                .build();
+        gitMessageReader = new GitFacade(conf, new UserCredentialsAuthenticator(conf));
 
         // When
         String version = gitMessageReader.readByCommit(commitId1, commitId2).version;
@@ -124,9 +123,10 @@ public class GitMessageReadingWithCloningOfRepositoryTest {
         // Given
         String commitId1 = "1c814546893dc5544f86ca87ca58f0d162c9ccd2";
         String commitId2 = "4f4685dfcff6514558f08d3dd303bda4684f0ffd";
-        gitMessageReader = new GitFacade(testGitRepo.configuration()
+        Configuration conf = testGitRepo.configuration()
                 .gitDirectory(tempRepo.getAbsolutePath())
-                .build());
+                .build();
+        gitMessageReader = new GitFacade(conf, new UserCredentialsAuthenticator(conf));
 
         // When
         String version = gitMessageReader.readByCommit(commitId1, commitId2).version;
@@ -138,13 +138,15 @@ public class GitMessageReadingWithCloningOfRepositoryTest {
     @Test
     public void readByTagWithTwoNeighbourTags() {
         // Given
-        gitMessageReader = new GitFacade(testGitRepo.configuration()
+        Configuration conf = testGitRepo.configuration()
                 .gitDirectory(tempRepo.getAbsolutePath())
-                .build());
+                .build();
+
+        gitMessageReader = new GitFacade(conf, new UserCredentialsAuthenticator(conf));
 
         // When
         SCMFacade.Response gitInfo = gitMessageReader.readByTag("1.2", "1.3");
-        Set<String> messages = gitInfo.messages;
+        Set<String> messages = getMessages(gitInfo.commits);
 
         // Then
         assertThat(messages, hasSize(4));
@@ -155,13 +157,14 @@ public class GitMessageReadingWithCloningOfRepositoryTest {
     @Test
     public void readByTagWithTwoTagsHavingOtherTagBetweenThem() {
         // Given
-        gitMessageReader = new GitFacade(testGitRepo.configuration()
+        Configuration conf = testGitRepo.configuration()
                 .gitDirectory(tempRepo.getAbsolutePath())
-                .build());
+                .build();
+        gitMessageReader = new GitFacade(conf, new UserCredentialsAuthenticator(conf));
 
         // When
         SCMFacade.Response gitInfo = gitMessageReader.readByTag("1.1", "1.4");
-        Set<String> messages = gitInfo.messages;
+        Set<String> messages = getMessages(gitInfo.commits);
 
         // Then
         assertThat(messages, hasSize(10));
@@ -173,15 +176,14 @@ public class GitMessageReadingWithCloningOfRepositoryTest {
     @Test
     public void readByTagWithOneTag() {
         // Given
-        gitMessageReader = new GitFacade(
-        		testGitRepo.configuration()
-	                .gitDirectory(tempRepo.getAbsolutePath())
-	                .build()
-                );
+        Configuration conf = testGitRepo.configuration()
+                .gitDirectory(tempRepo.getAbsolutePath())
+                .build();
+        gitMessageReader = new GitFacade(conf, new UserCredentialsAuthenticator(conf));
 
         // When
         SCMFacade.Response gitInfo = gitMessageReader.readByTag("1.3", null);
-        Set<String> messages = gitInfo.messages;
+        Set<String> messages = getMessages(gitInfo.commits);
 
         // Then
         assertThat(messages, hasSize(4));
@@ -192,13 +194,15 @@ public class GitMessageReadingWithCloningOfRepositoryTest {
     @Test
     public void readLatestReleasedVersionWhichMeansReadByTwoLatestTags() {
         // Given
-        gitMessageReader = new GitFacade(testGitRepo.configuration()
+        Configuration conf = testGitRepo.configuration()
                 .gitDirectory(tempRepo.getAbsolutePath())
-                .build());
+                .build();
+        gitMessageReader = new GitFacade(conf, new UserCredentialsAuthenticator(conf));
 
         // When
-        SCMFacade.Response gitInfo = gitMessageReader.readLatestReleasedVersion();
-        Set<String> messages = gitInfo.messages;
+//        SCMFacade.Response gitInfo = gitMessageReader.readLatestReleasedVersion();
+        SCMFacade.Response gitInfo = gitMessageReader.readyTillLastTag();
+        Set<String> messages = getMessages(gitInfo.commits);
 
         // Then
         assertThat(messages, hasSize(4));
