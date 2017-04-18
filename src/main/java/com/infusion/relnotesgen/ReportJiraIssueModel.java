@@ -3,12 +3,9 @@ package com.infusion.relnotesgen;
 import com.atlassian.jira.rest.client.api.domain.Issue;
 import com.google.common.base.Function;
 import com.google.common.collect.FluentIterable;
-import org.apache.commons.lang3.StringUtils;
 
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.Set;
-import java.util.StringTokenizer;
 
 public class ReportJiraIssueModel {
 
@@ -21,10 +18,12 @@ public class ReportJiraIssueModel {
     private final String[] defectIds;
     private final String url;
     private final String fixVersions;
+    private final String status;
+    private final boolean isStatusOk;
 
     public ReportJiraIssueModel(final Issue issue, final String defectId, final String url,
                                 final String fixedInFlowWebVersion, final String releaseNotes, final Iterable<String> jiraFixVersions,
-                                String impact, String detailsOfChange, Set<String> pullRequestIds) {
+                                String impact, String detailsOfChange, Set<String> pullRequestIds, boolean isStatusOk, final String status) {
         this.issue = issue;
         this.fixedInFlowWebVersion = fixedInFlowWebVersion;
         this.url = url;
@@ -32,6 +31,8 @@ public class ReportJiraIssueModel {
         this.impact = impact;
         this.detailsOfChange = detailsOfChange;
         this.pullRequestIds = pullRequestIds != null ?  pullRequestIds.toArray(new String[0]) : new String[0];
+        this.status = status;
+        this.isStatusOk = isStatusOk;
 
 
         if (defectId != null) {
@@ -95,4 +96,10 @@ public class ReportJiraIssueModel {
     }
 
     public String[] getPullRequestIds() { return pullRequestIds; }
+
+    public String getStatus() { return status;}
+
+    public boolean getIsStatusOk() {
+        return isStatusOk;
+    }
 }

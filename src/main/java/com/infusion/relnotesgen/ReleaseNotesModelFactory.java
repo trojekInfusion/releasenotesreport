@@ -183,7 +183,15 @@ public class ReleaseNotesModelFactory {
             }
         });
 
-        return new ReportJiraIssueModel(issue, id, url, fixedInVersion, releaseNotes, fixVersions, impact, detailsOfChange, pullRequestIds);
+        final String status = issue.getStatus().getName();
+        final boolean isStatusOk = FluentIterable.from(Arrays.asList(configuration.getCompletedStatuses())).anyMatch(new Predicate<String>() {
+            @Override
+            public boolean apply(String s) {
+                return s.equals(status);
+            }
+        });
+
+        return new ReportJiraIssueModel(issue, id, url, fixedInVersion, releaseNotes, fixVersions, impact, detailsOfChange, pullRequestIds, isStatusOk, status);
     }
 
     private ReportCommitModel toCommitModel(CommitWithParsedInfo commitWithParsedInfo) {

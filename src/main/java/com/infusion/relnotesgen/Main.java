@@ -243,5 +243,9 @@ public class Main {
         @Element(Configuration.RELEASE_VERSION)
         @Parameter(names = { "-releaseVersion" })
         private String releaseVersion;
+
+        @Element(Configuration.COMPLETED_STATUSES)
+        @Parameter(names = { "-completedStatuses" })
+        private String completedStatuses;
     }
 }
