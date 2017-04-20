@@ -247,5 +247,13 @@ public class Main {
         @Element(Configuration.COMPLETED_STATUSES)
         @Parameter(names = { "-completedStatuses" })
         private String completedStatuses;
+
+        @Element(Configuration.FIX_VERSIONS)
+        @Parameter(names = { "-fixVersions" })
+        private String fixVersions;
+
+        @Element(Configuration.KNOWN_ISSUES)
+        @Parameter(names = { "-knownIssues" })
+        private String knownIssues;
     }
 }

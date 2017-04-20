@@ -3,13 +3,17 @@ package com.infusion.relnotesgen;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.ImmutableSet;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.lang.reflect.Field;
 import java.util.Map.Entry;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Properties;
+import java.util.Set;
 
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 
@@ -47,6 +51,8 @@ public class Configuration {
     static final String REPORT_TEMPLATE = "report.template";
     static final String RELEASE_VERSION = "version.release";
     static final String COMPLETED_STATUSES = "jira.completedStatuses";
+    static final String FIX_VERSIONS = "jira.fixVersions";
+    static final String KNOWN_ISSUES = "jira.knownIssues";
 
     private Properties properties;
 
@@ -121,7 +127,7 @@ public class Configuration {
         return properties.getProperty(JIRA_PASSWORD);
     }
 
-    public String getJiraIssuePattern() {
+	public String getJiraIssuePattern() {
         return properties.getProperty(JIRA_ISSUEPATTERN);
     }
 
@@ -157,7 +163,9 @@ public class Configuration {
         return properties.getProperty(REPORT_TEMPLATE);
     }
 
-    public String getReleaseVersion() { return properties.getProperty(RELEASE_VERSION); }
+    public String getReleaseVersion() { 
+    	return properties.getProperty(RELEASE_VERSION);
+    }
 
     public int getGitCommitLimit() {
         try{
@@ -176,6 +184,29 @@ public class Configuration {
         catch(Exception e) {
             return new String[]{};
         }
+    }
+
+    public String[] getFixVersions() {
+        try {
+        	String fixVersionsString = properties.getProperty(FIX_VERSIONS);
+        	if (fixVersionsString==null || fixVersionsString.isEmpty()) {
+                return new String[]{};
+        	}
+            return properties.getProperty(FIX_VERSIONS).split(",");
+        }
+        catch(Exception e) {
+            return new String[]{};
+        }
+    }
+    
+    public ImmutableSet<String> getFixVersionsSet() {
+    	Set<String> temp = new HashSet<String>();
+    	temp.addAll(Arrays.asList(getFixVersions()));
+        return ImmutableSet.copyOf(temp);
+	}
+
+    public String getKnownIssues() {
+        return properties.getProperty(KNOWN_ISSUES);
     }
 
     @Override
