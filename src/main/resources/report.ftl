@@ -92,7 +92,13 @@
                 </ol>
             </div>
         </div>
-
+        <div class="row">
+            <div class="col-md-8">
+                <h3><p class="bg-success">Link to JIRA</p></h3>
+                <a href="${jqlLink}">Link to JIRA</a>
+                <p/>
+            </div>
+        </div>
         <div class="row">
             <div class="col-md-8">
                 <h3><p class="bg-success">Known Issues <span class="badge">${knownIssues.size()}</span></p></h3>
@@ -134,13 +140,6 @@
                 </ul>
             </div>
         </div>
-    <div class="row">
-        <div class="col-md-8">
-            <h3><p class="bg-success">Link to JIRA</p></h3>
-            <a href="${jqlLink}">Link to JIRA</a>
-            <p/>
-        </div>
-    </div>
 </body>
 </html>
 </#escape>
