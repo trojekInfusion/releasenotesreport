@@ -36,10 +36,42 @@ public class ReleaseNotesModelFactory {
     }
 
     public ReleaseNotesModel get() {
-        String version = versionInfoProvider.getReleaseVersion();
-        ImmutableSet<Commit> commits = commitInfoProvider.getCommits();
+        Iterable<CommitWithParsedInfo> commitsWithParsedInfo = generateCommitsWithParsedInfo(commitInfoProvider.getCommits());
+        Map<String, Set<String>> prMap = generatePullRequestMap(commitsWithParsedInfo);
+        ImmutableSet<String> issueIds = generateIssueIds(commitsWithParsedInfo);
+        ImmutableMap<String, Issue> combinedJiraIssues = generateCombinedJiraIssues(issueIds);
+        Map<String, Issue> combinedJiraIssuesNoSubtasks = filterOutSubtasks(combinedJiraIssues);
+        // TODO Refactor return type
+        Map<String, List<Issue>> jiraIssuesByType = issueCategorizer.byType(combinedJiraIssuesNoSubtasks.values());
+        ImmutableSet<ReportJiraIssueModel> knownIssues = generateKnownIssues(configuration.getKnownIssues());
 
-        Iterable<CommitWithParsedInfo> commitsWithParsedInfo = FluentIterable.from(commits)
+        ReleaseNotesModel model = new ReleaseNotesModel(getIssueTypes(jiraIssuesByType), getIssuesByType(jiraIssuesByType, prMap), 
+        		getCommitsWithDefectIds(commitsWithParsedInfo, combinedJiraIssues), knownIssues, versionInfoProvider.getReleaseVersion(),
+                gitInfo.commitTag1, gitInfo.commitTag2, gitInfo.commits.size(), gitInfo.gitBranch, configuration);
+
+        return model;
+    }
+
+	private ImmutableSet<ReportJiraIssueModel> generateKnownIssues(String knownIssues) {
+		ImmutableMap<String, Issue> knownIssuesMap = jiraConnector.getKnownIssuesByJql(configuration.getKnownIssues());
+        ImmutableSet<ReportJiraIssueModel> knownIssuesModelSet = generateKnownIssuesModelSet(knownIssuesMap);
+        return knownIssuesModelSet;
+	}
+
+	private ImmutableSet<ReportJiraIssueModel> generateKnownIssuesModelSet(ImmutableMap<String, Issue> knownIssuesMap) {
+		List<Issue> knownIssuesList = knownIssuesMap.values().asList();
+		
+		
+        return ImmutableSet.copyOf(Iterables.transform(knownIssuesList, new Function<Issue, ReportJiraIssueModel>() {
+            @Override
+            public ReportJiraIssueModel apply(Issue issue) {
+                return toJiraIssueModel(issue, null);
+            }
+        }));
+	}
+
+	private Iterable<CommitWithParsedInfo> generateCommitsWithParsedInfo(ImmutableSet<Commit> commits) {
+		Iterable<CommitWithParsedInfo> commitsWithParsedInfo = FluentIterable.from(commits)
                 .transform(new Function<Commit, CommitWithParsedInfo>() {
 
                     @Override
@@ -50,8 +82,23 @@ public class ReleaseNotesModelFactory {
                                 commitMessageParser.getPullRequestId(commit.getMessage()));
                     }
                 });
+		return commitsWithParsedInfo;
+	}
 
-        Map<String,Set<String>> prMap = new HashMap<>();
+	private ImmutableSet<String> generateIssueIds(Iterable<CommitWithParsedInfo> commitsWithParsedInfo) {
+		ImmutableSet<String> issueIds = FluentIterable.from(commitsWithParsedInfo)
+                .transformAndConcat(new Function<CommitWithParsedInfo, Iterable<String>>() {
+
+                    @Override
+                    public Iterable<String> apply(CommitWithParsedInfo commitMessage) {
+                        return commitMessage.getJiraIssueKeys();
+                    }
+                }).toSet();
+		return issueIds;
+	}
+
+	private Map<String, Set<String>> generatePullRequestMap(Iterable<CommitWithParsedInfo> commitsWithParsedInfo) {
+		Map<String,Set<String>> prMap = new HashMap<>();
         // add items to the map
         for(CommitWithParsedInfo c : commitsWithParsedInfo) {
 
@@ -68,36 +115,28 @@ public class ReleaseNotesModelFactory {
                 }
             }
         }
+		return prMap;
+	}
 
-        ImmutableSet<String> issueIds = FluentIterable.from(commitsWithParsedInfo)
-                .transformAndConcat(new Function<CommitWithParsedInfo, Iterable<String>>() {
-
-                    @Override
-                    public Iterable<String> apply(CommitWithParsedInfo commitMessage) {
-                        return commitMessage.getJiraIssueKeys();
-                    }
-                }).toSet();
-
-        ImmutableMap < String, Issue > jiraIssues = jiraConnector.getIssuesIncludeParents(issueIds);
-
-        // Filtering out subtasks
-        Map<String, Issue> jiraIssuesNoSubtasks = Maps.filterValues(jiraIssues, new Predicate<Issue>() {
+	private Map<String, Issue> filterOutSubtasks(ImmutableMap<String, Issue> combinedJiraIssues) {
+		Map<String, Issue> combinedJiraIssuesNoSubtasks = Maps.filterValues(combinedJiraIssues, new Predicate<Issue>() {
 
             @Override
             public boolean apply(Issue issue) {
                 return !issue.getIssueType().isSubtask();
             }
         });
-
-        // TODO Refactor return type
-        Map<String, List<Issue>> jiraIssuesByType = issueCategorizer.byType(jiraIssuesNoSubtasks.values());
-
-        ReleaseNotesModel model = new ReleaseNotesModel(getIssueTypes(jiraIssuesByType),
-                getIssuesByType(jiraIssuesByType, prMap), getCommitsWithDefectIds(commitsWithParsedInfo, jiraIssues), version,
-                gitInfo.commitTag1, gitInfo.commitTag2, gitInfo.commits.size(), gitInfo.gitBranch, configuration);
-
-        return model;
-    }
+		return combinedJiraIssuesNoSubtasks;
+	}
+    
+    public ImmutableMap<String, Issue> generateCombinedJiraIssues(ImmutableSet<String> issueIds) {
+        ImmutableMap<String, Issue> fixVersionIssues = jiraConnector.getIssuesByFixVersions(configuration.getFixVersionsSet());
+        ImmutableMap<String, Issue> jiraIssues = jiraConnector.getIssuesIncludeParents(issueIds);
+        Map<String, Issue> temp = new HashMap<String, Issue>();
+    	temp.putAll(fixVersionIssues);
+    	temp.putAll(jiraIssues);
+        return ImmutableMap.copyOf(temp);
+	}
 
     private ImmutableSet<ReportCommitModel> getCommitsWithDefectIds(final Iterable<CommitWithParsedInfo> commitMessages,
                                                                     final ImmutableMap<String, Issue> jiraIssues) {
@@ -120,7 +159,8 @@ public class ReleaseNotesModelFactory {
 
     private ImmutableMap<String, ImmutableSet<ReportJiraIssueModel>> getIssuesByType(
             Map<String, List<Issue>> jiraIssuesByType, final Map<String,Set<String>> pullRquestsMap) {
-        Map<String, ImmutableSet<ReportJiraIssueModel>> transformedMap = Maps
+
+    	Map<String, ImmutableSet<ReportJiraIssueModel>> transformedMap = Maps
                 .transformValues(jiraIssuesByType, new Function<List<Issue>, ImmutableSet<ReportJiraIssueModel>>() {
 
                     @Override
@@ -148,7 +188,6 @@ public class ReleaseNotesModelFactory {
         return ImmutableSet.copyOf(jiraIssuesByType.keySet());
     }
 
-
     public static String concatNotNullNotEmpty(String separator, String... ss) {
         StringBuilder sb = new StringBuilder();
         boolean priorAppend = false;
@@ -164,9 +203,7 @@ public class ReleaseNotesModelFactory {
         return sb.toString();
     }
 
-
     private ReportJiraIssueModel toJiraIssueModel(Issue issue, Set<String> pullRequestIds) {
-
         final String defectId = jiraUtils.getFieldValueByNameSafe(issue, "Defect_Id");
         final String requirementId = jiraUtils.getFieldValueByNameSafe(issue, "Requirement VA ID");
         final String id = concatNotNullNotEmpty(" ", defectId, requirementId);

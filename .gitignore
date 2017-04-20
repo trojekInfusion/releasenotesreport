@@ -16,3 +16,5 @@ classes
 *.class
 **/*.iml
 *.log
+1_0-SNAPSHOT.html
+configuration.properties

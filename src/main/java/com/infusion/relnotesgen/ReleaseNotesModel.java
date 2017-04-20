@@ -9,7 +9,14 @@ import java.util.Comparator;
 import java.util.List;
 
 public class ReleaseNotesModel {
-    private final ImmutableSet<String> issueCategoryNames;
+    private static final String URL_QUOTE = "%22";
+	private static final String URL_COMMA = "%2C";
+	private static final String URL_SPACE = "%20";
+	private static final String ISSUES_JQL_URL = "/issues/?jql=";
+	private static final String JQL_BY_ID_URL = "id%20in%20(";
+	private static final String URL_COMMA_AND_SPACE = URL_COMMA + URL_SPACE;
+	
+	private final ImmutableSet<String> issueCategoryNames;
     private final ImmutableMap<String, ImmutableSet<ReportJiraIssueModel>> issuesByCategory;
     private final ImmutableSet<ReportCommitModel> commitsWithDefectIds;
     private final String releaseVersion;
@@ -20,9 +27,13 @@ public class ReleaseNotesModel {
     private final Configuration configuration;
     private final ImmutableSortedSet<String> uniqueDefects;
     private final String jqlLink;
+    private final String knownIssuesJqlLink;
+    private final ImmutableSet<String> fixVersions;
+    private final ImmutableSet<ReportJiraIssueModel> knownIssues;
 
     public ReleaseNotesModel(final ImmutableSet<String> issueCategoryNames, final ImmutableMap<String, ImmutableSet<ReportJiraIssueModel>> issuesByCategory,
-                             final ImmutableSet<ReportCommitModel> commitsWithDefectIds, final String releaseVersion,
+                             final ImmutableSet<ReportCommitModel> commitsWithDefectIds, final ImmutableSet<ReportJiraIssueModel> knownIssues, 
+                             final String releaseVersion,
                              final SCMFacade.GitCommitTag commitTag1, final SCMFacade.GitCommitTag commitTag2, final int commitsCount,
                              final String gitBranch, Configuration configuration) {
         this.issueCategoryNames = issueCategoryNames;
@@ -34,91 +45,110 @@ public class ReleaseNotesModel {
         this.commitsCount = commitsCount;
         this.gitBranch = gitBranch;
         this.configuration = configuration;
+        this.fixVersions = configuration.getFixVersionsSet();
+        this.knownIssues = knownIssues;
 
-        uniqueDefects = FluentIterable
+        uniqueDefects = generateUniqueDefects(issuesByCategory, commitsWithDefectIds);
+        ImmutableSortedSet<String> uniqueJiras = generateUniqueJiras(issuesByCategory);
+
+        jqlLink = generateUrlEncodedJqlString(generateJqlUrl(uniqueJiras));
+        knownIssuesJqlLink = generateUrlEncodedJqlString(generateJqlUrl(configuration.getKnownIssues()));
+    }
+
+	private ImmutableSortedSet<String> generateUniqueJiras(
+			final ImmutableMap<String, ImmutableSet<ReportJiraIssueModel>> issuesByCategory) {
+		return FluentIterable
                 .from(issuesByCategory.values())
                 .transformAndConcat(new Function<ImmutableSet<ReportJiraIssueModel>, List<String>>() {
 
                     @Override
                     public List<String> apply(ImmutableSet<ReportJiraIssueModel> reportJiraIssueModels) {
                         return FluentIterable.from(reportJiraIssueModels)
-                                .transformAndConcat(new Function<ReportJiraIssueModel, List<String>>() {
+                            .transform(new Function<ReportJiraIssueModel, String>() {
 
-                                            @Override
-                                            public List<String> apply(ReportJiraIssueModel reportJiraIssueModel) {
-                                                return new ArrayList<>(
-                                                        Arrays.asList(reportJiraIssueModel.getDefectIds()));
-                                            }
-                                        }).toList();
+                                @Override
+                                public String apply(ReportJiraIssueModel reportJiraIssueModel) {
+                                    return reportJiraIssueModel.getIssue().getKey();
+                                }
+                            }).toList();
+                    }
+                })
+                .toSortedSet(new Comparator<String>() {
+                     @Override
+                     public int compare(String o1, String o2) {
+                         return o1.compareTo(o2);
+                     }
+                 }
 
+                );
+	}
+
+	private ImmutableSortedSet<String> generateUniqueDefects(
+			final ImmutableMap<String, ImmutableSet<ReportJiraIssueModel>> issuesByCategory,
+			final ImmutableSet<ReportCommitModel> commitsWithDefectIds) {
+		return FluentIterable
+                .from(issuesByCategory.values())
+                .transformAndConcat(new Function<ImmutableSet<ReportJiraIssueModel>, List<String>>() {
+                    @Override
+                    public List<String> apply(ImmutableSet<ReportJiraIssueModel> reportJiraIssueModels) {
+                        return FluentIterable.from(reportJiraIssueModels)
+                            .transformAndConcat(new Function<ReportJiraIssueModel, List<String>>() {
+                                @Override
+                                public List<String> apply(ReportJiraIssueModel reportJiraIssueModel) {
+                                    return new ArrayList<>(
+                                            Arrays.asList(reportJiraIssueModel.getDefectIds()));
+                                }
+                            }).toList();
                     }
                 }).append(FluentIterable.from(commitsWithDefectIds)
-                                .transformAndConcat(new Function<ReportCommitModel, ImmutableSet<String>>() {
-                                    @Override
-                                    public ImmutableSet<String> apply(ReportCommitModel reportCommitModel) {
-                                        return reportCommitModel.getDefectIds();
-                                    }
-                                })
-
+	                    .transformAndConcat(new Function<ReportCommitModel, ImmutableSet<String>>() {
+	                        @Override
+	                        public ImmutableSet<String> apply(ReportCommitModel reportCommitModel) {
+	                            return reportCommitModel.getDefectIds();
+	                        }
+	                    })
                 )
                 .transform(new Function<String, String>() {
-
                     @Override
                     public String apply(String s) {
                         return s.toUpperCase().replace("EFECT", "efect");
                     }
                 })
                 .toSortedSet(new Comparator<String>() {
-
-                                 @Override
-                                 public int compare(String o1, String o2) {
-                                     return o1.compareTo(o2);
-                                 }
-                             }
-
+                     @Override
+                     public int compare(String o1, String o2) {
+                         return o1.compareTo(o2);
+                     }
+                 }
                 );
+	}
 
-        ImmutableSortedSet<String> uniqueJiras = FluentIterable
-                .from(issuesByCategory.values())
-                .transformAndConcat(new Function<ImmutableSet<ReportJiraIssueModel>, List<String>>() {
+	private String generateUrlEncodedJqlString(String jqlString) {
+		StringBuilder sb = new StringBuilder(configuration.getJiraUrl());
+		sb.append(ISSUES_JQL_URL);
+		sb.append(jqlString);
+        return sb.toString();
+	}
 
-                    @Override
-                    public List<String> apply(ImmutableSet<ReportJiraIssueModel> reportJiraIssueModels) {
-                        return FluentIterable.from(reportJiraIssueModels)
-                                .transform(new Function<ReportJiraIssueModel, String>() {
+	private String generateJqlUrl(String knownIssues) {
+		if (knownIssues==null || knownIssues.isEmpty()) {
+			return "";
+		}
+		return knownIssues.replaceAll(",", URL_COMMA).replaceAll(" ", URL_SPACE).replaceAll("\"", URL_QUOTE);
+	}
 
-                                    @Override
-                                    public String apply(ReportJiraIssueModel reportJiraIssueModel) {
-                                        return reportJiraIssueModel.getIssue().getKey();
-                                    }
-                                }).toList();
-
-                    }
-                })
-                .toSortedSet(new Comparator<String>() {
-
-                                 @Override
-                                 public int compare(String o1, String o2) {
-                                     return o1.compareTo(o2);
-                                 }
-                             }
-
-                );
-
-        StringBuilder sb = new StringBuilder(configuration.getJiraUrl() + "/issues/?jql=id%20in%20(");
-        final String coma = "%2C%20";
-        for (String s : uniqueJiras)
-        {
+	private String generateJqlUrl(ImmutableSortedSet<String> uniqueJiras) {
+		StringBuilder sb = new StringBuilder(JQL_BY_ID_URL);
+		for (String s : uniqueJiras) {
             sb.append(s);
-            sb.append(coma);
+            sb.append(URL_COMMA_AND_SPACE);
         }
-        sb.replace(sb.length()-coma.length(),sb.length(),"");
+        sb.replace(sb.length()-URL_COMMA_AND_SPACE.length(),sb.length(),"");
         sb.append(")");
+        return sb.toString();
+	}
 
-        jqlLink = sb.toString();
-    }
-
-    public ImmutableSet<String> getIssueCategoryNames() {
+	public ImmutableSet<String> getIssueCategoryNames() {
         return issueCategoryNames;
     }
 
@@ -154,7 +184,24 @@ public class ReleaseNotesModel {
         return uniqueDefects;
     }
 
-    public String getJqlLink() {return jqlLink; }
+    public String getJqlLink() {
+    	return jqlLink; 
+    }
 
-    public Configuration getConfiguration() { return configuration;  }
+    public Configuration getConfiguration() { 
+    	return configuration;
+    }
+
+	public ImmutableSet<String> getFixVersions() {
+		return fixVersions;
+	}
+
+	public ImmutableSet<ReportJiraIssueModel> getKnownIssues() {
+		return knownIssues;
+	}
+
+	public String getKnownIssuesJqlLink() {
+		return knownIssuesJqlLink;
+	}
+	
 }
