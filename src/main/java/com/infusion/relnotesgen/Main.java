@@ -249,11 +249,15 @@ public class Main {
         private String completedStatuses;
 
         @Element(Configuration.FIX_VERSIONS)
-        @Parameter(names = { "-fixVersions" })
+        @Parameter(names = { "-jiraFixVersions" })
         private String fixVersions;
 
         @Element(Configuration.KNOWN_ISSUES)
-        @Parameter(names = { "-knownIssues" })
+        @Parameter(names = { "-jiraKnownIssues" })
         private String knownIssues;
-    }
+
+        @Element(Configuration.LABELS_TO_SKIP)
+        @Parameter(names = { "-jiraLabelsToSkip" })
+        private String labelsToSkip;
+}
 }

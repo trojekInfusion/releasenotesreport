@@ -21,9 +21,8 @@ public class ReportJiraIssueModel {
     private final String status;
     private final boolean isStatusOk;
 
-    public ReportJiraIssueModel(final Issue issue, final String defectId, final String url,
-                                final String fixedInFlowWebVersion, final String releaseNotes, final Iterable<String> jiraFixVersions,
-                                String impact, String detailsOfChange, Set<String> pullRequestIds, boolean isStatusOk, final String status) {
+    public ReportJiraIssueModel(final Issue issue, final String defectId, final String url, final String fixedInFlowWebVersion, final String releaseNotes, 
+    		final Iterable<String> jiraFixVersions, String impact, String detailsOfChange, Set<String> pullRequestIds, boolean isStatusOk, final String status) {
         this.issue = issue;
         this.fixedInFlowWebVersion = fixedInFlowWebVersion;
         this.url = url;
@@ -33,7 +32,6 @@ public class ReportJiraIssueModel {
         this.pullRequestIds = pullRequestIds != null ?  pullRequestIds.toArray(new String[0]) : new String[0];
         this.status = status;
         this.isStatusOk = isStatusOk;
-
 
         if (defectId != null) {
             defectIds = FluentIterable.from(Arrays.asList(defectId.split("(,)|( )")))
@@ -95,9 +93,17 @@ public class ReportJiraIssueModel {
         return detailsOfChange;
     }
 
-    public String[] getPullRequestIds() { return pullRequestIds; }
+    public String[] getPullRequestIds() {
+    	return pullRequestIds;
+	}
 
-    public String getStatus() { return status;}
+    public Set<String> getLabels() {
+    	return issue.getLabels();
+	}
+
+    public String getStatus() {
+    	return status;
+	}
 
     public boolean getIsStatusOk() {
         return isStatusOk;

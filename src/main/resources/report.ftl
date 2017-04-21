@@ -12,9 +12,14 @@
                 <div class="page-header">
                     <h1>Release notes for version ${releaseVersion}</h1>
                     <h2><small>Generated for commits<span class="badge">${commitsCount}</span> from branch <strong>${gitBranch}</strong> between ${commitTag1.commit}<span class="label label-success">${(commitTag1.tag!"")}</span> and ${commitTag2.commit}<span class="label label-success">${(commitTag2.tag!"")}</span></small></h2>
+	                <h2><small>
 	                <#if (!fixVersions.isEmpty())>
-		                <h2><small>Fix versions: ${fixVersions}</h2></small>
+		                <p>Fix versions: ${fixVersions}</p>
 	                </#if>
+	                <#if (!getFixVersionErrorMessage().isEmpty())>
+		                <p>Error: ${getFixVersionErrorMessage()}</p>
+	                </#if>
+	                </h2></small>
                 </div>
             </div>
         </div>
@@ -22,6 +27,9 @@
         <#list issueCategoryNames as categoryName>
             <div class="row">
                 <div class="col-md-8">
+	                <#if (!getGenericErrorMessage().isEmpty())>
+		                <p>Error: ${getGenericErrorMessage()}</p>
+	                </#if>
                     <h3><p class="bg-success">Released issues with type ${categoryName} <span class="badge">${getIssuesByCategoryName(categoryName).size()}</span></p></h3>
                     <ul>
                         <#list getIssuesByCategoryName(categoryName) as issue>
@@ -104,6 +112,9 @@
                 <h3><p class="bg-success">Known Issues <span class="badge">${knownIssues.size()}</span></p></h3>
                 <#if (knownIssues.size() > 0)>
 		            <a href="${knownIssuesJqlLink}">Link to JIRA</a>
+                </#if>
+                <#if (!getKnownIssuesErrorMessage().isEmpty())>
+	                <p>Error: ${getKnownIssuesErrorMessage()}</p>
                 </#if>
                 <ul>
                     <#list getKnownIssues() as issue>

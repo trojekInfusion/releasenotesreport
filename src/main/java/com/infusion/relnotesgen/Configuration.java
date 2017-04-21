@@ -53,8 +53,9 @@ public class Configuration {
     static final String COMPLETED_STATUSES = "jira.completedStatuses";
     static final String FIX_VERSIONS = "jira.fixVersions";
     static final String KNOWN_ISSUES = "jira.knownIssues";
-
-    private Properties properties;
+    static final String LABELS_TO_SKIP = "jira.labelsToSkip";
+    
+	private Properties properties;
 
     public Configuration(final Properties properties) {
         this.properties = properties;
@@ -186,7 +187,7 @@ public class Configuration {
         }
     }
 
-    public String[] getFixVersions() {
+    private String[] getFixVersions() {
         try {
         	String fixVersionsString = properties.getProperty(FIX_VERSIONS);
         	if (fixVersionsString==null || fixVersionsString.isEmpty()) {
@@ -205,9 +206,28 @@ public class Configuration {
         return ImmutableSet.copyOf(temp);
 	}
 
-    public String getKnownIssues() {
+	public String getKnownIssues() {
         return properties.getProperty(KNOWN_ISSUES);
     }
+
+	private String[] getLabelsToSkip() {
+        try {
+        	String labelsToSkipString = properties.getProperty(LABELS_TO_SKIP);
+        	if (labelsToSkipString==null || labelsToSkipString.isEmpty()) {
+                return new String[]{};
+        	}
+            return properties.getProperty(LABELS_TO_SKIP).split(",");
+        }
+        catch(Exception e) {
+            return new String[]{};
+        }
+	}
+
+    public ImmutableSet<String> getLabelsToSkipSet() {
+    	Set<String> temp = new HashSet<String>();
+    	temp.addAll(Arrays.asList(getLabelsToSkip()));
+        return ImmutableSet.copyOf(temp);
+	}
 
     @Override
     public String toString() {
