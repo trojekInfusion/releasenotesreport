@@ -54,14 +54,34 @@ public class ReleaseNotesModelFactory {
         Map<String, Issue> combinedJiraIssuesNoSubtasks = filterOutSubtasks(combinedJiraIssues);
         // TODO Refactor return type
         Map<String, List<Issue>> jiraIssuesByType = issueCategorizer.byType(combinedJiraIssuesNoSubtasks.values());
+		ImmutableMap<String, ImmutableSet<ReportJiraIssueModel>> issueModelsByType = getIssuesByType(jiraIssuesByType, prMap);
         ImmutableSet<ReportJiraIssueModel> knownIssues = generateKnownIssues(configuration.getKnownIssues(), errors);
-
-		ReleaseNotesModel model = new ReleaseNotesModel(getIssueTypes(jiraIssuesByType), getIssuesByType(jiraIssuesByType, prMap), 
-        		getCommitsWithDefectIds(commitsWithParsedInfo, combinedJiraIssues), knownIssues, versionInfoProvider.getReleaseVersion(),
+        ImmutableSet<ReportJiraIssueModel> knownIssuesWithFixedIssuesRemoved = removeFixedIssuesFromKnownIssues(knownIssues, combinedJiraIssuesNoSubtasks);
+        		
+		ReleaseNotesModel model = new ReleaseNotesModel(getIssueTypes(jiraIssuesByType), issueModelsByType, 
+        		getCommitsWithDefectIds(commitsWithParsedInfo, combinedJiraIssues), knownIssuesWithFixedIssuesRemoved, versionInfoProvider.getReleaseVersion(),
                 gitInfo.commitTag1, gitInfo.commitTag2, gitInfo.commits.size(), gitInfo.gitBranch, configuration, errors);
 
         return model;
     }
+
+	private ImmutableSet<ReportJiraIssueModel> removeFixedIssuesFromKnownIssues(final ImmutableSet<ReportJiraIssueModel> knownIssues, 
+			final Map<String, Issue> combinedJiraIssuesNoSubtasks) {
+		Map<String, ReportJiraIssueModel> knownIssuesMap = new HashMap<String, ReportJiraIssueModel>();
+
+		for (ReportJiraIssueModel model : knownIssues) {
+			try {
+				if (!combinedJiraIssuesNoSubtasks.containsKey(model.getIssue().getKey())) {
+					knownIssuesMap.put(model.getIssue().getKey(), model);
+				} else {
+					logger.info("{} is fixed, removing from known issues", model.getIssue().getKey());				
+				}
+			} catch (Exception e) {
+				logger.warn("{}", e.getMessage(), e);
+			}
+		}
+		return ImmutableSet.copyOf(knownIssuesMap.values());
+	}
 
 	private Map<JiraIssueSearchType, String> generateErrorMessageMap() {
 		Map<JiraIssueSearchType, String> errors = new HashMap<JiraIssueSearchType, String>();
