@@ -66,7 +66,7 @@ Check ```com.infusion.relnotesgen.MainITTest``` for appropriate use case.
 | issue.sort.priority		| -issueSortPriority 			| In report template issues are provided as map where key is issue type and value is list of issue with that type, this parameter defines order in list of issues | Highest,High,Medium,Low,Lowest |
 | report.directory			| -reportDirectory 				| Directory where release notes will be saved | C:/temp |
 | report.template			| -reportTemplate 				| Path to external template for release notes. Freemarker is used as template engine. Variables provided in context: \$\{issues\} - map of issues where key is issue type and value list of issues; \$\{jiraUrl\} - url to jira; \$\{version\} - version for which release notes are generated | C:/releaseNotes/template.ftl |
-
+| jira.labelsToSkip			| -jiraLabelsToSkip 				| List of labels to skip | SX35 |
 
 ## Known issues
 
