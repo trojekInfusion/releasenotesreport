@@ -43,6 +43,9 @@ public class MainInvoker {
     private String issueSortPriority;
     private String reportDirectory;
     private String reportTemplate;
+    private String knownIssues;
+    private String fixVersions;
+    private String labelsToSkip;
 
     public File invoke() {
         List<String> arguments = new ArrayList<>();
@@ -200,6 +203,21 @@ public class MainInvoker {
 
     public MainInvoker reportTemplate(final String reportTemplate) {
         this.reportTemplate = reportTemplate;
+        return this;
+    }
+
+    public MainInvoker knownIssues(final String knownIssues) {
+        this.knownIssues = knownIssues;
+        return this;
+    }
+
+    public MainInvoker fixVersions(final String fixVersions) {
+        this.fixVersions = fixVersions;
+        return this;
+    }
+
+    public MainInvoker labelsToSkip(final String labelsToSkip) {
+        this.labelsToSkip = labelsToSkip;
         return this;
     }
 }

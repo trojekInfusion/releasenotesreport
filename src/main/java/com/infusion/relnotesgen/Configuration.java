@@ -1,14 +1,21 @@
 package com.infusion.relnotesgen;
 
-import static org.apache.commons.lang3.StringUtils.isNotEmpty;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.ImmutableSet;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.lang.reflect.Field;
 import java.util.Map.Entry;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Properties;
+import java.util.Set;
+
+import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 
 
 /**
@@ -18,15 +25,18 @@ import java.util.Properties;
 public class Configuration {
 
     public static final String LOGGER_NAME = "com.infusion.relnotesgen.log.ReleaseNotesLogger";
+    private static final Logger logger = LoggerFactory.getLogger(LOGGER_NAME);
 
     static final String GIT_DIRECTORY = "git.directory";
     static final String GIT_BRANCH = "git.branch";
     static final String GIT_URL = "git.url";
+    static final String GIT_BROWSE_PRS_URL = "git.browsePrs.url";
     static final String GIT_USERNAME = "git.username";
     static final String GIT_PASSWORD = "git.password";
     static final String GIT_COMMITTER_NAME = "git.committer.name";
     static final String GIT_COMMITTER_MAIL = "git.committer.mail";
     static final String GIT_COMMITMESSAGE_VALIDATIONOMMITER = "git.commitmessage.validationommiter";
+    static final String GIT_COMMIT_LIMIT = "git.commit.limit";
     static final String JIRA_URL = "jira.url";
     static final String JIRA_USERNAME = "jira.username";
     static final String JIRA_PASSWORD = "jira.password";
@@ -39,8 +49,13 @@ public class Configuration {
     static final String ISSUE_SORT_PRIORITY = "issue.sort.priority";
     static final String REPORT_DIRECTORY = "report.directory";
     static final String REPORT_TEMPLATE = "report.template";
-
-    private Properties properties;
+    static final String RELEASE_VERSION = "version.release";
+    static final String COMPLETED_STATUSES = "jira.completedStatuses";
+    static final String FIX_VERSIONS = "jira.fixVersions";
+    static final String KNOWN_ISSUES = "jira.knownIssues";
+    static final String LABELS_TO_SKIP = "jira.labelsToSkip";
+    
+	private Properties properties;
 
     public Configuration(final Properties properties) {
         this.properties = properties;
@@ -77,6 +92,10 @@ public class Configuration {
         return properties.getProperty(GIT_URL);
     }
 
+    public String getGitBrowsePrsUrl() {
+        return properties.getProperty(GIT_BROWSE_PRS_URL);
+    }
+
     public String getGitUsername() {
         return properties.getProperty(GIT_USERNAME);
     }
@@ -109,7 +128,7 @@ public class Configuration {
         return properties.getProperty(JIRA_PASSWORD);
     }
 
-    public String getJiraIssuePattern() {
+	public String getJiraIssuePattern() {
         return properties.getProperty(JIRA_ISSUEPATTERN);
     }
 
@@ -144,6 +163,71 @@ public class Configuration {
     public String getReportTemplate() {
         return properties.getProperty(REPORT_TEMPLATE);
     }
+
+    public String getReleaseVersion() { 
+    	return properties.getProperty(RELEASE_VERSION);
+    }
+
+    public int getGitCommitLimit() {
+        try{
+            return Integer.parseInt(properties.getProperty(GIT_COMMIT_LIMIT));
+        }
+        catch (NumberFormatException e) {
+            logger.info("Couldn't parse '{}', defaulting value to 100", GIT_COMMIT_LIMIT);
+            return 100;
+        }
+    }
+
+    public String[] getCompletedStatuses() {
+        try {
+            return properties.getProperty(COMPLETED_STATUSES).split(",");
+        }
+        catch(Exception e) {
+            return new String[]{};
+        }
+    }
+
+    private String[] getFixVersions() {
+        try {
+        	String fixVersionsString = properties.getProperty(FIX_VERSIONS);
+        	if (fixVersionsString==null || fixVersionsString.isEmpty()) {
+                return new String[]{};
+        	}
+            return properties.getProperty(FIX_VERSIONS).split(",");
+        }
+        catch(Exception e) {
+            return new String[]{};
+        }
+    }
+    
+    public ImmutableSet<String> getFixVersionsSet() {
+    	Set<String> temp = new HashSet<String>();
+    	temp.addAll(Arrays.asList(getFixVersions()));
+        return ImmutableSet.copyOf(temp);
+	}
+
+	public String getKnownIssues() {
+        return properties.getProperty(KNOWN_ISSUES);
+    }
+
+	private String[] getLabelsToSkip() {
+        try {
+        	String labelsToSkipString = properties.getProperty(LABELS_TO_SKIP);
+        	if (labelsToSkipString==null || labelsToSkipString.isEmpty()) {
+                return new String[]{};
+        	}
+            return properties.getProperty(LABELS_TO_SKIP).split(",");
+        }
+        catch(Exception e) {
+            return new String[]{};
+        }
+	}
+
+    public ImmutableSet<String> getLabelsToSkipSet() {
+    	Set<String> temp = new HashSet<String>();
+    	temp.addAll(Arrays.asList(getLabelsToSkip()));
+        return ImmutableSet.copyOf(temp);
+	}
 
     @Override
     public String toString() {
