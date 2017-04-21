@@ -12,12 +12,14 @@
                 <div class="page-header">
                     <h1>Release notes for version ${releaseVersion}</h1>
                     <h2><small>Generated for commits<span class="badge">${commitsCount}</span> from branch <strong>${gitBranch}</strong> between ${commitTag1.commit}<span class="label label-success">${(commitTag1.tag!"")}</span> and ${commitTag2.commit}<span class="label label-success">${(commitTag2.tag!"")}</span></small></h2>
+	                <h2><small>
 	                <#if (!fixVersions.isEmpty())>
 		                <p>Fix versions: ${fixVersions}</p>
 	                </#if>
 	                <#if (!getFixVersionErrorMessage().isEmpty())>
 		                <p>Error: ${getFixVersionErrorMessage()}</p>
 	                </#if>
+	                </h2></small>
                 </div>
             </div>
         </div>
