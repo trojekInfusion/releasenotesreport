@@ -24,48 +24,54 @@
             </div>
         </div>
 
-        <#list issueCategoryNames as categoryName>
+        <#list getIssueCategoryNamesList() as categoryName>
             <div class="row">
                 <div class="col-md-8">
 	                <#if (!getGenericErrorMessage().isEmpty())>
 		                <p>Error: ${getGenericErrorMessage()}</p>
 	                </#if>
-                    <h3><p class="bg-success">Released issues with type ${categoryName} <span class="badge">${getIssuesByCategoryName(categoryName).size()}</span></p></h3>
-                    <ul>
-                        <#list getIssuesByCategoryName(categoryName) as issue>
-                            <li>
-                            <div>
-                                <#list issue.defectIds as defect>
-                                    <span class="label label-danger">${defect}</span>
-                                </#list>
-
-                                <img alt="" src="https://ensemble.atlassian.net/images/icons/priorities/${issue.issue.priority.name?lower_case}.svg" title="${issue.issue.priority.name}" height="16" width="16">
-                                </img>
-
-                                <a href="${issue.url}">${issue.issue.key}: ${issue.issue.summary} </a>
-                                <span class="label label-warning">${(issue.fixedInFlowWebVersion! "")}</span>
-                                <#if (issue.isStatusOk)>
-                                    <span class="label label-success">${(issue.status! "")}</span>
-                                <#else>
-                                    <span class="label label-danger">${(issue.status! "")}</span>
-                                </#if>
-                                <#list issue.pullRequestIds as prId>
-                                    <a href="${configuration.gitBrowsePrsUrl + prId}"><span class="label label-warning">PR:${prId}</span> </a>
-                                </#list>
-                                <span class="label label-warning">${(issue.fixVersions! "")}</span>
-                            </div>
-                                <#if (issue.releaseNotes)??>
-                                    <ul><li><b>Release Notes: </b><em>${issue.releaseNotes}</em></li></ul>
-                                </#if>
-                                <#if (issue.impact)??>
-                                    <ul><li><b>Impact: </b><em>${issue.impact}</em></li></ul>
-                                </#if>
-                                <#if (issue.detailsOfChange)??>
-                                    <ul><li><b>Details of change: </b><em>${issue.detailsOfChange}</em></li></ul>
-                                </#if>
-                            </li>
-                        </#list>
-                    </ul>
+	                <#if (getIssuesByCategoryName(categoryName).size()>0)>
+		                <#if (categoryNameIsInvalid(categoryName))>
+		                    <h3><p class="bg-success">Invalid issues <span class="badge">${getIssuesByCategoryName(categoryName).size()}</span></p></h3>
+                        <#else>
+		                    <h3><p class="bg-success">Released issues with type ${categoryName} <span class="badge">${getIssuesByCategoryName(categoryName).size()}</span></p></h3>
+                        </#if>
+	                    <ul>
+	                        <#list getIssuesByCategoryName(categoryName) as issue>
+	                            <li>
+	                            <div>
+	                                <#list issue.defectIds as defect>
+	                                    <span class="label label-danger">${defect}</span>
+	                                </#list>
+	
+	                                <img alt="" src="https://ensemble.atlassian.net/images/icons/priorities/${issue.issue.priority.name?lower_case}.svg" title="${issue.issue.priority.name}" height="16" width="16">
+	                                </img>
+	
+	                                <a href="${issue.url}">${issue.issue.key}: ${issue.issue.summary} </a>
+	                                <span class="label label-warning">${(issue.fixedInFlowWebVersion! "")}</span>
+	                                <#if (issue.isStatusOk)>
+	                                    <span class="label label-success">${(issue.status! "")}</span>
+	                                <#else>
+	                                    <span class="label label-danger">${(issue.status! "")}</span>
+	                                </#if>
+	                                <#list issue.pullRequestIds as prId>
+	                                    <a href="${configuration.gitBrowsePrsUrl + prId}"><span class="label label-warning">PR:${prId}</span> </a>
+	                                </#list>
+	                                <span class="label label-warning">${(issue.fixVersions! "")}</span>
+	                            </div>
+	                                <#if (issue.releaseNotes)??>
+	                                    <ul><li><b>Release Notes: </b><em>${issue.releaseNotes}</em></li></ul>
+	                                </#if>
+	                                <#if (issue.impact)??>
+	                                    <ul><li><b>Impact: </b><em>${issue.impact}</em></li></ul>
+	                                </#if>
+	                                <#if (issue.detailsOfChange)??>
+	                                    <ul><li><b>Details of change: </b><em>${issue.detailsOfChange}</em></li></ul>
+	                                </#if>
+	                            </li>
+	                        </#list>
+	                    </ul>
+	                </#if>
                 </div>
             </div>
         </#list>

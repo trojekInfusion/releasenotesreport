@@ -4,16 +4,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.ImmutableSet;
+import com.infusion.relnotesgen.util.CollectionUtils;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.lang.reflect.Field;
 import java.util.Map.Entry;
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.Properties;
-import java.util.Set;
 
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 
@@ -179,54 +178,27 @@ public class Configuration {
     }
 
     public String[] getCompletedStatuses() {
-        try {
-            return properties.getProperty(COMPLETED_STATUSES).split(",");
-        }
-        catch(Exception e) {
-            return new String[]{};
-        }
+    	return CollectionUtils.stringToArray(",", properties.getProperty(COMPLETED_STATUSES));
     }
 
-    private String[] getFixVersions() {
-        try {
-        	String fixVersionsString = properties.getProperty(FIX_VERSIONS);
-        	if (fixVersionsString==null || fixVersionsString.isEmpty()) {
-                return new String[]{};
-        	}
-            return properties.getProperty(FIX_VERSIONS).split(",");
-        }
-        catch(Exception e) {
-            return new String[]{};
-        }
+    public String[] getFixVersions() {
+        return CollectionUtils.stringToArray(",", properties.getProperty(FIX_VERSIONS));
     }
-    
+
     public ImmutableSet<String> getFixVersionsSet() {
-    	Set<String> temp = new HashSet<String>();
-    	temp.addAll(Arrays.asList(getFixVersions()));
-        return ImmutableSet.copyOf(temp);
+    	return CollectionUtils.arrayToImmutableSet(getFixVersions());
 	}
 
 	public String getKnownIssues() {
         return properties.getProperty(KNOWN_ISSUES);
     }
 
-	private String[] getLabelsToSkip() {
-        try {
-        	String labelsToSkipString = properties.getProperty(LABELS_TO_SKIP);
-        	if (labelsToSkipString==null || labelsToSkipString.isEmpty()) {
-                return new String[]{};
-        	}
-            return properties.getProperty(LABELS_TO_SKIP).split(",");
-        }
-        catch(Exception e) {
-            return new String[]{};
-        }
-	}
+    public String[] getLabelsToSkip() {
+        return CollectionUtils.stringToArray(",", properties.getProperty(LABELS_TO_SKIP));
+    }
 
     public ImmutableSet<String> getLabelsToSkipSet() {
-    	Set<String> temp = new HashSet<String>();
-    	temp.addAll(Arrays.asList(getLabelsToSkip()));
-        return ImmutableSet.copyOf(temp);
+    	return CollectionUtils.arrayToImmutableSet(getLabelsToSkip());
 	}
 
     @Override

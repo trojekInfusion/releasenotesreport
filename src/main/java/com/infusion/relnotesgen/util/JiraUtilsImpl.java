@@ -9,7 +9,6 @@ import org.codehaus.jettison.json.JSONException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.MessageFormat;
-import java.util.LinkedHashMap;
 
 public class JiraUtilsImpl implements JiraUtils {
     private final Configuration configuration;
