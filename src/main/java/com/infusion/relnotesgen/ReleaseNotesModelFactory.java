@@ -290,7 +290,7 @@ public class ReleaseNotesModelFactory {
     	boolean fixVersionsMatch = validateFixVersions(model);
     	boolean isValidState = validateState(model);
     	boolean isValid = fixVersionsMatch && isValidState;
-    	logger.info("{} is {}\n", model.getIssue().getKey(), (isValid ? "valid" : "invalid"));
+    	logger.info("{} is {}", model.getIssue().getKey(), (isValid ? "valid" : "invalid"));
 		return isValid;
 	}
 
