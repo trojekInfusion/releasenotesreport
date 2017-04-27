@@ -14,6 +14,11 @@ public class CollectionUtils {
 	
 	private final static Logger logger = LoggerFactory.getLogger(Configuration.LOGGER_NAME);
 	
+	/**
+	 * Converts a String array to an ImmutableSet
+	 * @param inputArray
+	 * @return
+	 */
 	public static ImmutableSet<String> arrayToImmutableSet(String[] inputArray) {
 		Set<String> temp = new HashSet<String>();
 		try {
@@ -29,6 +34,12 @@ public class CollectionUtils {
         return ImmutableSet.copyOf(temp);
 	}
 	
+	/**
+	 * Performs a split and trim to convert an input string to an array.  Does not include empty values.
+	 * @param delimiter
+	 * @param inputString
+	 * @return
+	 */
 	public static String[] stringToArray(String delimiter, String inputString) {
 		try {
         	if (inputString==null || inputString.isEmpty()) {
@@ -50,6 +61,14 @@ public class CollectionUtils {
         }
 	}
 	
+	/**
+	 * Convenience method that combines stringToArray and arrayToImmutableSet
+	 * @param delimiter
+	 * @param inputString
+	 * @see stringToArray
+	 * @see arrayToImmutableSet
+	 * @return
+	 */
 	public static ImmutableSet<String> stringToImmutableSet(String delimiter, String inputString) {
 	    try {
 	        return arrayToImmutableSet(stringToArray(delimiter, inputString));

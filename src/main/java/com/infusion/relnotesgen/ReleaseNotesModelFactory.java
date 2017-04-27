@@ -20,8 +20,6 @@ import org.slf4j.LoggerFactory;
 
 public class ReleaseNotesModelFactory {
 
-	public static final String INVALID_TYPE = "INVALID";
-
 	private final static Logger logger = LoggerFactory.getLogger(Configuration.LOGGER_NAME);
 
     private final CommitInfoProvider commitInfoProvider;
@@ -281,7 +279,7 @@ public class ReleaseNotesModelFactory {
 			validatedIssueModelsByType.put(typeModelSet.getKey(), ImmutableSet.copyOf(validIssueModels));
 		}
 		if (invalidIssueModels!=null && !invalidIssueModels.isEmpty()) {
-			validatedIssueModelsByType.put(INVALID_TYPE, ImmutableSet.copyOf(invalidIssueModels));			
+			validatedIssueModelsByType.put(JiraIssueSearchType.INVALID.title(), ImmutableSet.copyOf(invalidIssueModels));			
 		}
 		return ImmutableMap.copyOf(validatedIssueModelsByType);
 	}
@@ -294,19 +292,34 @@ public class ReleaseNotesModelFactory {
 		return isValid;
 	}
 
+    /**
+     * validate that at least one FixVerion in the Jira Issue is contained in the specified list of FixVersions
+     * @param model
+     * @return
+     */
 	private boolean validateFixVersions(ReportJiraIssueModel model) {;
 		ImmutableSet<String> searchFixVersions = configuration.getFixVersionsSet();
+		if (searchFixVersions.isEmpty()) {
+		    return true;
+		}
+
 		ImmutableSet<String> modelFixVersions = CollectionUtils.stringToImmutableSet(",", model.getFixVersions());
 		if (searchFixVersions.isEmpty() && modelFixVersions.isEmpty()) {
 			return true;
 		}
+
+        boolean isFixVersionInConfig = false;
 		for (String modelFixVersionString : modelFixVersions) {
-			if (!searchFixVersions.contains(modelFixVersionString)) {
-				logger.debug("{} is invalid, fixVersion '{}' not included in conguration jira.fixVersions", model.getIssue().getKey(), modelFixVersionString);
-				return false;
+			if (searchFixVersions.contains(modelFixVersionString)) {
+				isFixVersionInConfig = true;
 			}
 		}
-		return true;
+		if (isFixVersionInConfig) {
+	        logger.debug("{} is valid, at least one FixVersions for the Jira Issue is included in conguration jira.fixVersions", model.getIssue().getKey());		    
+		} else {
+            logger.debug("{} is invalid, no FixVersions for the Jira Issue are included in conguration jira.fixVersions", model.getIssue().getKey());           
+		}
+		return isFixVersionInConfig;
 	}
 
 	private boolean validateState(ReportJiraIssueModel model) {
@@ -322,7 +335,7 @@ public class ReleaseNotesModelFactory {
 
 	private ImmutableSet<String> getIssueTypes(final Map<String, List<Issue>> jiraIssuesByType) {
 		Set<String> issuesTypes = new HashSet<String>();
-		issuesTypes.add(INVALID_TYPE);
+		issuesTypes.add(JiraIssueSearchType.INVALID.title());
 		issuesTypes.addAll(jiraIssuesByType.keySet());
         return ImmutableSet.copyOf(issuesTypes);
     }

@@ -155,13 +155,13 @@ public class ReleaseNotesModel {
     }
 	
     public boolean categoryNameIsInvalid(final String categoryName) {
-    	return ReleaseNotesModelFactory.INVALID_TYPE.equals(categoryName);
+    	return JiraIssueSearchType.INVALID.title().equals(categoryName);
     }
 
 	public List<String> getIssueCategoryNamesList() {
 		List<String> sortedList = new ArrayList<String>();
 		for (String categoryName : issueCategoryNames) {
-			if (categoryName.equals(ReleaseNotesModelFactory.INVALID_TYPE)) {
+			if (JiraIssueSearchType.INVALID.title().equals(categoryName)) {
 				sortedList.add(0, categoryName);
 			} else {
 				sortedList.add(categoryName);
