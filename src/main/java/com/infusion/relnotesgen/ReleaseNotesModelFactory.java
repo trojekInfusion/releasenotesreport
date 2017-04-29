@@ -5,14 +5,16 @@ import com.atlassian.jira.rest.client.api.domain.Version;
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.collect.*;
+import com.infusion.relnotesgen.util.CollectionUtils;
 import com.infusion.relnotesgen.util.IssueCategorizer;
 import com.infusion.relnotesgen.util.JiraIssueSearchType;
 import com.infusion.relnotesgen.util.JiraUtils;
-
-import java.util.*;
-
-import org.codehaus.jettison.json.JSONException;
-import org.codehaus.jettison.json.JSONObject;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -55,10 +57,11 @@ public class ReleaseNotesModelFactory {
         // TODO Refactor return type
         Map<String, List<Issue>> jiraIssuesByType = issueCategorizer.byType(combinedJiraIssuesNoSubtasks.values());
 		ImmutableMap<String, ImmutableSet<ReportJiraIssueModel>> issueModelsByType = getIssuesByType(jiraIssuesByType, prMap);
+		ImmutableMap<String, ImmutableSet<ReportJiraIssueModel>> validatedIssueModelsByType = validateIssuesByType(issueModelsByType);
         ImmutableSet<ReportJiraIssueModel> knownIssues = generateKnownIssues(configuration.getKnownIssues(), errors);
         ImmutableSet<ReportJiraIssueModel> knownIssuesWithFixedIssuesRemoved = removeFixedIssuesFromKnownIssues(knownIssues, combinedJiraIssuesNoSubtasks);
         		
-		ReleaseNotesModel model = new ReleaseNotesModel(getIssueTypes(jiraIssuesByType), issueModelsByType, 
+		ReleaseNotesModel model = new ReleaseNotesModel(getIssueTypes(jiraIssuesByType), validatedIssueModelsByType, 
         		getCommitsWithDefectIds(commitsWithParsedInfo, combinedJiraIssues), knownIssuesWithFixedIssuesRemoved, versionInfoProvider.getReleaseVersion(),
                 gitInfo.commitTag1, gitInfo.commitTag2, gitInfo.commits.size(), gitInfo.gitBranch, configuration, errors);
 
@@ -249,7 +252,6 @@ public class ReleaseNotesModelFactory {
                                         if(pullRquestsMap.containsKey(issue.getKey())) {
                                             return toJiraIssueModel(issue, pullRquestsMap.get(issue.getKey()));
                                         }
-                                        else
                                         return toJiraIssueModel(issue, null);
                                     }
                                 }));
@@ -258,9 +260,84 @@ public class ReleaseNotesModelFactory {
 
         return ImmutableMap.copyOf(transformedMap);
     }
+    
+	private ImmutableMap<String, ImmutableSet<ReportJiraIssueModel>> validateIssuesByType(final ImmutableMap<String, ImmutableSet<ReportJiraIssueModel>> issueModelsByType) {
 
-    private ImmutableSet<String> getIssueTypes(final Map<String, List<Issue>> jiraIssuesByType) {
-        return ImmutableSet.copyOf(jiraIssuesByType.keySet());
+		logger.info("Validating issues");
+		Map<String, ImmutableSet<ReportJiraIssueModel>> validatedIssueModelsByType = new HashMap<String, ImmutableSet<ReportJiraIssueModel>>();
+		Set<ReportJiraIssueModel> invalidIssueModels = new HashSet<ReportJiraIssueModel>();
+		
+		for (Map.Entry<String, ImmutableSet<ReportJiraIssueModel>> typeModelSet : issueModelsByType.entrySet()) {
+			Set<ReportJiraIssueModel> validIssueModels = new HashSet<ReportJiraIssueModel>();
+			for (ReportJiraIssueModel model : typeModelSet.getValue()) {
+				if (isIssueValid(model)) {
+					validIssueModels.add(model);
+				} else {
+					invalidIssueModels.add(model);
+				}
+			}
+			validatedIssueModelsByType.put(typeModelSet.getKey(), ImmutableSet.copyOf(validIssueModels));
+		}
+		if (invalidIssueModels!=null && !invalidIssueModels.isEmpty()) {
+			validatedIssueModelsByType.put(JiraIssueSearchType.INVALID.title(), ImmutableSet.copyOf(invalidIssueModels));			
+		}
+		return ImmutableMap.copyOf(validatedIssueModelsByType);
+	}
+
+    private boolean isIssueValid(ReportJiraIssueModel model) {
+    	boolean fixVersionsMatch = validateFixVersions(model);
+    	boolean isValidState = validateState(model);
+    	boolean isValid = fixVersionsMatch && isValidState;
+    	logger.info("{} is {}", model.getIssue().getKey(), (isValid ? "valid" : "invalid"));
+		return isValid;
+	}
+
+    /**
+     * validate that at least one FixVerion in the Jira Issue is contained in the specified list of FixVersions
+     * @param model
+     * @return
+     */
+	private boolean validateFixVersions(ReportJiraIssueModel model) {;
+		ImmutableSet<String> searchFixVersions = configuration.getFixVersionsSet();
+		if (searchFixVersions.isEmpty()) {
+		    return true;
+		}
+
+		ImmutableSet<String> modelFixVersions = CollectionUtils.stringToImmutableSet(",", model.getFixVersions());
+		if (searchFixVersions.isEmpty() && modelFixVersions.isEmpty()) {
+			return true;
+		}
+
+        boolean isFixVersionInConfig = false;
+		for (String modelFixVersionString : modelFixVersions) {
+			if (searchFixVersions.contains(modelFixVersionString)) {
+				isFixVersionInConfig = true;
+			}
+		}
+		if (isFixVersionInConfig) {
+	        logger.debug("{} is valid, at least one FixVersions for the Jira Issue is included in conguration jira.fixVersions", model.getIssue().getKey());		    
+		} else {
+            logger.debug("{} is invalid, no FixVersions for the Jira Issue are included in conguration jira.fixVersions", model.getIssue().getKey());           
+		}
+		return isFixVersionInConfig;
+	}
+
+	private boolean validateState(ReportJiraIssueModel model) {
+		if (model == null) {
+			return false;
+		}
+		boolean isValidState = model.getIsStatusOk();
+		if (!isValidState) {
+			logger.debug("{} is invalid, status '{}' not included in conguration jira.completedStatuses '{}'", model.getIssue().getKey(), model.getStatus(), configuration.getCompletedStatuses());			
+		}
+		return isValidState;
+	}
+
+	private ImmutableSet<String> getIssueTypes(final Map<String, List<Issue>> jiraIssuesByType) {
+		Set<String> issuesTypes = new HashSet<String>();
+		issuesTypes.add(JiraIssueSearchType.INVALID.title());
+		issuesTypes.addAll(jiraIssuesByType.keySet());
+        return ImmutableSet.copyOf(issuesTypes);
     }
 
     public static String concatNotNullNotEmpty(final String separator, final String... ss) {
@@ -299,7 +376,12 @@ public class ReleaseNotesModelFactory {
         final boolean isStatusOk = FluentIterable.from(Arrays.asList(configuration.getCompletedStatuses())).anyMatch(new Predicate<String>() {
             @Override
             public boolean apply(final String s) {
-                return s.equals(status);
+                try {
+                    return s.trim().equalsIgnoreCase(status.trim());
+                } catch (NullPointerException e) {
+                    logger.warn("{}", e.getMessage(), e);
+                    return false;
+                }
             }
         });
 

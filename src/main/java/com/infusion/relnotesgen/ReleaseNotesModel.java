@@ -7,7 +7,7 @@ import com.infusion.relnotesgen.util.JiraIssueSearchType;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
-import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
@@ -153,9 +153,29 @@ public class ReleaseNotesModel {
 	public ImmutableSet<String> getIssueCategoryNames() {
         return issueCategoryNames;
     }
+	
+    public boolean categoryNameIsInvalid(final String categoryName) {
+    	return JiraIssueSearchType.INVALID.title().equals(categoryName);
+    }
+
+	public List<String> getIssueCategoryNamesList() {
+		List<String> sortedList = new ArrayList<String>();
+		for (String categoryName : issueCategoryNames) {
+			if (JiraIssueSearchType.INVALID.title().equals(categoryName)) {
+				sortedList.add(0, categoryName);
+			} else {
+				sortedList.add(categoryName);
+			}
+		}
+        return sortedList;
+    }
 
     public ImmutableSet<ReportJiraIssueModel> getIssuesByCategoryName(final String categoryName) {
-        return issuesByCategory.get(categoryName);
+    	if (issuesByCategory.containsKey(categoryName)) {
+    		return issuesByCategory.get(categoryName);
+    	} else {
+    		return ImmutableSet.copyOf(new HashSet<ReportJiraIssueModel>());
+    	}
     }
 
     public ImmutableSet<ReportCommitModel> getCommitsWithDefectIds() {
