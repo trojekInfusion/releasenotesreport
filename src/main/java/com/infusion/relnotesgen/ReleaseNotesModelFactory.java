@@ -1,6 +1,7 @@
 package com.infusion.relnotesgen;
 
 import com.atlassian.jira.rest.client.api.domain.Issue;
+import com.atlassian.jira.rest.client.api.domain.IssueField;
 import com.atlassian.jira.rest.client.api.domain.Version;
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
@@ -20,7 +21,7 @@ import org.slf4j.LoggerFactory;
 
 public class ReleaseNotesModelFactory {
 
-	private final static Logger logger = LoggerFactory.getLogger(Configuration.LOGGER_NAME);
+    private final static Logger logger = LoggerFactory.getLogger(Configuration.LOGGER_NAME);
 
     private final CommitInfoProvider commitInfoProvider;
     private final JiraConnector jiraConnector;
@@ -31,6 +32,9 @@ public class ReleaseNotesModelFactory {
     private final SCMFacade.Response gitInfo;
     private final Configuration configuration;
     public final ImmutableSet<String> labelsToSkip;
+
+    private static final String REQUIREMENTS_VA_ID_CUSTOMFIELD_10803 = "customfield_10803";
+    private static final String DEFECT_ID_CUSTOMFIELD_11500 = "customfield_11500";
 
     public ReleaseNotesModelFactory(final CommitInfoProvider commitInfoProvider, final JiraConnector jiraConnector,
                                     final IssueCategorizer issueCategorizer, final VersionInfoProvider versionInfoProvider,
@@ -47,15 +51,19 @@ public class ReleaseNotesModelFactory {
         this.labelsToSkip = configuration.getLabelsToSkipSet();
     }
 
-    public ReleaseNotesModel get() {
+    public ReleaseNotesModel get(final boolean clientFacing) {
         Iterable<CommitWithParsedInfo> commitsWithParsedInfo = generateCommitsWithParsedInfo(commitInfoProvider.getCommits());
         Map<String, Set<String>> prMap = generatePullRequestMap(commitsWithParsedInfo);
         ImmutableSet<String> issueIds = generateIssueIds(commitsWithParsedInfo);
         Map<JiraIssueSearchType, String> errors = generateErrorMessageMap();
 		ImmutableMap<String, Issue> combinedJiraIssues = generateCombinedJiraIssues(issueIds, errors);
         Map<String, Issue> combinedJiraIssuesNoSubtasks = filterOutSubtasks(combinedJiraIssues);
+        Map<String, Issue> combinedJiraIssuesClientFacing = combinedJiraIssuesNoSubtasks;
+        if (clientFacing) {
+            combinedJiraIssuesClientFacing = filterForClientFacing(combinedJiraIssuesNoSubtasks, configuration.getClientFacingFilterSet());
+        }
         // TODO Refactor return type
-        Map<String, List<Issue>> jiraIssuesByType = issueCategorizer.byType(combinedJiraIssuesNoSubtasks.values());
+        Map<String, List<Issue>> jiraIssuesByType = issueCategorizer.byType(combinedJiraIssuesClientFacing.values());
 		ImmutableMap<String, ImmutableSet<ReportJiraIssueModel>> issueModelsByType = getIssuesByType(jiraIssuesByType, prMap);
 		ImmutableMap<String, ImmutableSet<ReportJiraIssueModel>> validatedIssueModelsByType = validateIssuesByType(issueModelsByType);
         ImmutableSet<ReportJiraIssueModel> knownIssues = generateKnownIssues(configuration.getKnownIssues(), errors);
@@ -68,7 +76,7 @@ public class ReleaseNotesModelFactory {
         return model;
     }
 
-	private ImmutableSet<ReportJiraIssueModel> removeFixedIssuesFromKnownIssues(final ImmutableSet<ReportJiraIssueModel> knownIssues, 
+    private ImmutableSet<ReportJiraIssueModel> removeFixedIssuesFromKnownIssues(final ImmutableSet<ReportJiraIssueModel> knownIssues, 
 			final Map<String, Issue> combinedJiraIssuesNoSubtasks) {
 		Map<String, ReportJiraIssueModel> knownIssuesMap = new HashMap<String, ReportJiraIssueModel>();
 
@@ -206,6 +214,25 @@ public class ReleaseNotesModelFactory {
         });
 		return combinedJiraIssuesNoSubtasks;
 	}
+	
+    private Map<String, Issue> filterForClientFacing(Map<String, Issue> combinedJiraIssuesNoSubtasks, final Set issueFilterIds) {
+        Map<String, Issue> combinedJiraIssuesClientFacing = Maps.filterValues(combinedJiraIssuesNoSubtasks, new Predicate<Issue>() {
+
+            @Override
+            public boolean apply(Issue issue) {
+                Iterable<IssueField> fields = issue.getFields();
+                for (IssueField field : fields) {
+                    if (field.getName() != null && issueFilterIds.contains(field.getName())) {
+                        if (field.getValue() != null) {
+                            return true;
+                        }
+                    }
+                }
+                return false;
+            }
+        });
+        return combinedJiraIssuesClientFacing;
+    }	
     
     public ImmutableMap<String, Issue> generateCombinedJiraIssues(final ImmutableSet<String> issueIds, final Map<JiraIssueSearchType, String> errors) {
         ImmutableMap<String, Issue> fixVersionIssues = jiraConnector.getIssuesByFixVersions(configuration.getFixVersionsSet(), errors);

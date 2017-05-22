@@ -31,7 +31,7 @@ public class Main {
         System.exit(0);
     }
 
-    static File generateReleaseNotes(final String[] args) throws IOException {
+    static void generateReleaseNotes(final String[] args) throws IOException {
         logger.info("Reading program parameters...");
         ProgramParameters programParameters = new ProgramParameters();
         new JCommander(programParameters, args);
@@ -40,19 +40,7 @@ public class Main {
         logger.info("Build configuration: {}", configuration);
 
         // Get git log commits
-        Authenticator authenticator = configuration.getGitUrl().toLowerCase().startsWith("ssh://") ?
-                new PublicKeyAuthenticator() :
-                new UserCredentialsAuthenticator(configuration);
-
-        final SCMFacade.Response gitInfo;
-        SCMFacade gitFacade = null;
-        try {
-            gitFacade = new GitFacade(configuration, authenticator);
-            gitInfo = getGitInfo(programParameters, gitFacade);
-        } finally {
-            if (gitFacade != null)
-                gitFacade.close();
-        }
+        final SCMFacade.Response gitInfo = generateGitInfo(programParameters, configuration);
 
         // Components
         CommitInfoProvider commitInfoProvider = new CommitInfoProvider() {
@@ -78,12 +66,27 @@ public class Main {
         ReleaseNotesModelFactory factory = new ReleaseNotesModelFactory(commitInfoProvider, jiraConnector,
                 issueCategorizer, versionInfoProvider, jiraUtils, commitMessageParser, gitInfo, configuration);
 
-        ReleaseNotesModel reportModel = factory.get();
+        generateReleaseNotesFile(configuration, versionInfoProvider, factory, false);
+        if (configuration.isClientFacing()) {
+            generateReleaseNotesFile(configuration, versionInfoProvider, factory, true);
+        }
+
+    }
+
+    private static void generateReleaseNotesFile(final Configuration configuration, final VersionInfoProvider versionInfoProvider, 
+            final ReleaseNotesModelFactory factory, final boolean clientFacing) throws IOException {
+
+        ReleaseNotesModel reportModel = factory.get(clientFacing);
 
         // Generate report
         ReleaseNotesReportGenerator generator = new ReleaseNotesReportGenerator(configuration);
-        File reportFile = new File(getReportDirectory(configuration),
-                versionInfoProvider.getReleaseVersion().replace(".", "_") + ".html");
+        String filename;
+        if (clientFacing) { 
+            filename = versionInfoProvider.getReleaseVersion().replace(".", "_") + ".html";
+        } else {
+            filename = versionInfoProvider.getReleaseVersion().replace(".", "_") + "_INTERNAL.html";            
+        }
+        File reportFile = new File(getReportDirectory(configuration), filename);
 
         logger.info("Creating report in {}", reportFile.getPath());
 
@@ -92,8 +95,25 @@ public class Main {
         }
 
         logger.info("Generation of report is finished.");
+    }
 
-        return reportFile;
+    private static SCMFacade.Response generateGitInfo(ProgramParameters programParameters,
+            final Configuration configuration) {
+
+        Authenticator authenticator = configuration.getGitUrl().toLowerCase().startsWith("ssh://") ?
+                new PublicKeyAuthenticator() :
+                new UserCredentialsAuthenticator(configuration);
+                
+        final SCMFacade.Response gitInfo;
+        SCMFacade gitFacade = null;
+        try {
+            gitFacade = new GitFacade(configuration, authenticator);
+            gitInfo = getGitInfo(programParameters, gitFacade);
+        } finally {
+            if (gitFacade != null)
+                gitFacade.close();
+        }
+        return gitInfo;
     }
 
     private static SCMFacade.Response getGitInfo(final ProgramParameters programParameters, final SCMFacade gitFacade) {
