@@ -2,6 +2,7 @@ package com.infusion.relnotesgen;
 
 import com.google.common.base.Function;
 import com.google.common.collect.*;
+import com.infusion.relnotesgen.ReportCommitModel.ReportCommitModelBuilder;
 import com.infusion.relnotesgen.util.JiraIssueSearchType;
 
 import java.util.ArrayList;
@@ -35,7 +36,7 @@ public class ReleaseNotesModel {
     private final ImmutableSet<ReportJiraIssueModel> knownIssues;
     private final Map<JiraIssueSearchType, String> errors;
 
-    public ReleaseNotesModel(final ImmutableSet<String> issueCategoryNames, final ImmutableMap<String, ImmutableSet<ReportJiraIssueModel>> issuesByCategory,
+    private ReleaseNotesModel(final ImmutableSet<String> issueCategoryNames, final ImmutableMap<String, ImmutableSet<ReportJiraIssueModel>> issuesByCategory,
                              final ImmutableSet<ReportCommitModel> commitsWithDefectIds, final ImmutableSet<ReportJiraIssueModel> knownIssues, 
                              final String releaseVersion, final SCMFacade.GitCommitTag commitTag1, final SCMFacade.GitCommitTag commitTag2, final int commitsCount,
                              final String gitBranch, Configuration configuration, final Map<JiraIssueSearchType,String> errors) {
@@ -242,4 +243,93 @@ public class ReleaseNotesModel {
 		return errors.get(JiraIssueSearchType.GENERIC);
 	}
 
+    public static class ReleaseNotesModelBuilder {
+
+        private ImmutableSet<String> nestedIssueCategoryNames;
+        private ImmutableMap<String, ImmutableSet<ReportJiraIssueModel>> nestedIssuesByCategory;
+        private ImmutableSet<ReportCommitModel> nestedCommitsWithDefectIds;
+        private ImmutableSet<ReportJiraIssueModel> nestedKnownIssues;
+        private String nestedReleaseVersion;
+        private SCMFacade.GitCommitTag nestedCommitTag1;
+        private SCMFacade.GitCommitTag nestedCommitTag2;
+        private int nestedCommitsCount;
+        private String nestedGitBranch;
+        private Configuration nestedConfiguration;
+        private Map<JiraIssueSearchType,String> nestedErrors;
+        
+        public ReleaseNotesModelBuilder() {}
+        
+        public ReleaseNotesModelBuilder issueCategoryNames(final ImmutableSet<String> issueCategoryNames) {
+            this.nestedIssueCategoryNames = issueCategoryNames;
+            return this;
+        }
+
+        public ReleaseNotesModelBuilder issuesByCategory(final ImmutableMap<String, ImmutableSet<ReportJiraIssueModel>> issuesByCategory) {
+            this.nestedIssuesByCategory = issuesByCategory;
+            return this;
+        }
+
+        public ReleaseNotesModelBuilder commitsWithDefectIds(final ImmutableSet<ReportCommitModel> commitsWithDefectIds) {
+            this.nestedCommitsWithDefectIds = commitsWithDefectIds;
+            return this;
+        }
+
+        public ReleaseNotesModelBuilder knownIssues(final ImmutableSet<ReportJiraIssueModel> knownIssues) {
+            this.nestedKnownIssues = knownIssues;
+            return this;
+        }
+
+        public ReleaseNotesModelBuilder releaseVersion(final String releaseVersion) {
+            this.nestedReleaseVersion = releaseVersion;
+            return this;
+        }
+
+        public ReleaseNotesModelBuilder commitTag1(final SCMFacade.GitCommitTag commitTag1) {
+            this.nestedCommitTag1 = commitTag1;
+            return this;
+        }
+
+        public ReleaseNotesModelBuilder commitTag2(final SCMFacade.GitCommitTag commitTag2) {
+            this.nestedCommitTag2 = commitTag2;
+            return this;
+        }
+
+        public ReleaseNotesModelBuilder commitsCount(final int commitsCount) {
+            this.nestedCommitsCount = commitsCount;
+            return this;
+        }
+
+        public ReleaseNotesModelBuilder gitBranch(final String gitBranch) {
+            this.nestedGitBranch = gitBranch;
+            return this;
+        }
+
+        public ReleaseNotesModelBuilder configuration(final Configuration configuration) {
+            this.nestedConfiguration = configuration;
+            return this;
+        }
+        
+        public ReleaseNotesModelBuilder errors(final Map<JiraIssueSearchType,String> errors) {
+            this.nestedErrors = errors;
+            return this;
+        }
+
+        public ReleaseNotesModel build() throws IllegalStateException {
+            if (!isInitalizedProperly()) {
+                throw new IllegalStateException("Required parameters were not initialized");
+            }
+            return new ReleaseNotesModel(nestedIssueCategoryNames, nestedIssuesByCategory, nestedCommitsWithDefectIds, 
+                    nestedKnownIssues, nestedReleaseVersion, nestedCommitTag1, nestedCommitTag2, nestedCommitsCount, 
+                    nestedGitBranch, nestedConfiguration, nestedErrors);
+        }
+        
+        private boolean isInitalizedProperly() {
+            if (nestedIssueCategoryNames==null || nestedIssuesByCategory==null || nestedCommitsWithDefectIds==null || 
+                    nestedKnownIssues==null || nestedReleaseVersion==null || nestedCommitTag1==null || nestedCommitTag2==null 
+                    || nestedGitBranch==null || nestedConfiguration==null || nestedErrors==null) {
+                return false;
+            }
+            return true;
+        }
+    }
 }

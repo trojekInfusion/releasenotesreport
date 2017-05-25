@@ -1,19 +1,18 @@
 package com.infusion.relnotesgen;
 
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.UnmodifiableIterator;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class CommitMessageParserImpl implements CommitMessageParser {
     private final Pattern jiraKeyPattern;
-    private final Pattern defectIdPattern; // TODO Pattern.compile("((HA)|(CP))-\\\\d+");
+    private final Pattern defectIdPattern;
     private final Pattern prPattern = Pattern.compile("Merge pull request #\\d+");
 
     public CommitMessageParserImpl(final Configuration configuration) {
         jiraKeyPattern = Pattern.compile(configuration.getJiraIssuePattern());
-        defectIdPattern = Pattern.compile("((defect_)|(FSU-)|(CR_CR)|(CR_FOR)|(R2REQ)|(R3REQ)|(INC000000)|(PBI0000000))\\d+", Pattern.CASE_INSENSITIVE);
+        defectIdPattern = Pattern.compile(configuration.getDefectPattern(), Pattern.CASE_INSENSITIVE);
     }
 
     @Override

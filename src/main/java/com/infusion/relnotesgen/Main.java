@@ -75,8 +75,10 @@ public class Main {
         CommitMessageParser commitMessageParser = new CommitMessageParserImpl(configuration);
 
         // Generate report model
-        ReleaseNotesModelFactory factory = new ReleaseNotesModelFactory(commitInfoProvider, jiraConnector,
-                issueCategorizer, versionInfoProvider, jiraUtils, commitMessageParser, gitInfo, configuration);
+        ReleaseNotesModelFactory factory = new ReleaseNotesModelFactory.ReleaseNotesModelFactoryBuilder()
+                .commitInfoProvider(commitInfoProvider).jiraConnector(jiraConnector).issueCategorizer(issueCategorizer)
+                .versionInfoProvider(versionInfoProvider).jiraUtils(jiraUtils).commitMessageParser(commitMessageParser)
+                .gitInfo(gitInfo).configuration(configuration).build();
 
         ReleaseNotesModel reportModel = factory.get();
 
@@ -191,6 +193,10 @@ public class Main {
         @Element(Configuration.GIT_COMMITMESSAGE_VALIDATIONOMMITER)
         @Parameter(names = { "-gitCommitMessageValidationOmmiter" })
         private String gitCommitMessageValidationOmmiter;
+
+        @Element(Configuration.DEFECT_PATTERN)
+        @Parameter(names = { "-gitDefectPattern" })
+        private String defectPattern;
 
         @Element(Configuration.JIRA_URL)
         @Parameter(names = { "-jiraUrl" })

@@ -11,12 +11,9 @@ import org.eclipse.jgit.errors.NoWorkTreeException;
 import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
-import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
-import org.eclipse.jgit.transport.CredentialsProvider;
 import org.eclipse.jgit.transport.PushResult;
 import org.eclipse.jgit.transport.TagOpt;
-import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
@@ -105,10 +102,6 @@ public class GitFacade implements SCMFacade {
             logger.warn("Pull wasn't successfull, Merge conflict count: {}",
                     CollectionUtils.size(result.getMergeResult().getConflicts()));
         }
-    }
-
-    private CredentialsProvider credentials() {
-        return new UsernamePasswordCredentialsProvider(configuration.getGitUsername(), configuration.getGitPassword());
     }
 
     private void cloneRepo() {
@@ -459,14 +452,6 @@ public class GitFacade implements SCMFacade {
         }
     }
 
-    private org.eclipse.jgit.lib.ObjectId getActualRefObjectId(Ref ref) {
-        final Ref repoPeeled = git.getRepository().peel(ref);
-        if (repoPeeled.getPeeledObjectId() != null) {
-            return repoPeeled.getPeeledObjectId();
-        }
-        return ref.getObjectId();
-    }
-
     @Override
     public Response readyTillLastTag() {
         try {
@@ -526,16 +511,6 @@ public class GitFacade implements SCMFacade {
 
         } catch (GitAPIException e) {
             throw new RuntimeException(e);
-        }
-    }
-
-    private Date getDateFromTag(final RevWalk walk, final Ref tag) throws IOException {
-        try {
-            return walk.parseTag(tag.getObjectId()).getTaggerIdent().getWhen();
-        } catch (IOException e) {
-            //http://dev.eclipse.org/mhonarc/lists/jgit-dev/msg01706.html
-            //when peeled tag is null it means this is 'lighweight' tag and object id points to commit straight forward
-            return walk.parseCommit(tag.getObjectId()).getCommitterIdent().getWhen();
         }
     }
 
