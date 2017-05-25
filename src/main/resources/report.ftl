@@ -36,6 +36,7 @@
 <#macro displayInvalidIssues>
     <h3><p class="bg-success">Invalid Issues <span class="badge">${getTotalInvalidIssueCount()}</span></p></h3>
     <div style="margin:10px 40px">
+		<@commitsWithDefectsSection commitsWithDefectIds=commitsWithDefectIds/>
 		<@displayInvalidIssuesForCategory categoryName=getInvalidByStatusCategoryName()/>
 		<@displayInvalidIssuesForCategory categoryName=getInvalidByFixVersionCategoryName()/>
     </div>
@@ -197,8 +198,6 @@
        	<@displayInvalidIssues/>
 
        	<@displayAllValidIssues/>
-
-	<@commitsWithDefectsSection commitsWithDefectIds=commitsWithDefectIds/>
 	
 	<@defectListSection uniqueDefects=uniqueDefects/>
 	
