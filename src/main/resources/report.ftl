@@ -46,7 +46,7 @@
 <#macro commitsWithDefectsSection commitsWithDefectIds>
     <div class="row">
         <div class="col-md-8">
-            <h3><p class="bg-success">Commits with Defects <span class="badge">${commitsWithDefectIds.size()}</span></p></h3>
+            <h4><p class="bg-success">Commits with Defects <span class="badge">${commitsWithDefectIds.size()}</span></p></h4>
             <ul>
                 <#list commitsWithDefectIds as commit>
                     <li>
@@ -198,15 +198,12 @@
        	<@displayInvalidIssues/>
 
        	<@displayAllValidIssues/>
-	
+
 	<@defectListSection uniqueDefects=uniqueDefects/>
-	
+
 	<@linkToJiraSection jqlLink=jqlLink/>
-	
+
 	<@knownIssuesSection knownIssues=knownIssues knownIssuesJqlLink=knownIssuesJqlLink/>
 </body>
 </html>
 </#escape>
-
-
-                
