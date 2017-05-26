@@ -36,6 +36,7 @@
 <#macro displayInvalidIssues>
     <h3><p class="bg-success">Invalid Issues <span class="badge">${getTotalInvalidIssueCount()}</span></p></h3>
     <div style="margin:10px 40px">
+		<@commitsWithDefectsSection commitsWithDefectIds=commitsWithDefectIds/>
 		<@displayInvalidIssuesForCategory categoryName=getInvalidByStatusCategoryName()/>
 		<@displayInvalidIssuesForCategory categoryName=getInvalidByFixVersionCategoryName()/>
     </div>
@@ -45,7 +46,7 @@
 <#macro commitsWithDefectsSection commitsWithDefectIds>
     <div class="row">
         <div class="col-md-8">
-            <h3><p class="bg-success">Commits with Defects <span class="badge">${commitsWithDefectIds.size()}</span></p></h3>
+            <h4><p class="bg-success">Commits with Defects <span class="badge">${commitsWithDefectIds.size()}</span></p></h4>
             <ul>
                 <#list commitsWithDefectIds as commit>
                     <li>
@@ -198,16 +199,11 @@
 
        	<@displayAllValidIssues/>
 
-	<@commitsWithDefectsSection commitsWithDefectIds=commitsWithDefectIds/>
-	
 	<@defectListSection uniqueDefects=uniqueDefects/>
-	
+
 	<@linkToJiraSection jqlLink=jqlLink/>
-	
+
 	<@knownIssuesSection knownIssues=knownIssues knownIssuesJqlLink=knownIssuesJqlLink/>
 </body>
 </html>
 </#escape>
-
-
-                
