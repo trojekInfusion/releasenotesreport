@@ -54,6 +54,7 @@ public class Configuration {
     static final String COMPLETED_STATUSES = "jira.completedStatuses";
     static final String FIX_VERSIONS = "jira.fixVersions";
     static final String KNOWN_ISSUES = "jira.knownIssues";
+    static final String CLIENT_FACING_FILTERS = "report.clientFacingFilters";
     static final String LABELS_TO_SKIP = "jira.labelsToSkip";
     
 	private Properties properties;
@@ -210,6 +211,18 @@ public class Configuration {
     	return CollectionUtils.arrayToImmutableSet(getLabelsToSkip());
 	}
 
+    public String[] getClientFacingFilters() {
+        return CollectionUtils.stringToArray(",", properties.getProperty(CLIENT_FACING_FILTERS));
+    }
+
+    public ImmutableSet<String> getClientFacingFilterSet() {
+        return CollectionUtils.arrayToImmutableSet(getClientFacingFilters());
+    }
+
+    public boolean isClientFacing() {
+        return getClientFacingFilters().length != 0;
+    }
+
     @Override
     public String toString() {
         StringBuilder builder = new StringBuilder("Configuration[");
@@ -230,4 +243,5 @@ public class Configuration {
     public static @interface Element {
         public String value();
     }
+
 }

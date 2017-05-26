@@ -66,6 +66,7 @@ Check ```com.infusion.relnotesgen.MainITTest``` for appropriate use case.
 | issue.sort.type			| -issueSortType 				| Defines sort order of issues by type - issues are provided in report template context as map where key is issue type and value is list of issues with that type, this map is sorted | New Feature,Bug |
 | issue.sort.priority		| -issueSortPriority 			| In report template issues are provided as map where key is issue type and value is list of issue with that type, this parameter defines order in list of issues | Highest,High,Medium,Low,Lowest |
 | report.directory			| -reportDirectory 				| Directory where release notes will be saved | C:/temp |
+| report.clientFacingFilters			| -clientFacingFilters 				| Indicates fields which indicate issue should be included in client facing report | Requirement VA ID,Defect_Id |
 | report.template			| -reportTemplate 				| Path to external template for release notes. Freemarker is used as template engine. Variables provided in context: \$\{issues\} - map of issues where key is issue type and value list of issues; \$\{jiraUrl\} - url to jira; \$\{version\} - version for which release notes are generated | C:/releaseNotes/template.ftl |
 | jira.labelsToSkip			| -jiraLabelsToSkip 				| List of labels to skip | SX35 |
 

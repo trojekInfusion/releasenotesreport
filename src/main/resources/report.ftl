@@ -1,3 +1,174 @@
+<#macro displayInvalidIssuesForCategory categoryName>
+    <h4><p class="bg-success">${categoryName} <span class="badge">${getIssueCountByCategoryName(categoryName)}</span></p></h3>
+    <ul>
+        <#list getIssuesByCategoryName(categoryName) as issue>
+			<@showIssueDetails issue=issue/>
+        </#list>
+    </ul>
+</#macro>
+
+<#macro displayAllValidIssues>
+    <#list getIssueCategoryNamesList() as categoryName>
+        <div class="row">
+            <div class="col-md-8">
+                <#if (!getGenericErrorMessage().isEmpty())>
+	                <p>Error: ${getGenericErrorMessage()}</p>
+                </#if>
+              	<@displayValidIssue categoryName=categoryName/>
+            </div>
+        </div>
+    </#list>
+</#macro>
+
+<#macro displayValidIssue categoryName>
+    <#if (getIssuesByCategoryName(categoryName).size()>0)>
+        <#if (!categoryNameIsInvalid(categoryName))>
+            <h3><p class="bg-success">Released issues with type ${categoryName} <span class="badge">${getIssueCountByCategoryName(categoryName)}</span></p></h3>
+            <ul>
+                <#list getIssuesByCategoryName(categoryName) as issue>
+					<@showIssueDetails issue=issue/>
+                </#list>
+            </ul>
+        </#if>
+    </#if>
+</#macro>
+
+<#macro displayInvalidIssues>
+    <h3><p class="bg-success">Invalid Issues <span class="badge">${getTotalInvalidIssueCount()}</span></p></h3>
+    <div style="margin:10px 40px">
+		<@commitsWithDefectsSection commitsWithDefectIds=commitsWithDefectIds/>
+		<@displayInvalidIssuesForCategory categoryName=getInvalidByStatusCategoryName()/>
+		<@displayInvalidIssuesForCategory categoryName=getInvalidByFixVersionCategoryName()/>
+    </div>
+</#macro>
+
+
+<#macro commitsWithDefectsSection commitsWithDefectIds>
+    <div class="row">
+        <div class="col-md-8">
+            <h4><p class="bg-success">Commits with Defects <span class="badge">${commitsWithDefectIds.size()}</span></p></h4>
+            <ul>
+                <#list commitsWithDefectIds as commit>
+                    <li>
+                        <#if commit.defectIds?has_content>
+                            <#list commit.defectIds as defectId>
+                                <span class="label label-danger">${defectId}</span>
+                            </#list>
+                        </#if>
+[id: ${commit.id}] ${commit.author} ${commit.message}
+                    </li>
+                </#list>
+            </ul>
+        </div>
+    </div>
+</#macro>
+
+<#macro defectListSection uniqueDefects>
+    <div class="row">
+        <div class="col-md-8">
+            <h3><p class="bg-success">All defects </p></h3>
+            <ol>
+                <#list uniqueDefects as defect>
+                    <li>
+                        <span class="label label-danger">${defect}</span>
+                    </li>
+                </#list>
+            </ol>
+        </div>
+    </div>
+</#macro>
+
+<#macro linkToJiraSection jqlLink>
+    <div class="row">
+        <div class="col-md-8">
+            <h3><p class="bg-success">Link to JIRA</p></h3>
+            <a href="${jqlLink}">Link to JIRA</a>
+            <p/>
+        </div>
+    </div>
+</#macro>
+
+<#macro knownIssuesSection knownIssues knownIssuesJqlLink>
+    <div class="row">
+        <div class="col-md-8">
+            <h3><p class="bg-success">Known Issues <span class="badge">${knownIssues.size()}</span></p></h3>
+            <#if (knownIssues.size() > 0)>
+                <a href="${knownIssuesJqlLink}">Link to JIRA</a>
+            </#if>
+            <#if (!getKnownIssuesErrorMessage().isEmpty())>
+                <p>Error: ${getKnownIssuesErrorMessage()}</p>
+            </#if>
+            <ul>
+                <#list getKnownIssues() as issue>
+                    <li>
+                        <#list issue.defectIds as defect>
+                            <span class="label label-danger">${defect}</span>
+                        </#list>
+                        <img alt="" src="https://ensemble.atlassian.net/images/icons/priorities/${issue.issue.priority.name?lower_case}.svg" title="${issue.issue.priority.name}" height="16" width="16">
+                        </img>
+                        <div>
+                            <a href="${issue.url}">${issue.issue.key}: ${issue.issue.summary} </a>
+                            <span class="label label-warning">${(issue.fixedInFlowWebVersion! "")}</span>
+                            <#if (issue.isStatusOk)>
+                                <span class="label label-success">${(issue.status! "")}</span>
+                            <#else>
+                                <span class="label label-danger">${(issue.status! "")}</span>
+                            </#if>
+                            <#list issue.pullRequestIds as prId>
+                                <a href="${configuration.gitBrowsePrsUrl + prId}"><span class="label label-warning">PR:${prId}</span> </a>
+                            </#list>
+                            <span class="label label-warning">${(issue.fixVersions! "")}</span>
+                        </div>
+                        <#if (issue.releaseNotes)??>
+                            <ul><li><b>Release Notes: </b><em>${issue.releaseNotes}</em></li></ul>
+                        </#if>
+                        <#if (issue.impact)??>
+                            <ul><li><b>Impact: </b><em>${issue.impact}</em></li></ul>
+                        </#if>
+                        <#if (issue.detailsOfChange)??>
+                            <ul><li><b>Details of change: </b><em>${issue.detailsOfChange}</em></li></ul>
+                        </#if>
+                    </li>
+                </#list>
+            </ul>
+        </div>
+    </div>
+</#macro>
+
+<#macro showIssueDetails issue>
+    <li>
+        <div>
+            <#list issue.defectIds as defect>
+                <span class="label label-danger">${defect}</span>
+            </#list>
+
+            <img alt="" src="https://ensemble.atlassian.net/images/icons/priorities/${issue.issue.priority.name?lower_case}.svg" title="${issue.issue.priority.name}" height="16" width="16">
+            </img>
+
+            <a href="${issue.url}">${issue.issue.key}: ${issue.issue.summary} </a>
+            <span class="label label-warning">${(issue.fixedInFlowWebVersion! "")}</span>
+            <#if (issue.isStatusOk)>
+                <span class="label label-success">${(issue.status! "")}</span>
+                <#else>
+                    <span class="label label-danger">${(issue.status! "")}</span>
+                </#if>
+                <#list issue.pullRequestIds as prId>
+                    <a href="${configuration.gitBrowsePrsUrl + prId}"><span class="label label-warning">PR:${prId}</span> </a>
+                </#list>
+                <span class="label label-warning">${(issue.fixVersions! "")}</span>
+        </div>
+        <#if (issue.releaseNotes)??>
+            <ul><li><b>Release Notes: </b><em>${issue.releaseNotes}</em></li></ul>
+        </#if>
+        <#if (issue.impact)??>
+            <ul><li><b>Impact: </b><em>${issue.impact}</em></li></ul>
+        </#if>
+        <#if (issue.detailsOfChange)??>
+            <ul><li><b>Details of change: </b><em>${issue.detailsOfChange}</em></li></ul>
+        </#if>
+    </li>
+</#macro>
+
 <#escape x as x?html>
 <html>
 <head>
@@ -24,140 +195,15 @@
             </div>
         </div>
 
-        <#list getIssueCategoryNamesList() as categoryName>
-            <div class="row">
-                <div class="col-md-8">
-	                <#if (!getGenericErrorMessage().isEmpty())>
-		                <p>Error: ${getGenericErrorMessage()}</p>
-	                </#if>
-	                <#if (getIssuesByCategoryName(categoryName).size()>0)>
-		                <#if (categoryNameIsInvalid(categoryName))>
-		                    <h3><p class="bg-success">Invalid issues <span class="badge">${getIssuesByCategoryName(categoryName).size()}</span></p></h3>
-                        <#else>
-		                    <h3><p class="bg-success">Released issues with type ${categoryName} <span class="badge">${getIssuesByCategoryName(categoryName).size()}</span></p></h3>
-                        </#if>
-	                    <ul>
-	                        <#list getIssuesByCategoryName(categoryName) as issue>
-	                            <li>
-	                            <div>
-	                                <#list issue.defectIds as defect>
-	                                    <span class="label label-danger">${defect}</span>
-	                                </#list>
-	
-	                                <img alt="" src="https://ensemble.atlassian.net/images/icons/priorities/${issue.issue.priority.name?lower_case}.svg" title="${issue.issue.priority.name}" height="16" width="16">
-	                                </img>
-	
-	                                <a href="${issue.url}">${issue.issue.key}: ${issue.issue.summary} </a>
-	                                <span class="label label-warning">${(issue.fixedInFlowWebVersion! "")}</span>
-	                                <#if (issue.isStatusOk)>
-	                                    <span class="label label-success">${(issue.status! "")}</span>
-	                                <#else>
-	                                    <span class="label label-danger">${(issue.status! "")}</span>
-	                                </#if>
-	                                <#list issue.pullRequestIds as prId>
-	                                    <a href="${configuration.gitBrowsePrsUrl + prId}"><span class="label label-warning">PR:${prId}</span> </a>
-	                                </#list>
-	                                <span class="label label-warning">${(issue.fixVersions! "")}</span>
-	                            </div>
-	                                <#if (issue.releaseNotes)??>
-	                                    <ul><li><b>Release Notes: </b><em>${issue.releaseNotes}</em></li></ul>
-	                                </#if>
-	                                <#if (issue.impact)??>
-	                                    <ul><li><b>Impact: </b><em>${issue.impact}</em></li></ul>
-	                                </#if>
-	                                <#if (issue.detailsOfChange)??>
-	                                    <ul><li><b>Details of change: </b><em>${issue.detailsOfChange}</em></li></ul>
-	                                </#if>
-	                            </li>
-	                        </#list>
-	                    </ul>
-	                </#if>
-                </div>
-            </div>
-        </#list>
+       	<@displayInvalidIssues/>
 
-        <div class="row">
-            <div class="col-md-8">
-                <h3><p class="bg-success">Commits with Defects <span class="badge">${commitsWithDefectIds.size()}</span></p></h3>
-                <ul>
-                    <#list commitsWithDefectIds as commit>
-                        <li>
-                            <#if commit.defectIds?has_content>
-                                <#list commit.defectIds as defectId>
-                                    <span class="label label-danger">${defectId}</span>
-                                </#list>
-                            </#if>
-[id: ${commit.id}] ${commit.author} ${commit.message}
-                        </li>
-                    </#list>
-                </ul>
-            </div>
-        </div>
+       	<@displayAllValidIssues/>
 
-        <div class="row">
-            <div class="col-md-8">
-                <h3><p class="bg-success">All defects </p></h3>
-                <ol>
-                    <#list uniqueDefects as defect>
-                        <li>
-                            <span class="label label-danger">${defect}</span>
-                        </li>
-                    </#list>
-                </ol>
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-md-8">
-                <h3><p class="bg-success">Link to JIRA</p></h3>
-                <a href="${jqlLink}">Link to JIRA</a>
-                <p/>
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-md-8">
-                <h3><p class="bg-success">Known Issues <span class="badge">${knownIssues.size()}</span></p></h3>
-                <#if (knownIssues.size() > 0)>
-		            <a href="${knownIssuesJqlLink}">Link to JIRA</a>
-                </#if>
-                <#if (!getKnownIssuesErrorMessage().isEmpty())>
-	                <p>Error: ${getKnownIssuesErrorMessage()}</p>
-                </#if>
-                <ul>
-                    <#list getKnownIssues() as issue>
-                        <li>
-                            <#list issue.defectIds as defect>
-                                <span class="label label-danger">${defect}</span>
-                            </#list>
-                            <img alt="" src="https://ensemble.atlassian.net/images/icons/priorities/${issue.issue.priority.name?lower_case}.svg" title="${issue.issue.priority.name}" height="16" width="16">
-                            </img>
-                            <div>
-                                <a href="${issue.url}">${issue.issue.key}: ${issue.issue.summary} </a>
-                                <span class="label label-warning">${(issue.fixedInFlowWebVersion! "")}</span>
-                                <#if (issue.isStatusOk)>
-                                    <span class="label label-success">${(issue.status! "")}</span>
-                                <#else>
-                                    <span class="label label-danger">${(issue.status! "")}</span>
-                                </#if>
-                                <#list issue.pullRequestIds as prId>
-                                    <a href="${configuration.gitBrowsePrsUrl + prId}"><span class="label label-warning">PR:${prId}</span> </a>
-                                </#list>
-                                <span class="label label-warning">${(issue.fixVersions! "")}</span>
-                            </div>
-                            <#if (issue.releaseNotes)??>
-                                <ul><li><b>Release Notes: </b><em>${issue.releaseNotes}</em></li></ul>
-                            </#if>
-                            <#if (issue.impact)??>
-                                <ul><li><b>Impact: </b><em>${issue.impact}</em></li></ul>
-                            </#if>
-                            <#if (issue.detailsOfChange)??>
-                                <ul><li><b>Details of change: </b><em>${issue.detailsOfChange}</em></li></ul>
-                            </#if>
-                        </li>
-                    </#list>
-                </ul>
-            </div>
-        </div>
+	<@defectListSection uniqueDefects=uniqueDefects/>
+
+	<@linkToJiraSection jqlLink=jqlLink/>
+
+	<@knownIssuesSection knownIssues=knownIssues knownIssuesJqlLink=knownIssuesJqlLink/>
 </body>
 </html>
 </#escape>
-                
