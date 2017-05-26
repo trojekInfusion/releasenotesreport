@@ -292,31 +292,34 @@ public class ReleaseNotesModelFactory {
 
 		logger.info("Validating issues");
 		Map<String, ImmutableSet<ReportJiraIssueModel>> validatedIssueModelsByType = new HashMap<String, ImmutableSet<ReportJiraIssueModel>>();
-		Set<ReportJiraIssueModel> invalidIssueModels = new HashSet<ReportJiraIssueModel>();
+		Set<ReportJiraIssueModel> invalidStateIssueModels = new HashSet<ReportJiraIssueModel>();
+        Set<ReportJiraIssueModel> invalidFixVersionsIssueModels = new HashSet<ReportJiraIssueModel>();
 		
 		for (Map.Entry<String, ImmutableSet<ReportJiraIssueModel>> typeModelSet : issueModelsByType.entrySet()) {
 			Set<ReportJiraIssueModel> validIssueModels = new HashSet<ReportJiraIssueModel>();
 			for (ReportJiraIssueModel model : typeModelSet.getValue()) {
-				if (isIssueValid(model)) {
-					validIssueModels.add(model);
-				} else {
-					invalidIssueModels.add(model);
-				}
+			    boolean isFixVersionValid = validateFixVersions(model);
+			    boolean isStateValid = validateState(model);
+			    if (!isFixVersionValid) {
+			        invalidFixVersionsIssueModels.add(model);
+			    }
+			    if (!isStateValid) {
+			        invalidStateIssueModels.add(model);			        
+			    }
+			    if (isFixVersionValid && isStateValid) {
+                    validIssueModels.add(model);
+			    }
+		        logger.info("{} is {}", model.getIssue().getKey(), ((isFixVersionValid && isStateValid) ? "valid" : "invalid"));
 			}
 			validatedIssueModelsByType.put(typeModelSet.getKey(), ImmutableSet.copyOf(validIssueModels));
 		}
-		if (invalidIssueModels!=null && !invalidIssueModels.isEmpty()) {
-			validatedIssueModelsByType.put(JiraIssueSearchType.INVALID.title(), ImmutableSet.copyOf(invalidIssueModels));			
+		if (invalidStateIssueModels!=null && !invalidStateIssueModels.isEmpty()) {
+			validatedIssueModelsByType.put(JiraIssueSearchType.INVALID_STATE.title(), ImmutableSet.copyOf(invalidStateIssueModels));			
 		}
+        if (invalidFixVersionsIssueModels!=null && !invalidFixVersionsIssueModels.isEmpty()) {
+            validatedIssueModelsByType.put(JiraIssueSearchType.INVALID_FIX_VERSION.title(), ImmutableSet.copyOf(invalidFixVersionsIssueModels));           
+        }
 		return ImmutableMap.copyOf(validatedIssueModelsByType);
-	}
-
-    private boolean isIssueValid(ReportJiraIssueModel model) {
-    	boolean fixVersionsMatch = validateFixVersions(model);
-    	boolean isValidState = validateState(model);
-    	boolean isValid = fixVersionsMatch && isValidState;
-    	logger.info("{} is {}", model.getIssue().getKey(), (isValid ? "valid" : "invalid"));
-		return isValid;
 	}
 
     /**
@@ -362,7 +365,8 @@ public class ReleaseNotesModelFactory {
 
 	private ImmutableSet<String> getIssueTypes(final Map<String, List<Issue>> jiraIssuesByType) {
 		Set<String> issuesTypes = new HashSet<String>();
-		issuesTypes.add(JiraIssueSearchType.INVALID.title());
+		issuesTypes.add(JiraIssueSearchType.INVALID_FIX_VERSION.title());
+        issuesTypes.add(JiraIssueSearchType.INVALID_STATE.title());
 		issuesTypes.addAll(jiraIssuesByType.keySet());
         return ImmutableSet.copyOf(issuesTypes);
     }
