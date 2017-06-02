@@ -43,8 +43,12 @@ public class MainInvoker {
     private String issueSortPriority;
     private String reportDirectory;
     private String reportTemplate;
+    private String knownIssues;
+    private String fixVersions;
+    private String labelsToSkip;
+    private String clientFacingFilters;
 
-    public File invoke() {
+    public void invoke() {
         List<String> arguments = new ArrayList<>();
 
         for (Field field : MainInvoker.class.getDeclaredFields()) {
@@ -68,7 +72,7 @@ public class MainInvoker {
 
         String[] args = arguments.toArray(new String[0]);
         try {
-            return Main.generateReleaseNotes(args);
+            Main.generateReleaseNotes(args);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -200,6 +204,26 @@ public class MainInvoker {
 
     public MainInvoker reportTemplate(final String reportTemplate) {
         this.reportTemplate = reportTemplate;
+        return this;
+    }
+
+    public MainInvoker knownIssues(final String knownIssues) {
+        this.knownIssues = knownIssues;
+        return this;
+    }
+
+    public MainInvoker fixVersions(final String fixVersions) {
+        this.fixVersions = fixVersions;
+        return this;
+    }
+
+    public MainInvoker labelsToSkip(final String labelsToSkip) {
+        this.labelsToSkip = labelsToSkip;
+        return this;
+    }
+
+    public MainInvoker clientFacing(final String clientFacingFilters) {
+        this.clientFacingFilters = clientFacingFilters;
         return this;
     }
 }
