@@ -12,7 +12,13 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class ReleaseNotesModel {
+    public static final String LOGGER_NAME = "com.infusion.relnotesgen.log.ReleaseNotesLogger";
+    private static final Logger logger = LoggerFactory.getLogger(LOGGER_NAME);
+
     private static final String URL_QUOTE = "%22";
 	private static final String URL_COMMA = "%2C";
 	private static final String URL_SPACE = "%20";
@@ -156,19 +162,43 @@ public class ReleaseNotesModel {
     }
 	
     public boolean categoryNameIsInvalid(final String categoryName) {
-    	return JiraIssueSearchType.INVALID.title().equals(categoryName);
+    	return JiraIssueSearchType.INVALID_STATE.title().equals(categoryName) || JiraIssueSearchType.INVALID_FIX_VERSION.title().equals(categoryName);
     }
 
 	public List<String> getIssueCategoryNamesList() {
 		List<String> sortedList = new ArrayList<String>();
 		for (String categoryName : issueCategoryNames) {
-			if (JiraIssueSearchType.INVALID.title().equals(categoryName)) {
+            if (JiraIssueSearchType.INVALID_STATE.title().equals(categoryName)) {
+                sortedList.add(0, categoryName);
+            } else if (JiraIssueSearchType.INVALID_FIX_VERSION.title().equals(categoryName)) {
 				sortedList.add(0, categoryName);
 			} else {
 				sortedList.add(categoryName);
 			}
 		}
         return sortedList;
+    }
+
+    public int getTotalInvalidIssueCount() {
+        return getIssueCountByCategoryName(JiraIssueSearchType.INVALID_FIX_VERSION.title()) + getIssueCountByCategoryName(JiraIssueSearchType.INVALID_STATE.title());
+    }
+	
+	
+    public int getIssueCountByCategoryName(final String categoryName) {
+        try {
+            return getIssuesByCategoryName(categoryName).size();
+        } catch (Exception e) {
+            logger.warn("{}", e.getMessage(), e);
+            return 0;
+        }
+    }
+
+    public String getInvalidByStatusCategoryName() {
+        return JiraIssueSearchType.INVALID_STATE.title();
+    }
+
+    public String getInvalidByFixVersionCategoryName() {
+        return JiraIssueSearchType.INVALID_FIX_VERSION.title();
     }
 
     public ImmutableSet<ReportJiraIssueModel> getIssuesByCategoryName(final String categoryName) {

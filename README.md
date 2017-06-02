@@ -51,7 +51,7 @@ Check ```com.infusion.relnotesgen.MainITTest``` for appropriate use case.
 | git.committer.name      	| -gitCommitterName 			| Sometimes it's needed to define this to pass validation rules on push operation | 'Johnny Bravo' |
 | git.committer.mail  		| -gitCommitterMail 			| Sometimes it's needed to define this to pass validation rules on push operation | johnny@hairs.com |
 | git.commitmessage.validationommiter | -gitCommitMessageValidationOmmiter | Suffix that will be appended to commit message under which release notes are commited | '#skipvalidation' |
-| git.defectPattern | -gitDefectPattern | Pattern from which defect id will be search in scm commit messages  | ((defect_)|(FSU-)|(CR_CR)|(CR_FOR)|(R2REQ)|(R3REQ)|(INC000000)|(PBI0000000))\\d+ |
+| git.defectPattern | -gitDefectPattern | Pattern from which defect id will be search in scm commit messages  | ((defect_)|(FSU-)|(CR_CR)|(CR_FOR)|(R2REQ)|(R3REQ)|(INC000000)|(PBI0000000)|(FOR-)|(CR-))\\d+ |
 | jira.url      			| -jiraUrl 						| URL to jira | https://ensemble.atlassian.net |
 | jira.username   			| -jiraUsername 				| Jira username | johnny  |
 | jira.password   			| -jiraPassword 				| Jira password | passw0rd123  |
@@ -66,6 +66,7 @@ Check ```com.infusion.relnotesgen.MainITTest``` for appropriate use case.
 | issue.sort.type			| -issueSortType 				| Defines sort order of issues by type - issues are provided in report template context as map where key is issue type and value is list of issues with that type, this map is sorted | New Feature,Bug |
 | issue.sort.priority		| -issueSortPriority 			| In report template issues are provided as map where key is issue type and value is list of issue with that type, this parameter defines order in list of issues | Highest,High,Medium,Low,Lowest |
 | report.directory			| -reportDirectory 				| Directory where release notes will be saved | C:/temp |
+| report.clientFacingFilters			| -clientFacingFilters 				| Indicates fields which indicate issue should be included in client facing report | Requirement VA ID,Defect_Id |
 | report.template			| -reportTemplate 				| Path to external template for release notes. Freemarker is used as template engine. Variables provided in context: \$\{issues\} - map of issues where key is issue type and value list of issues; \$\{jiraUrl\} - url to jira; \$\{version\} - version for which release notes are generated | C:/releaseNotes/template.ftl |
 | jira.labelsToSkip			| -jiraLabelsToSkip 				| List of labels to skip | SX35 |
 
