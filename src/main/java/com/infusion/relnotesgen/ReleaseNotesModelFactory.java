@@ -60,7 +60,7 @@ public class ReleaseNotesModelFactory {
         ImmutableSet<ReportJiraIssueModel> knownIssues = generateKnownIssues(configuration.getKnownIssues(), errors);
         ImmutableSet<ReportJiraIssueModel> knownIssuesWithFixedIssuesRemoved = removeFixedIssuesFromKnownIssues(knownIssues, combinedJiraIssuesNoSubtasks);
 		ImmutableSet<ReportCommitModel> commitsWithDefectIds = getCommitsWithDefectIds(commitsWithParsedInfo);
-		ImmutableSet<ReportCommitModel> commitsWithDefectIdsFiltered = commitsWithDefectIds;//filterOutJiraIssues(commitsWithDefectIds, combinedJiraIssuesNoSubtasks);
+		ImmutableSet<ReportCommitModel> commitsWithDefectIdsFiltered = filterOutJiraIssues(commitsWithDefectIds, combinedJiraIssuesNoSubtasks);
 		ReleaseNotesModel model = new ReleaseNotesModel.ReleaseNotesModelBuilder()
 		        .issueCategoryNames(getIssueTypes(jiraIssuesByType)).issuesByCategory(validatedIssueModelsByType)
 		        .commitsWithDefectIds(commitsWithDefectIdsFiltered)
