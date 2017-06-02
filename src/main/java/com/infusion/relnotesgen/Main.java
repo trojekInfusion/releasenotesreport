@@ -279,5 +279,9 @@ public class Main {
         @Element(Configuration.LABELS_TO_SKIP)
         @Parameter(names = { "-jiraLabelsToSkip" })
         private String labelsToSkip;
+
+        @Element(Configuration.CLIENT_FACING_FILTERS)
+        @Parameter(names = { "-clientFacingFilters" })
+        private String clientFacingFilters;
 }
 }
