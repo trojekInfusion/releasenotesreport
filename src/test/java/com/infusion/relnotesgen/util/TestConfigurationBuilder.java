@@ -1,8 +1,8 @@
 package com.infusion.relnotesgen.util;
 
-import java.util.Properties;
-
 import com.infusion.relnotesgen.Configuration;
+
+import java.util.Properties;
 
 
 public class TestConfigurationBuilder {
@@ -35,6 +35,7 @@ public class TestConfigurationBuilder {
         properties.put("git.password", "password");
         properties.put("git.committer.name", "username");
         properties.put("git.committer.mail", "mail@mail.com");
+        properties.put("git.commit.limit","5");
         return new Configuration(properties);
     }
 }

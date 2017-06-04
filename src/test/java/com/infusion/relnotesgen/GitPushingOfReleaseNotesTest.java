@@ -12,7 +12,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
-import java.nio.file.Paths;
 
 import org.apache.commons.io.FileUtils;
 import org.junit.After;
@@ -52,10 +51,10 @@ public class GitPushingOfReleaseNotesTest {
     @Test
     public void checkPushOfNewFileWasPerformed() throws IOException {
         // Given
-        gitMessageReader = new GitFacade(
-                testGitRepo.configuration()
+        Configuration conf = testGitRepo.configuration()
                 .gitDirectory(tempRepo.getAbsolutePath())
-                .build());
+                .build();
+        gitMessageReader = new GitFacade(conf, new UserCredentialsAuthenticator(conf));
         String version = "1.2";
         String content = "Test release notes for version " + version;
         File tempReleaseNotes = File.createTempFile("ReleaseNotes", null);
@@ -86,9 +85,10 @@ public class GitPushingOfReleaseNotesTest {
 
         File repoWithNotes = Files.createTempDirectory("TestCloneGitRepoWithReleaseNotes").toFile();
         try {
-            GitFacade newGitRepo = new GitFacade(testGitRepo.configuration()
+            Configuration conf = testGitRepo.configuration()
                     .gitDirectory(repoWithNotes.getAbsolutePath())
-                    .build());
+                    .build();
+            GitFacade newGitRepo = new GitFacade(conf, new UserCredentialsAuthenticator(conf));
             newGitRepo.close();
             File releaseNotes = new File(repoWithNotes, "releases/" + tempReleaseNotes.getName());
             assertThat(releaseNotes.exists(), equalTo(true));
