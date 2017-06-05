@@ -21,7 +21,9 @@ public class CommitMessageParserImplTest {
 
     @Before
     public void cloneRepo() throws IOException {
-        Properties properties = new Properties() {{
+        Properties properties = new Properties() {
+            private static final long serialVersionUID = -8206630758757439576L;
+        {
             put(Configuration.JIRA_ISSUEPATTERN, "((HA)|(CP))-\\d\\d+");
         }};
 

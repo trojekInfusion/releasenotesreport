@@ -24,7 +24,9 @@ public class ConfigurationTest {
         //Given
         final String gitPassword = randomAlphanumeric(30);
         final String jiraPassword = randomAlphanumeric(30);
-        Properties properties = new Properties() {{
+        Properties properties = new Properties() {
+            private static final long serialVersionUID = 1048327365555461089L;
+        {
             put(Configuration.GIT_PASSWORD, gitPassword);
             put(Configuration.JIRA_PASSWORD, jiraPassword);
         }};
@@ -42,7 +44,9 @@ public class ConfigurationTest {
         //Given
         final String gitBranch = "branch";
         final String gitUrl = "url";
-        Properties properties = new Properties() {{
+        Properties properties = new Properties() {
+            private static final long serialVersionUID = -6626469165778816859L;
+        {
             put(Configuration.GIT_BRANCH, gitBranch);
             put(Configuration.GIT_URL, gitUrl);
         }};
@@ -60,7 +64,9 @@ public class ConfigurationTest {
         //Given
         final String gitBranch = "branch";
         final String gitUrl = "url";
-        Properties properties = new Properties() {{
+        Properties properties = new Properties() {
+            private static final long serialVersionUID = 649778039123087810L;
+        {
             put(Configuration.GIT_BRANCH, gitBranch);
             put(Configuration.GIT_URL, gitUrl);
         }};

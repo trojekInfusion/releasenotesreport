@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory;
  */
 public class JiraIssueIdMatcherImpl implements JiraIssueIdMatcher {
 
+    @SuppressWarnings("unused")
     private final static Logger logger = LoggerFactory.getLogger(Configuration.LOGGER_NAME);
 
     private Pattern pattern;

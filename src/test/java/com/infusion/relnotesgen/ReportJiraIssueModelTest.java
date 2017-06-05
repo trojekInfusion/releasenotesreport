@@ -11,7 +11,6 @@ import java.util.HashSet;
 import java.util.Set;
 
 import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasItems;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertThat;
@@ -26,7 +25,9 @@ public class ReportJiraIssueModelTest {
     private final String releaseNotes = "my comment about the issue";
     private final String url = "http://dummy.com/1";
     private final String[] EmptyArray = new String[0];
-    private final Iterable<String> Versions = new ArrayList<String>() {{
+    private final Iterable<String> Versions = new ArrayList<String>() {
+        private static final long serialVersionUID = -2857728955407769680L;
+    {
         add("V1");
         add("V2");
     }};

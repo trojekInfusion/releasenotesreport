@@ -25,5 +25,13 @@ public class Commit {
         return id.hashCode();
     }
 
+    public String toString() {
+        StringBuilder temp = new StringBuilder("Commit:\n");
+        temp.append("message: ").append("[").append(message.trim()).append("]\n");
+        temp.append("id: ").append("[").append(id.trim()).append("]\n");
+        temp.append("author: ").append("[").append(author.trim()).append("]\n");
+        return temp.toString();
+    }
+    
     public String getAuthor() { return author; }
 }

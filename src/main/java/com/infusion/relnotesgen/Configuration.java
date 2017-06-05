@@ -26,6 +26,7 @@ public class Configuration {
     public static final String LOGGER_NAME = "com.infusion.relnotesgen.log.ReleaseNotesLogger";
     private static final Logger logger = LoggerFactory.getLogger(LOGGER_NAME);
 
+    private static final String DEFAUT_DEFECT_PATTERN = "((defect_)|(FSU-)|(CR_CR)|(CR_FOR)|(R2REQ)|(R3REQ)|(INC000000)|(PBI0000000))\\d+";
     static final String GIT_DIRECTORY = "git.directory";
     static final String GIT_BRANCH = "git.branch";
     static final String GIT_URL = "git.url";
@@ -36,6 +37,7 @@ public class Configuration {
     static final String GIT_COMMITTER_MAIL = "git.committer.mail";
     static final String GIT_COMMITMESSAGE_VALIDATIONOMMITER = "git.commitmessage.validationommiter";
     static final String GIT_COMMIT_LIMIT = "git.commit.limit";
+    static final String DEFECT_PATTERN= "git.defectpattern";
     static final String JIRA_URL = "jira.url";
     static final String JIRA_USERNAME = "jira.username";
     static final String JIRA_PASSWORD = "jira.password";
@@ -114,6 +116,13 @@ public class Configuration {
 
     public String getGitCommitMessageValidationOmmitter() {
         return properties.getProperty(GIT_COMMITMESSAGE_VALIDATIONOMMITER);
+    }
+
+    public String getDefectPattern() {
+        if (properties.getProperty(DEFECT_PATTERN) == null || properties.getProperty(DEFECT_PATTERN).isEmpty()) {
+            return DEFAUT_DEFECT_PATTERN;
+        }
+        return properties.getProperty(DEFECT_PATTERN);
     }
 
     public String getJiraUrl() {
