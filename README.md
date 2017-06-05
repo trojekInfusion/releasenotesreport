@@ -51,6 +51,7 @@ Check ```com.infusion.relnotesgen.MainITTest``` for appropriate use case.
 | git.committer.name      	| -gitCommitterName 			| Sometimes it's needed to define this to pass validation rules on push operation | 'Johnny Bravo' |
 | git.committer.mail  		| -gitCommitterMail 			| Sometimes it's needed to define this to pass validation rules on push operation | johnny@hairs.com |
 | git.commitmessage.validationommiter | -gitCommitMessageValidationOmmiter | Suffix that will be appended to commit message under which release notes are commited | '#skipvalidation' |
+| git.defectPattern | -gitDefectPattern | Pattern from which defect id will be search in scm commit messages  | ((defect_)|(FSU-)|(CR_CR)|(CR_FOR)|(R2REQ)|(R3REQ)|(INC000000)|(PBI0000000)|(FOR-)|(CR-))\\d+ |
 | jira.url      			| -jiraUrl 						| URL to jira | https://ensemble.atlassian.net |
 | jira.username   			| -jiraUsername 				| Jira username | johnny  |
 | jira.password   			| -jiraPassword 				| Jira password | passw0rd123  |

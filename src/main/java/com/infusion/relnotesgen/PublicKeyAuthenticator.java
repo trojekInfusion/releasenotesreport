@@ -1,13 +1,10 @@
 package com.infusion.relnotesgen;
 
-import com.jcraft.jsch.JSch;
-import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
 import org.eclipse.jgit.api.GitCommand;
 import org.eclipse.jgit.api.TransportCommand;
 import org.eclipse.jgit.api.TransportConfigCallback;
 import org.eclipse.jgit.transport.*;
-import org.eclipse.jgit.util.FS;
 
 public class PublicKeyAuthenticator implements Authenticator {
     SshSessionFactory sshSessionFactory = new JschConfigSessionFactory() {

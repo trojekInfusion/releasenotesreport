@@ -68,12 +68,31 @@ public class ReleaseNotesModelFactory {
 		ImmutableMap<String, ImmutableSet<ReportJiraIssueModel>> validatedIssueModelsByType = validateIssuesByType(issueModelsByType);
         ImmutableSet<ReportJiraIssueModel> knownIssues = generateKnownIssues(configuration.getKnownIssues(), errors);
         ImmutableSet<ReportJiraIssueModel> knownIssuesWithFixedIssuesRemoved = removeFixedIssuesFromKnownIssues(knownIssues, combinedJiraIssuesNoSubtasks);
-        		
-		ReleaseNotesModel model = new ReleaseNotesModel(getIssueTypes(jiraIssuesByType), validatedIssueModelsByType, 
-        		getCommitsWithDefectIds(commitsWithParsedInfo, combinedJiraIssues), knownIssuesWithFixedIssuesRemoved, versionInfoProvider.getReleaseVersion(),
-                gitInfo.commitTag1, gitInfo.commitTag2, gitInfo.commits.size(), gitInfo.gitBranch, configuration, errors);
+		ImmutableSet<ReportCommitModel> commitsWithDefectIds = getCommitsWithDefectIds(commitsWithParsedInfo);
+		ImmutableSet<ReportCommitModel> commitsWithDefectIdsFiltered = filterOutJiraIssues(commitsWithDefectIds, combinedJiraIssuesNoSubtasks);
+		ReleaseNotesModel model = new ReleaseNotesModel.ReleaseNotesModelBuilder()
+		        .issueCategoryNames(getIssueTypes(jiraIssuesByType)).issuesByCategory(validatedIssueModelsByType)
+		        .commitsWithDefectIds(commitsWithDefectIdsFiltered)
+		        .knownIssues(knownIssuesWithFixedIssuesRemoved).releaseVersion(versionInfoProvider.getReleaseVersion())
+		        .commitTag1(gitInfo.commitTag1).commitTag2(gitInfo.commitTag2).commitsCount(gitInfo.commits.size())
+		        .gitBranch(gitInfo.gitBranch).configuration(configuration).errors(errors)
+                .build();
 
         return model;
+    }
+
+	private ImmutableSet<ReportCommitModel> filterOutJiraIssues(ImmutableSet<ReportCommitModel> commitsWithDefectIds,
+            Map<String, Issue> combinedJiraIssuesNoSubtasks) {
+	    Set<ReportCommitModel> remainingModels = new HashSet<ReportCommitModel>();
+	    remainingModels.addAll(commitsWithDefectIds);
+	    for (ReportCommitModel model :commitsWithDefectIds) {
+	        for (String jiraId : model.getJiraIds()) {
+	            if (combinedJiraIssuesNoSubtasks.containsKey(jiraId)) {
+	                remainingModels.remove(model);
+	            }
+	        }
+	    }
+	    return ImmutableSet.copyOf(remainingModels);
     }
 
     private ImmutableSet<ReportJiraIssueModel> removeFixedIssuesFromKnownIssues(final ImmutableSet<ReportJiraIssueModel> knownIssues, 
@@ -243,23 +262,25 @@ public class ReleaseNotesModelFactory {
         return removeIssuesWithSkipLabels(ImmutableMap.copyOf(temp));
 	}
 
-	private ImmutableSet<ReportCommitModel> getCommitsWithDefectIds(final Iterable<CommitWithParsedInfo> commitMessages,
-                                                                    final ImmutableMap<String, Issue> jiraIssues) {
+	private ImmutableSet<ReportCommitModel> getCommitsWithDefectIds(final Iterable<CommitWithParsedInfo> commitMessages) {
 
-        return FluentIterable.from(commitMessages).filter(new Predicate<CommitWithParsedInfo>() {
-
+	    ImmutableSet<ReportCommitModel> returnData = FluentIterable.from(commitMessages)
+	    .filter(new Predicate<CommitWithParsedInfo>() {
             @Override
             public boolean apply(final CommitWithParsedInfo commitWithParsedInfo) {
                 ImmutableSet<String> defectIds = commitWithParsedInfo.getDefectIds();
                 return !defectIds.isEmpty();
             }
-        }).transform(new Function<CommitWithParsedInfo, ReportCommitModel>() {
-
+        })
+	    .transform(new Function<CommitWithParsedInfo, ReportCommitModel>() {
             @Override
             public ReportCommitModel apply(final CommitWithParsedInfo commitWithParsedInfo) {
                 return toCommitModel(commitWithParsedInfo);
             }
-        }).toSet();
+        })
+	    .toSet();
+	    logger.trace(returnData.toString());
+        return returnData;
     }
 
     private ImmutableMap<String, ImmutableSet<ReportJiraIssueModel>> getIssuesByType(
@@ -420,9 +441,12 @@ public class ReleaseNotesModelFactory {
     }
 
     private ReportCommitModel toCommitModel(final CommitWithParsedInfo commitWithParsedInfo) {
-        return new ReportCommitModel(commitWithParsedInfo.getCommit().getId(),
-                commitWithParsedInfo.getCommit().getMessage(), commitWithParsedInfo.getDefectIds(),
-                commitWithParsedInfo.commit.getAuthor());
+        return new ReportCommitModel.ReportCommitModelBuilder()
+                .id(commitWithParsedInfo.getCommit().getId()) 
+                .message(commitWithParsedInfo.getCommit().getMessage())
+                .author(commitWithParsedInfo.commit.getAuthor())
+                .defectIds(commitWithParsedInfo.getDefectIds()).jiraIds(commitWithParsedInfo.getJiraIssueKeys())
+                .build();
     }
 
     private static class CommitWithParsedInfo {
@@ -455,5 +479,85 @@ public class ReleaseNotesModelFactory {
         public String getPullRequestId() {
             return pullRequestId;
         }
+        
+        public String toString() {
+            StringBuilder temp = new StringBuilder("CommitWithParsedInfo: \n");
+            temp.append("pullRequestId: ").append("[").append(pullRequestId).append("]\n");
+            temp.append("jiraIssueKeys: ").append(jiraIssueKeys).append("\n");
+            temp.append("defectIds: ").append(defectIds).append("\n");
+            temp.append(commit).append("\n");
+            return temp.toString();
+        }
     }
+
+    public static class ReleaseNotesModelFactoryBuilder {
+        private CommitInfoProvider nestedCommitInfoProvider;
+        private JiraConnector nestedJiraConnector;
+        private IssueCategorizer nestedIssueCategorizer;
+        private VersionInfoProvider nestedVersionInfoProvider;
+        private JiraUtils nestedJiraUtils;
+        private CommitMessageParser nestedCommitMessageParser;
+        private SCMFacade.Response nestedGitInfo;
+        private Configuration nestedConfiguration;
+
+        
+        public ReleaseNotesModelFactoryBuilder () {}
+        
+        public ReleaseNotesModelFactoryBuilder commitInfoProvider(final CommitInfoProvider commitInfoProvider) {
+            this.nestedCommitInfoProvider = commitInfoProvider;
+            return this;
+        }
+        
+        public ReleaseNotesModelFactoryBuilder jiraConnector(final JiraConnector jiraConnector) {
+            this.nestedJiraConnector = jiraConnector;
+            return this;
+        }
+        
+        public ReleaseNotesModelFactoryBuilder issueCategorizer(final IssueCategorizer issueCategorizer) {
+            this.nestedIssueCategorizer = issueCategorizer;
+            return this;
+        }
+        
+        public ReleaseNotesModelFactoryBuilder versionInfoProvider(final VersionInfoProvider versionInfoProvider) {
+            this.nestedVersionInfoProvider = versionInfoProvider;
+            return this;
+        }
+        
+        public ReleaseNotesModelFactoryBuilder jiraUtils(final JiraUtils jiraUtils) {
+            this.nestedJiraUtils = jiraUtils;
+            return this;
+        }
+        
+        public ReleaseNotesModelFactoryBuilder commitMessageParser(final CommitMessageParser commitMessageParser) {
+            this.nestedCommitMessageParser = commitMessageParser;
+            return this;
+        }
+        
+        public ReleaseNotesModelFactoryBuilder gitInfo(final SCMFacade.Response gitInfo) {
+            this.nestedGitInfo = gitInfo;
+            return this;
+        }
+        
+        public ReleaseNotesModelFactoryBuilder configuration(final Configuration configuration) {
+            this.nestedConfiguration = configuration;
+            return this;
+        }
+        
+        public ReleaseNotesModelFactory build() throws IllegalStateException  {
+            if (!isInitalizedProperly()) {
+                throw new IllegalStateException("Required parameters were not initialized");
+            }
+            return new ReleaseNotesModelFactory(nestedCommitInfoProvider, nestedJiraConnector, nestedIssueCategorizer, nestedVersionInfoProvider,
+                    nestedJiraUtils, nestedCommitMessageParser, nestedGitInfo, nestedConfiguration);
+        }
+
+        private boolean isInitalizedProperly() {
+            if (nestedCommitInfoProvider==null || nestedJiraConnector==null || nestedIssueCategorizer==null || nestedVersionInfoProvider==null ||
+                    nestedJiraUtils==null || nestedCommitMessageParser==null || nestedGitInfo==null || nestedConfiguration==null) {
+                return false;
+            }
+            return true;
+        }       
+    }
+
 }
