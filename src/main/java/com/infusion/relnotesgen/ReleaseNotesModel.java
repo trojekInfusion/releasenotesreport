@@ -1,6 +1,7 @@
 package com.infusion.relnotesgen;
 
 import com.google.common.base.Function;
+import com.google.common.base.Predicate;
 import com.google.common.collect.*;
 import com.infusion.relnotesgen.ReportCommitModel.ReportCommitModelBuilder;
 import com.infusion.relnotesgen.util.JiraIssueSearchType;
@@ -8,6 +9,7 @@ import com.infusion.relnotesgen.util.JiraIssueSearchType;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -59,14 +61,14 @@ public class ReleaseNotesModel {
         this.knownIssues = knownIssues;
         this.errors = errors;
 
-        uniqueDefects = generateUniqueDefects(issuesByCategory, commitsWithDefectIds);
+        uniqueDefects = generateUniqueDefects(generateValidIssuesByCategory(issuesByCategory), commitsWithDefectIds);
         ImmutableSortedSet<String> uniqueJiras = generateUniqueJiras(issuesByCategory);
 
         jqlLink = generateUrlEncodedJqlString(generateJqlUrl(uniqueJiras));
         knownIssuesJqlLink = generateUrlEncodedJqlString(generateJqlUrl(configuration.getKnownIssues()));
     }
 
-	private ImmutableSortedSet<String> generateUniqueJiras(final ImmutableMap<String, ImmutableSet<ReportJiraIssueModel>> issuesByCategory) {
+    private ImmutableSortedSet<String> generateUniqueJiras(final ImmutableMap<String, ImmutableSet<ReportJiraIssueModel>> issuesByCategory) {
 		return FluentIterable
                 .from(issuesByCategory.values())
                 .transformAndConcat(new Function<ImmutableSet<ReportJiraIssueModel>, List<String>>() {
@@ -93,6 +95,18 @@ public class ReleaseNotesModel {
                 );
 	}
 
+    private ImmutableMap<String, ImmutableSet<ReportJiraIssueModel>> generateValidIssuesByCategory(
+            ImmutableMap<String, ImmutableSet<ReportJiraIssueModel>> issuesByCategory) {
+        Map<String, ImmutableSet<ReportJiraIssueModel>> validIssuesByCategoryTemp = new HashMap<String, ImmutableSet<ReportJiraIssueModel>>();
+        validIssuesByCategoryTemp.putAll(issuesByCategory);
+        for (JiraIssueSearchType curr : JiraIssueSearchType.values()) {
+            if (!curr.isValid()) {
+                validIssuesByCategoryTemp.remove(curr.title());
+            }
+        }
+        return ImmutableMap.copyOf(validIssuesByCategoryTemp);
+    }
+
 	private ImmutableSortedSet<String> generateUniqueDefects(final ImmutableMap<String, ImmutableSet<ReportJiraIssueModel>> issuesByCategory,
 			final ImmutableSet<ReportCommitModel> commitsWithDefectIds) {
 		return FluentIterable
@@ -109,14 +123,7 @@ public class ReleaseNotesModel {
                                 }
                             }).toList();
                     }
-                }).append(FluentIterable.from(commitsWithDefectIds)
-	                    .transformAndConcat(new Function<ReportCommitModel, ImmutableSet<String>>() {
-	                        @Override
-	                        public ImmutableSet<String> apply(ReportCommitModel reportCommitModel) {
-	                            return reportCommitModel.getDefectIds();
-	                        }
-	                    })
-                )
+                })
                 .transform(new Function<String, String>() {
                     @Override
                     public String apply(String s) {
@@ -162,7 +169,12 @@ public class ReleaseNotesModel {
     }
 	
     public boolean categoryNameIsInvalid(final String categoryName) {
-    	return JiraIssueSearchType.INVALID_STATE.title().equals(categoryName) || JiraIssueSearchType.INVALID_FIX_VERSION.title().equals(categoryName);
+        for (JiraIssueSearchType curr : JiraIssueSearchType.values()) {
+            if (curr.title().equals(categoryName) && !curr.isValid()) {
+                return true;
+            }
+        }
+        return false;
     }
 
 	public List<String> getIssueCategoryNamesList() {
@@ -180,7 +192,13 @@ public class ReleaseNotesModel {
     }
 
     public int getTotalInvalidIssueCount() {
-        return getIssueCountByCategoryName(JiraIssueSearchType.INVALID_FIX_VERSION.title()) + getIssueCountByCategoryName(JiraIssueSearchType.INVALID_STATE.title());
+        int invalidCount = 0;
+        for (JiraIssueSearchType curr : JiraIssueSearchType.values()) {
+            if (!curr.isValid()) {
+                invalidCount += getIssueCountByCategoryName(curr.title());
+            }
+        }
+        return invalidCount;
     }
 	
 	
