@@ -13,6 +13,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -225,6 +226,41 @@ public class ReleaseNotesModel {
     	} else {
     		return ImmutableSet.copyOf(new HashSet<ReportJiraIssueModel>());
     	}
+    }
+    
+    public ImmutableSet<String> getInvalidStateIssueStatuses() {
+        if (issuesByCategory.containsKey(getInvalidByStatusCategoryName())) {
+            return retrieveInvalidIssuesStatusNames(issuesByCategory.get(getInvalidByStatusCategoryName()));
+        } else {
+            return ImmutableSet.copyOf(new HashSet<String>());
+        }
+    }
+
+    public ImmutableSet<ReportJiraIssueModel> getInvalidStateIssuesByStatus(final String statusName) {
+        if (issuesByCategory.containsKey(getInvalidByStatusCategoryName())) {
+            return retrieveInvalidIssuesByStatusName(issuesByCategory.get(getInvalidByStatusCategoryName()), statusName);
+        } else {
+            return ImmutableSet.copyOf(new HashSet<ReportJiraIssueModel>());
+        }
+    }
+
+    private ImmutableSet<ReportJiraIssueModel> retrieveInvalidIssuesByStatusName(
+            ImmutableSet<ReportJiraIssueModel> invalidIssues, String statusName) {
+        Set<ReportJiraIssueModel> invalidIssuesByStatusName = new HashSet<ReportJiraIssueModel>();
+        for (ReportJiraIssueModel curr : invalidIssues) {
+            if (statusName.equalsIgnoreCase(curr.getStatus())) {
+                invalidIssuesByStatusName.add(curr);
+            }
+        }
+        return ImmutableSet.copyOf(invalidIssuesByStatusName);
+    }
+
+    private ImmutableSet<String> retrieveInvalidIssuesStatusNames(ImmutableSet<ReportJiraIssueModel> invalidIssues) {
+        Set<String> statusNames =  new HashSet<String>();
+        for (ReportJiraIssueModel curr : invalidIssues) {
+            statusNames.add(curr.getStatus());
+        }
+        return ImmutableSet.copyOf(statusNames);
     }
 
     public ImmutableSet<ReportCommitModel> getCommitsWithDefectIds() {

@@ -7,6 +7,18 @@
     </ul>
 </#macro>
 
+<#macro displayInvalidIssuesForCategoryByStatus categoryName>
+    <h4><p class="bg-success">${categoryName} <span class="badge">${getIssueCountByCategoryName(categoryName)}</span></p></h3>
+    <ul>
+        <#list getInvalidStateIssueStatuses() as status>
+		    <h4><p class="bg-success">${status}</p></h3>
+	        <#list getInvalidStateIssuesByStatus(status) as issue>
+				<@showIssueDetails issue=issue/>
+	        </#list>
+        </#list>
+    </ul>
+</#macro>
+
 <#macro commitsWithDefectsSection commitsWithDefectIds>
     <h4><p class="bg-success">Commits with Defects <span class="badge">${commitsWithDefectIds.size()}</span></p></h4>
     <ul>
@@ -53,7 +65,7 @@
     <h3><p class="bg-success">Invalid Issues <span class="badge">${getTotalInvalidIssueCount()}</span></p></h3>
     <div style="margin:10px 40px">
 		<@commitsWithDefectsSection commitsWithDefectIds=commitsWithDefectIds/>
-		<@displayInvalidIssuesForCategory categoryName=getInvalidByStatusCategoryName()/>
+		<@displayInvalidIssuesForCategoryByStatus categoryName=getInvalidByStatusCategoryName()/>
 		<@displayInvalidIssuesForCategory categoryName=getInvalidByFixVersionCategoryName()/>
     </div>
 </#macro>
