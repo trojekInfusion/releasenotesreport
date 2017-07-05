@@ -7,6 +7,7 @@
 .apt_generated
 .externalToolBuilders
 .idea
+.tmp
 dependency-reduced-pom.xml
 build
 bin
@@ -15,3 +16,5 @@ classes
 *.class
 **/*.iml
 *.log
+1_0-SNAPSHOT.html
+configuration.properties

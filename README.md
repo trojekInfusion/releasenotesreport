@@ -13,9 +13,9 @@
 ## Sample use
 
 ### Command line with configuration .properties file
-Parameters for program can be defined in .properties file defined by cli parameter named _configurationFilePath_ 
+Parameters for program can be defined in .properties file defined by cli parameter named _configurationFilePath_
 
-	java -jar target/release-notes-generator-1.0-SNAPSHOT.jar -tag1 0.19.0.20 -configurationFilePath ./configuration.properties
+	java -jar target/release-notes-generator-1.0-SNAPSHOT.jar -configurationFilePath ./configuration.properties -tag1 0.19.0.20
 sample configuration.properties file can be found in src/test/resources/configuration.properties
 
 ### Command line with cli parameters
@@ -31,7 +31,7 @@ Check ```com.infusion.relnotesgen.MainITTest``` for appropriate use case.
                 .gitBranch("master")
 				...
                 .invoke();
-         
+
 ## Parameters overview
 
 | .properties params name   | cli params name				| description         | example value |
@@ -43,6 +43,7 @@ Check ```com.infusion.relnotesgen.MainITTest``` for appropriate use case.
 | n/a	 			   		| -tag2 						| tag 2 name - connected commit to given tag will serve as commitId2 parameter | 1.0.0 |
 | n/a	 			     	| -pushReleaseNotes 			| boolean parameter, define should push to remote repository under 'releases/version_number.html' should be performed | |
 | git.url         			| -gitUrl 						| URL to git repository | https://stash.infusion.com/scm/en/symphony.git |
+| git.browsePrs.url         | -gitBrowsePrsUrl 				| URL to browse git repository | stash.infusion.com/projects/EN/repos/harmony/pull-requests/ |
 | git.directory    			| -gitDirectory 				| Path under which git repository is held localy. If none exists it will be cloned under this location. Directory structure will be created if it doesn't exist | C:/temp/testsymphony |
 | git.branch       			| -gitBranch 					| Branch name from where scm history will be read and release notes will be pushed | develop |
 | git.username      		| -gitUsername 					| Git username | johnny |
@@ -50,10 +51,14 @@ Check ```com.infusion.relnotesgen.MainITTest``` for appropriate use case.
 | git.committer.name      	| -gitCommitterName 			| Sometimes it's needed to define this to pass validation rules on push operation | 'Johnny Bravo' |
 | git.committer.mail  		| -gitCommitterMail 			| Sometimes it's needed to define this to pass validation rules on push operation | johnny@hairs.com |
 | git.commitmessage.validationommiter | -gitCommitMessageValidationOmmiter | Suffix that will be appended to commit message under which release notes are commited | '#skipvalidation' |
+| git.defectPattern | -gitDefectPattern | Pattern from which defect id will be search in scm commit messages  | ((defect_)|(FSU-)|(CR_CR)|(CR_FOR)|(R2REQ)|(R3REQ)|(INC000000)|(PBI0000000)|(FOR-)|(CR-))\\d+ |
 | jira.url      			| -jiraUrl 						| URL to jira | https://ensemble.atlassian.net |
 | jira.username   			| -jiraUsername 				| Jira username | johnny  |
 | jira.password   			| -jiraPassword 				| Jira password | passw0rd123  |
 | jira.issuepattern   		| -jiraIssuePattern 			| Pattern from which jira issue's id will be search in scm commit messages | SYM-\d+ |
+| jira.completedStatuses	| -completedStatuses 			| Coma seprated list of statuses that indicate that Jira was completed eg. PO Review,Completed,Verify On Dublin QA,Ready For QA,QA in Progress,Removed |
+| jira.knownIssues      	| -jiraKnownIssues 				| Jira JQL for finding known issues | id in (HA-10024) |
+| jira.fixVersions      	| -jiraFixVersions 				| Jira FixVersions | R3.1,R3.2 |
 | issue.filterby.component	| -issueFilterByComponent 		| List of jira's component's name separated by ',' if defined only issues that has at least one of those component will be in release notes (exacly jira's component's name must contains ignore case given here component) | System 1,veryImportan,Something something |
 | issue.filterby.type		| -issueFilterByType 			| List of jira's issue type's name separated by ',' if defined only issues that has at least one of those type will be in release notes (defined here type name must exacly (ignore case) match type name of issues in jira) | New Feature,Bug,Technical Task |
 | issue.filterby.label		| -issueFilterByLabel 			| List of jira's labels separated by ',' if defined only issues that has at least one of those labels will be in release notes (exacly jira's label's name must contains ignore case given here label) | label1,label2,label3 |
@@ -61,17 +66,18 @@ Check ```com.infusion.relnotesgen.MainITTest``` for appropriate use case.
 | issue.sort.type			| -issueSortType 				| Defines sort order of issues by type - issues are provided in report template context as map where key is issue type and value is list of issues with that type, this map is sorted | New Feature,Bug |
 | issue.sort.priority		| -issueSortPriority 			| In report template issues are provided as map where key is issue type and value is list of issue with that type, this parameter defines order in list of issues | Highest,High,Medium,Low,Lowest |
 | report.directory			| -reportDirectory 				| Directory where release notes will be saved | C:/temp |
+| report.clientFacingFilters			| -clientFacingFilters 				| Indicates fields which indicate issue should be included in client facing report | Requirement VA ID,Defect_Id |
 | report.template			| -reportTemplate 				| Path to external template for release notes. Freemarker is used as template engine. Variables provided in context: \$\{issues\} - map of issues where key is issue type and value list of issues; \$\{jiraUrl\} - url to jira; \$\{version\} - version for which release notes are generated | C:/releaseNotes/template.ftl |
-
+| jira.labelsToSkip			| -jiraLabelsToSkip 				| List of labels to skip | SX35 |
 
 ## Known issues
 
 #### Jira ssl certificate
-Attlasian jira client used in rng requires to have valid certificate for jira address stored in jre key store. 
+Attlasian jira client used in rng requires to have valid certificate for jira address stored in jre key store.
 Detailed instruction on how add new certificate to sore:
 https://confluence.atlassian.com/display/STASHKB/SSLHandshakeException+-+unable+to+find+valid+certification+path+to+requested+target
 
 #### Search by latest tags
-When rng is run without commitId\* and tag\* parameters then release notes will be generated for last 2 tags. 
+When rng is run without commitId\* and tag\* parameters then release notes will be generated for last 2 tags.
 It may happen that those 2 tags are connected to commits that are not available on branch which rng is using - in that case RuntimeException will be thrown with message:
 _No commit were found for given commit ids commitId1, commitId2. Maybe branch is badly chosen._
